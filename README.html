@@ -13,13 +13,13 @@
         The files for this project are released under an <a href='LICENCE.txt'>MIT licence</a>.
         </p>
     <ul>
-        <li>Web copy of latest files at <a href='http://reluk.ca/project/Breccia/browsable/'>
+        <li>Web copy of latest files at <a href='http://reluk.ca/project/Breccia/Web/imager/'>
             reluk.ca</a>.</li>
         <li>Browsable revision history at <a>GitHub</a>.* (top of this page)</li>
         <li>
             Bare `.git` clones at
-            <a href=    'http://reluk.ca/var/repo/git/Breccia.browsable.git'>reluk.ca</a> or
-            <a href='https://github.com/Michael-Allan/Breccia.browsable.git'>GitHub</a>.*
+            <a href=    'http://reluk.ca/var/repo/git/Breccia.Web.imager.git'>reluk.ca</a> or
+            <a href='https://github.com/Michael-Allan/Breccia.Web.imager.git'>GitHub</a>.*
             <div style='font-size:0.85em; margin-left:1em; margin-top:0.3em; opacity:0.7'>
                 * Branch `reluk.ca` is liable to be rebased, `master` is stable.
                 </div>
@@ -48,7 +48,7 @@
                 if( t.localName !== 'a' ) continue;
 
                 let maybeFinished = false;
-                if( !isCorrect_reluk && t.href === 'http://reluk.ca/project/Breccia/browsable/' )
+                if( !isCorrect_reluk && t.href === 'http://reluk.ca/project/Breccia/Web/imager/' )
                 {
                   // Disable useless hyperlink, appending text directions instead
                   // ─────────────────────────
@@ -69,7 +69,7 @@
                           // ────────────────────────────────
                             text.replaceData( 2, text.length, '' ); // Removing the parenthetic trailer.
                             t.setAttribute( 'href',
-                              'https://github.com/Michael-Allan/Breccia.browsable/' );
+                              'https://github.com/Michael-Allan/Breccia.Web.imager/' );
                             isCorrect_github = maybeFinished = true;
                         }
                     }
