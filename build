@@ -1,0 +1,45 @@
+#!/usr/bin/env --split-string=${JDK_HOME}/bin/java --source 14
+package Breccia.Web.imager;
+
+// The builder for project Breccia.Web.imager.  It builds the project code, compiling it
+// and preparing it for use.
+//
+// USAGE
+// ─────
+//   1. Verify that the following command reports a `javac` version of 14, or later.
+//
+//        $ ${JDK_HOME}/bin/javac --version
+//
+//      Otherwise:
+//
+//        a) Ensure that JDK 14 or later is installed.  See e.g. `https://jdk.java.net/`.
+//        b) Ensure that environment variable `JDK_HOME` is set to its installation directory.
+//        c) Retry.
+//
+//   2. Run this builder:
+//
+//        $ PATH/build
+//
+//      For example:
+//
+//        $ ~/work/Breccia/Web/imager/build
+
+
+
+public final class Builder {
+
+
+
+    private Builder() {}
+
+
+
+    /** Builds the project code, subject to any conditions given as arguments.
+      */
+    public static void main( final String[] arguments ) {
+        System.err.println( " ——— TEST: Here it will build" );
+        ; }}
+
+
+
+                                       // Copyright © 2020, Michael Allan and contributors.  Licence MIT.
