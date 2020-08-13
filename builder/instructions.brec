@@ -1,0 +1,35 @@
+Building the software
+
+
+    ━━━━━━━━━━━━━━━━
+     Initial set-up
+    ────────────────
+        1+ Ensure that JDK 14 or later is installed.
+            : see https://jdk.java.net/
+
+        2+ Ensure the path to its installation directory is recorded in environment variable `JDK_HOME`,
+           which is exported.
+            : re `exported` see https://man7.org/linux/man-pages/man1/export.1p.html
+            : re `exported` see `^^export$` @
+              https://man7.org/linux/man-pages/man1/bash.1.html#SHELL_BUILTIN_COMMANDS
+
+        3+ Test the JDK installation from the command line.
+            >+ ${JDK_HOME}/bin/javac --version
+            - It should report a `javac` version of 14, or later.
+
+        4+ Test run the builder.
+            >+ PROJECT/build null
+                : see `^^PROJECT$` @ `^^ Note$`
+
+
+
+    ━━━━━━
+     Note
+    ──────
+        PROJECT
+            - Substitute for ‘PROJECT’ the directory wherein you installed Breccia.Web.imager,
+              or an alias such as `.`.
+
+
+
+                                        \ Copyright © 2020, Michael Allan and contributors.  Licence MIT.
