@@ -1,17 +1,17 @@
-#!/usr/bin/env --split-string=${JDK_HOME}/bin/java --source 14
+#!/usr/bin/env --split-string=${JDK_HOME}/bin/java @builder/java_arguments
 package Breccia.Web.imager.builder;
 
-// This is the software builder for project Breccia.Web.imager.  It builds the project code, compiling it
-// and preparing it for use.
+// This is the `build` command for project Breccia.Web.imager.  It effects a software build in which
+// the project code is compiled and prepared for use.
 //
-// For usage instructions, see `./builder/instructions.brec`.
+// For usage instructions, see `./instructions.brec`.
 
 
-public final class Builder {
+public final class BuildCommand {
 
 
 
-    private Builder() {}
+    private BuildCommand() {}
 
 
 
