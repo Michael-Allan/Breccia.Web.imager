@@ -1,4 +1,4 @@
-#!/usr/bin/env --split-string=${JDK_HOME}/bin/java @builder/java_arguments
+#!/usr/bin/env --split-string=${JDK_HOME}/bin/java @builder/java_arguments \c [SS]
 package Breccia.Web.imager.builder;
 
 // This is the `build` command for project Breccia.Web.imager.  It effects a software build in which
@@ -20,6 +20,14 @@ public final class BuildCommand {
     public static void main( final String[] arguments ) {
         System.err.println( " ——— TEST: Here it will build" );
         ; }}
+
+
+
+// NOTE
+// ────
+//   SS · Here the long form `--split-string` (as opposed to `-S`) enables Emacs tp recognize this file
+//        as Java source code.  See the note entitled ‘source-launch files encoded with a shebang’ at
+//        `http://reluk.ca/project/Java/Emacs/user_instructions.brec`.
 
 
 
