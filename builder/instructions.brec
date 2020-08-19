@@ -33,7 +33,7 @@ Building the software
         ./
             - The leading `./` is optional here; its only purpose is to enable the convenience
               of command-line completion by your shell.
-            - For something *more* convenient:
+            - For something *more* convenient
                 : see http://reluk.ca/project/building/build
         >
             / Also ‘>+’.
