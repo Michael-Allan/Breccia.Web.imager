@@ -24,6 +24,8 @@ Building the software
                   @ http://reluk.ca/project/building/action_plan.brec
             >+ ./builder/build null
                 : re `\./` see @ `^^ Notes$`
+        working example
+            : see http://reluk.ca/.bashrc
 
 
 
