@@ -1,8 +1,0 @@
-# `java` arguments for the `build` command  | -*- coding: us-ascii; mode: conf-javaprop; -*-
-#
-# This is a `java` command-line argument file.  It is a referent of `./build`.  For syntax and so forth:
-# `https://docs.oracle.com/en/java/javase/14/docs/specs/man/java.html#java-command-line-argument-files`.
-
-    -enableassertions:Breccia...
-   --source 14
-    -XX:+ShowCodeDetailsInExceptionMessages # https://openjdk.java.net/jeps/358

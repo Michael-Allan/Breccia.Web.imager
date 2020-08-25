@@ -1,50 +1,9 @@
 Building the software
 
-
-    ━━━━━━━━━━━━━━━━
-     Initial set-up
-    ────────────────
-        1+ Ensure you are running Linux.
-            : see `^^operating system$` @ http://reluk.ca/project/building/action_plan.brec
-        2+ Ensure JDK 14 or later is installed.
-            : see https://jdk.java.net/
-        3+ Ensure the path to its installation directory is recorded in environment variable `JDK_HOME`,
-           which is exported.
-            : re `exported` see https://man7.org/linux/man-pages/man1/export.1p.html
-            : re `exported` see `^^export$` @
-              https://man7.org/linux/man-pages/man1/bash.1.html#SHELL_BUILTIN_COMMANDS
-        4+ Test the JDK installation from the command line.
-            + Confirm it reports a `javac` version of 14, or later.
-                >+ ${JDK_HOME}/bin/javac --version
-                    : re `>` see @ `^^ Notes$`
-        5+ Test run the builder.
-            >+ cd PROJECT/
-                : re `PROJECT` see @ `^^ Notes$`
-                : see `^^working directory for software builds$`
-                  @ http://reluk.ca/project/building/action_plan.brec
-            >+ ./builder/build null
-                : re `\./` see @ `^^ Notes$`
-        working example
-            : see http://reluk.ca/.bashrc
-
-
-
-    ━━━━━━━
-     Notes
-    ───────
-        ./
-            - The leading `./` is optional here; its only purpose is to enable the convenience
-              of command-line completion by your shell.
-            - For something *more* convenient
-                : see http://reluk.ca/project/building/build
-        >
-            / Also ‘>+’.
-            - The representation of a command prompt.
-        PROJECT
-            - Placeholder for the present project directory, where the present file
-              is `PROJECT/builder/instructions.brec`
-            - Substitute for ‘PROJECT’ the actual path.
-
+    + Ensure the building project is installed.
+        : see http://reluk.ca/project/building/
+    + Follow its build instructions.
+        : see http://reluk.ca/project/building/build_instructions.brec
 
 
                                         \ Copyright © 2020, Michael Allan and contributors.  Licence MIT.
