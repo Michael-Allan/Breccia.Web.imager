@@ -1,9 +1,10 @@
 Installation instructions for project Breccia.Web.imager
 
-    + Install the files of this project into `*PROJECTS*/Breccia/Web/imager/`.
-        / Here *PROJECTS* is a placeholder for the general project-installation directory, into which
-          compatible software projects are installed.  The present file, for example, would properly
-          be installed at `*PROJECTS*/Breccia/Web/imager/project_installation.brec`.
+    + Install the files of this project into `*COMMAND-DIRECTORY*/Breccia/Web/imager/`.
+        / COMMAND-DIRECTORY is where all project installations related to the building project
+          are accessible by their proper paths.  The present file, for example, would correctly
+          be installed at `*COMMAND-DIRECTORY*/Breccia/Web/imager/project_installation.brec`.
+            : see `^^command directory$` @ http://reluk.ca/project/building/lexicon.brec
 
     Web publication
         • Breccian files
