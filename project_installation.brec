@@ -1,14 +1,21 @@
-Installation instructions for project Breccia.Web.imager
+Installation instructions for the Breccia Web imager
 
-    + Install the files of this project into `*COMMAND-DIRECTORY*/Breccia/Web/imager/`.
-        / COMMAND-DIRECTORY is where all project installations related to the building project
-          are accessible by their proper paths.  The present file, for example, would correctly
-          be installed at `*COMMAND-DIRECTORY*/Breccia/Web/imager/project_installation.brec`.
-            : see `^^command directory$` @ http://reluk.ca/project/building/lexicon.brec
+    + Ensure Makeshift is installed.
+        : see http://reluk.ca/project/building/Makeshift/
+    + Install the files of the present project.
+        >+ cd *COMMAND-DIRECTORY*/
+            / The command directory is where project installations are accessible by their proper paths.
+              The present project, for example, will shortly be accessible at `Breccia/Web/imager`.
+                : see `^^command directory$` @ http://reluk.ca/project/building/lexicon.brec
+        >+ git clone http://reluk.ca/var/repo/git/Breccia.Web.imager.git Breccia/Web/imager
+    + Build the software.
+        >+ build Breccia/Web/imager class_files
+        : see http://reluk.ca/project/building/Makeshift/build_instructions.brec
 
     Web publication
         • Breccian files
             : join @ http://reluk.ca/project/Breccia/project_installation.brec
+
 
 
                                                          \ Copyright © 2020  Michael Allan.  Licence MIT.
