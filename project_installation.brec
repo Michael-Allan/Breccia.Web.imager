@@ -11,6 +11,9 @@ Installation instructions for the Breccia Web imager
     + Build the software.
         >+ build Breccia/Web/imager class_files
         : see http://reluk.ca/project/building/Makeshift/build_instructions.brec
+    + Test your access to the `image` command.
+        >+ Breccia/Web/imager/bin/image
+            / ⇒  Usage: image <PATH>...
 
     Web publication
         • Breccian files

@@ -1,0 +1,64 @@
+#!/usr/bin/env --split-string=${JDK_HOME}/bin/java @Breccia/Web/imager/java_arguments \c [SS]
+package Breccia.Web.imager; // [AFN]
+
+// Usage:  image <PATH>…
+//
+// This command runs directly from the present source file, which is uncompiled during builds.
+
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+
+/** A shell command to …  It …
+  */
+public final class ImageCommand { // [AFN]
+
+
+
+    private ImageCommand( final String[] arguments ) {
+        this.arguments = arguments; }
+
+
+
+    /** Takes an `image` command from the shell and executes it.
+      */
+    public static void main( final String[] arguments ) {
+        if( arguments.length == 0 ){
+            System.err.println( "Usage: image <PATH>..." );
+            System.exit( 1 ); }
+        new ImageCommand( arguments ).execute(); }
+
+
+
+////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    private final String[] arguments;
+
+
+
+    /** Executes the command.
+      */
+    private void execute() {
+        final List<Path> paths = new ArrayList<>();
+        for( final String argument: arguments ) paths.add( Path.of( argument ));
+        new Imager( null, null, null ).image( paths ); }}
+
+
+
+// NOTES
+// ─────
+//   AFN  Atypical file naming is allowed here.  ‘The compiler does not enforce the optional restriction
+//        defined at the end of JLS §7.6, that a type in a named package should exist in a file whose
+//        name is composed from the type name followed by the .java extension.’
+//        http://openjdk.java.net/jeps/330
+//        https://docs.oracle.com/javase/specs/jls/se15/html/jls-7.html#jls-7.6
+//
+//   SS · Here the long form `--split-string` (as opposed to `-S`) enables Emacs to recognize this file
+//        as Java source code.  See the note apropos ‘source-launch files encoded with a shebang’ at
+//        `http://reluk.ca/project/Java/Emacs/jmt-mode.el`.
+
+
+
+                                                        // Copyright © 2020  Michael Allan.  Licence MIT.
