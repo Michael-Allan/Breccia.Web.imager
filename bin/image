@@ -6,8 +6,9 @@ package Breccia.Web.imager; // [AFN]
 // This command runs directly from the present source file, which is uncompiled during builds.
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import Java.UserError;
+import java.util.HashSet;
+import java.util.Set;
 
 
 /** A shell command to …  It …
@@ -24,7 +25,7 @@ public final class ImageCommand { // [AFN]
     /** Takes an `image` command from the shell and executes it.
       */
     public static void main( final String[] arguments ) {
-        if( arguments.length == 0 ){
+        if( arguments.length == 0 ) {
             System.err.println( "Usage: image <PATH>..." );
             System.exit( 1 ); }
         new ImageCommand( arguments ).execute(); }
@@ -41,9 +42,13 @@ public final class ImageCommand { // [AFN]
     /** Executes the command.
       */
     private void execute() {
-        final List<Path> paths = new ArrayList<>();
+        final Set<Path> paths = new HashSet<>();
         for( final String argument: arguments ) paths.add( Path.of( argument ));
-        new Imager( null, null, null ).image( paths ); }}
+        final ProductionFlow flow = new ProductionFlow( null, null, null );
+        try { new ProductionSet( paths, flow ).produce(); }
+        catch( final UserError x ) {
+            System.err.println( "image: " + x.getMessage() );
+            System.exit( 1 ); }}}
 
 
 
@@ -56,7 +61,7 @@ public final class ImageCommand { // [AFN]
 //        https://docs.oracle.com/javase/specs/jls/se15/html/jls-7.html#jls-7.6
 //
 //   SS · Here the long form `--split-string` (as opposed to `-S`) enables Emacs to recognize this file
-//        as Java source code.  See the note apropos ‘source-launch files encoded with a shebang’ at
+//        as Java source code.  See the note apropos of ‘source-launch files encoded with a shebang’ at
 //        `http://reluk.ca/project/Java/Emacs/jmt-mode.el`.
 
 

@@ -1,7 +1,10 @@
 Installation instructions for the Breccia Web imager
 
-    + Ensure Makeshift is installed.
-        : see http://reluk.ca/project/building/Makeshift/
+    + Ensure the following projects are installed.
+        • Makeshift
+            : see http://reluk.ca/project/building/Makeshift/
+        • the Java programming project
+            : see http://reluk.ca/project/Java/
     + Install the files of the present project.
         >+ cd *COMMAND-DIRECTORY*/
             / The command directory is where project installations are accessible by their proper paths.
@@ -9,6 +12,7 @@ Installation instructions for the Breccia Web imager
                 : see `^^command directory$` @ http://reluk.ca/project/building/lexicon.brec
         >+ git clone http://reluk.ca/var/repo/git/Breccia.Web.imager.git Breccia/Web/imager
     + Build the software.
+        >+ build Java class_files
         >+ build Breccia/Web/imager class_files
         : see http://reluk.ca/project/building/Makeshift/build_instructions.brec
     + Test your access to the `image` command.
