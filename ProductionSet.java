@@ -29,7 +29,7 @@ public final class ProductionSet {
 
 
 
-    /** Creates or updates the images of this production set.  Logs a record at level `FINE`
+    /** Creates or updates the image of this production set.  Logs a record at level `FINE`
       * for any unreadable Breccian file, and for any unreadable or unwritable directory.
       *
       *     @see java.util.logging.Level#FINE
