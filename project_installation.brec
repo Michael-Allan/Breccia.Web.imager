@@ -1,23 +1,51 @@
 Installation instructions for the Breccia Web imager
 
-    + Ensure the following projects are installed.
-        • Makeshift
-            : see http://reluk.ca/project/building/Makeshift/
-        • the Java programming project
-            : see http://reluk.ca/project/Java/
-    + Install the files of the present project.
-        >+ cd *COMMAND-DIRECTORY*/
-            / The command directory is where project installations are accessible by their proper paths.
-              The present project, for example, will shortly be accessible at `Breccia/Web/imager`.
-                : see `^^command directory$` @ http://reluk.ca/project/building/lexicon.brec
-        >+ git clone http://reluk.ca/var/repo/git/Breccia.Web.imager.git Breccia/Web/imager
-    + Build the software.
-        >+ build Java class_files
-        >+ build Breccia/Web/imager class_files
-        : see http://reluk.ca/project/building/Makeshift/build_instructions.brec
-    + Test your access to the `image` command.
-        >+ Breccia/Web/imager/bin/image
-            / ⇒  Usage: image <PATH>...
+    initial set-up
+        1+ Ensure the following projects are installed.
+            • Makeshift
+                : see http://reluk.ca/project/building/Makeshift/
+            • The Java programming project
+                : see http://reluk.ca/project/Java/
+        2+ Install the files of the present project.
+            >+ cd <command-directory>/
+                / The command directory is where project installations are accessible by their
+                  proper paths.  The present project, for example, will shortly be accessible
+                  at `Breccia/Web/imager`.
+                    : see `^^command directory$` @ http://reluk.ca/project/lexicon.brec
+            >+ git clone http://reluk.ca/var/repo/git/Breccia.Web.imager.git Breccia/Web/imager
+        3+ Build the software.
+            : join @ http://reluk.ca/project/Java/project_installation.brec
+            >+ build Breccia/Web/imager class_files
+        4+ Test your access to the `image` command.
+            >+ Breccia/Web/imager/bin/image -?
+            /
+            ⇒  Usage: image <path>...
+
+        5+ Test your access to the runtime event log.
+            >+ test-logging Breccia.Web.imager
+            /
+            ⇒  Nov. 07, 2020 9:46:47 P.M. Java.LoggingTestCommand execute
+               OFF: Logging at levels `OFF`, `SEVERE`, `WARNING`, `INFO`, `CONFIG`, `FINE`, `FINER`, `FINEST` and `ALL`:
+               Nov. 07, 2020 9:46:47 P.M. Java.LoggingTestCommand test
+               OFF: Testing at level OFF
+               Nov. 07, 2020 9:46:47 P.M. Java.LoggingTestCommand test
+               SEVERE: Testing at level SEVERE
+               Nov. 07, 2020 9:46:47 P.M. Java.LoggingTestCommand test
+               WARNING: Testing at level WARNING
+               Nov. 07, 2020 9:46:47 P.M. Java.LoggingTestCommand test
+               INFO: Testing at level INFO
+               Nov. 07, 2020 9:46:47 P.M. Java.LoggingTestCommand test
+               CONFIG: Testing at level CONFIG
+               Nov. 07, 2020 9:46:47 P.M. Java.LoggingTestCommand test
+               FINE: Testing at level FINE
+
+            - The location of the log depends on your logger configuration,
+              as does the number of levels that appear.
+                : re `logger configuration` see `^^working example$`
+            + Ensure the test messages extend down to level `FINE` at least.
+                >+ grep --fixed-strings --recursive 'logging.Level' Breccia/Web/imager/
+        working example
+            : see http://reluk.ca/sys/computer/workstation/opt/_/java-logging.properties
 
     Web publication
         • Breccian files
