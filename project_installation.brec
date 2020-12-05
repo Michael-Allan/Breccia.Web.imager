@@ -15,7 +15,7 @@ Installation instructions for the Breccia Web imager
             >+ git clone http://reluk.ca/var/repo/git/Breccia.Web.imager.git Breccia/Web/imager
         3+ Build the software.
             : join @ http://reluk.ca/project/Java/project_installation.brec
-            >+ build Breccia/Web/imager class_files
+            >+ build Breccia/Web/imager class-files
         4+ Test your access to the `image` command.
             >+ Breccia/Web/imager/bin/image -?
             /
