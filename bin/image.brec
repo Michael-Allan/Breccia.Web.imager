@@ -2,19 +2,20 @@
 
         image <path>…
 
-    - The `image` command makes a Web image by producing, for each Breccian source file
-      stored at or under the given paths, a sibling file with a `.xht` extension.
+    - The `image` command makes a Web image by producing, for each Breccian source file stored at
+      or under the given paths, including any Waybreccian file properly stored in a waycast thereof,
+      a sibling file with a `.xht` extension.
     - The working directory must be the command directory.
-        : see `^^working directory$` @ `^^shell commands$`
-          @ http://reluk.ca/project/Java/action_plan.brec
+        : see `^^working directory$` @ `^^shell commands$` @
+          http://reluk.ca/project/Java/action_plan.brec
 
 
     ━━━━━━━━━━
      See also
     ──────────
-        • `image`, of the waycast Web imager
+        • The `image` command of the waycast Web imager.
             : see http://reluk.ca/project/wayic/Web/imager/bin/clean.brec
-            - Use this `image` command for any production set that might include a waycast.
+            - For use where the source path might include a waycast.
 
 
 
