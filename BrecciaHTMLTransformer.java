@@ -3,7 +3,6 @@ package Breccia.Web.imager;
 import Breccia.parser.BrecciaReader;
 import Breccia.parser.BrecciaXTranslator;
 import java.nio.file.Path;
-import javax.xml.stream.XMLStreamException;
 
 
 public final class BrecciaHTMLTransformer implements FileTransformer {
@@ -12,7 +11,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer {
    // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override void transform( Path sourceFile ) throws XMLStreamException {
+    public @Override void transform( Path sourceFile ) {
         try( final BrecciaReader source = new BrecciaReader( sourceFile );
              final BrecciaXTranslator in = new BrecciaXTranslator( source ); ) {
             for( ;; ) {

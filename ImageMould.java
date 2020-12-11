@@ -7,7 +7,6 @@ import Java.UserError;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javax.xml.stream.XMLStreamException;
 
 import static java.util.logging.Level.FINE;
 
@@ -73,8 +72,7 @@ public final class ImageMould {
     private void pullFile( final Path f ) {
         if( !looksBreccian( f )) return;
         System.out.println( "   ← " + f ); // TEST
-        try { transformer.transform( f ); }
-        catch( XMLStreamException x ) { throw new RuntimeException( x ); }}
+        transformer.transform( f ); }
 
 
 
