@@ -7,7 +7,7 @@ import Java.UserError;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-import javax.xml.stream.XMLStreamWriter;
+import javax.xml.stream.XMLStreamException;
 
 import static java.util.logging.Level.FINE;
 
@@ -20,14 +20,14 @@ public final class ImageMould {
     /** @throws UserError If any of the given source paths denotes an unwritable or unreadable directory,
       *   or an unreadable Breccian file.
       */
-    public ImageMould( final Set<Path> sourcePaths, final FileTransformMaker transformMaker )
+    public ImageMould( final Set<Path> sourcePaths, final FileTransformer transformer )
           throws UserError {
         for( final Path p: sourcePaths ) { // Test their accessibility up front.
             if( wouldRead(p) && !Files.isReadable(p)) throw new UserError( "Path is unreadable: " + p );
             if( Files.isDirectory(p) && !Files.isWritable(p) ) {
                 throw new UserError( "Directory is unwritable: " + p ); }}
         this.sourcePaths = sourcePaths;
-        this.transformMaker = transformMaker; }
+        this.transformer = transformer; }
 
 
 
@@ -70,7 +70,11 @@ public final class ImageMould {
 
     /** @param f The path of a source file to pull into the mould.
       */
-    private void pullFile( final Path f ) { if( looksBreccian( f )) transformFile( f ); }
+    private void pullFile( final Path f ) {
+        if( !looksBreccian( f )) return;
+        System.out.println( "   ← " + f ); // TEST
+        try { transformer.transform( f ); }
+        catch( XMLStreamException x ) { throw new RuntimeException( x ); }}
 
 
 
@@ -91,26 +95,7 @@ public final class ImageMould {
 
 
 
-    private final FileTransformMaker transformMaker;
-
-
-
-    /** Transforms a single Breccian source file into an HTML file, forming (or reforming)
-      * a part of the image.
-      *
-      *     @param f The path of a Breccian source file.
-      */
-    private void transformFile( final Path f ) {
-        System.out.println( "   ← " + f ); // TEST
-        try( final FileTransform transform = transformMaker.makeFileTransform( f )) {
-            final BrecciaReader in = transform.input();
-            final MarkupTransformer t = transform.transformer();
-            final XMLStreamWriter out = transform.output();
-            for( ;; ) {
-                t.transform( in, out );
-                if( in.hasNext() ) in.next();
-                else break; }}
-        catch( IOException x ) { throw new RuntimeException( x ); }}
+    private final FileTransformer transformer;
 
 
 

@@ -6,6 +6,8 @@ Installation instructions for the Breccia Web imager
                 : see http://reluk.ca/project/building/Makeshift/
             • The Java programming project
                 : see http://reluk.ca/project/Java/
+            • Breccia Parser
+                : see http://reluk.ca/project/Breccia/parser/
         2+ Install the files of the present project.
             >+ cd <command-directory>/
                 / The command directory is where project installations are accessible by their

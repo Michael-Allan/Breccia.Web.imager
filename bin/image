@@ -13,7 +13,7 @@ import java.util.Set;
   *
   *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/image.brec'>The `image` command</a>
   */
-public final class ImageCommand implements FileTransformMaker { // [AFN]
+public final class ImageCommand { // [AFN]
 
 
 
@@ -32,13 +32,6 @@ public final class ImageCommand implements FileTransformMaker { // [AFN]
 
 
 
-   // ━━━  F i l e   T r a n s f o r m   M a k e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-
-    public FileTransform makeFileTransform( final Path f ) { return new BreccianFileTransform( f ); }
-
-
-
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -51,7 +44,7 @@ public final class ImageCommand implements FileTransformMaker { // [AFN]
     private void execute() {
         final Set<Path> paths = new HashSet<>();
         for( final String argument: arguments ) paths.add( Path.of( argument ));
-        try { new ImageMould( paths, /*transformMaker*/ImageCommand.this ).formImage(); }
+        try { new ImageMould( paths, new BrecciaHTMLTransformer() ).formImage(); }
         catch( final UserError x ) {
             System.err.println( "image: " + x.getMessage() );
             System.exit( 1 ); }}}
