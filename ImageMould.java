@@ -72,7 +72,8 @@ public final class ImageMould {
     private void pullFile( final Path f ) {
         if( !looksBreccian( f )) return;
         System.out.println( "   ← " + f ); // TEST
-        transformer.transform( f ); }
+        try { transformer.transform( f ); }
+        catch( IOException x ) { throw new RuntimeException( x ); }}
 
 
 

@@ -1,5 +1,6 @@
 package Breccia.Web.imager;
 
+import java.io.IOException;
 import java.nio.file.Path;
 
 
@@ -9,7 +10,7 @@ public interface FileTransformer {
     /** Transforms a single Breccian source file into an HTML sibling, forming (or reforming)
       * part of a Web image.
       */
-    public void transform( Path sourceFile ); }
+    public void transform( Path sourceFile ) throws IOException; }
 
 
                                                         // Copyright © 2020  Michael Allan.  Licence MIT.
