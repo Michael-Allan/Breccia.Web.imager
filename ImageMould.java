@@ -5,9 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import Java.UserError;
 import java.util.Set;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import static Breccia.Web.imager.Project.logger;
 import static java.util.logging.Level.FINE;
 
 
@@ -44,11 +44,6 @@ public final class ImageMould {
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
-
-
-    private final Logger logger = Logger.getLogger( "Breccia.Web.imager" );
-      // The logger proper to the Breccia Web imager.
-
 
 
     /** @param f The path of a file.
