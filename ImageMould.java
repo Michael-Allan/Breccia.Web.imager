@@ -1,13 +1,13 @@
 package Breccia.Web.imager;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import Java.UserError;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import static Breccia.Web.imager.Project.logger;
+import static java.nio.file.Files.*;
 import static java.util.logging.Level.FINE;
 
 
@@ -22,8 +22,8 @@ public final class ImageMould {
     public ImageMould( final Set<Path> sourcePaths, final FileTransformer transformer )
           throws UserError {
         for( final Path p: sourcePaths ) { // Test their accessibility up front.
-            if( wouldRead(p) && !Files.isReadable(p)) throw new UserError( "Path is unreadable: " + p );
-            if( Files.isDirectory(p) && !Files.isWritable(p) ) {
+            if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
+            if( isDirectory(p) && !isWritable(p) ) {
                 throw new UserError( "Directory is unwritable: " + p ); }}
         this.sourcePaths = sourcePaths;
         this.transformer = transformer; }
@@ -38,7 +38,7 @@ public final class ImageMould {
     public void formImage() {
         for( final Path p: sourcePaths ) { /* Herein a streamlined process versus that of `pullPath`
               whose added testing and logging would be redundant for these top paths. */
-            if( Files.isDirectory( p )) pullDirectory( p );
+            if( isDirectory( p )) pullDirectory( p );
             else pullFile( p ); }}
 
 
@@ -56,7 +56,7 @@ public final class ImageMould {
     /** @param d The path of a source directory to pull into the mould.
       */
     private void pullDirectory( final Path d ) {
-        try( final Stream<Path> pp = Files.list( d )) {
+        try( final Stream<Path> pp = list( d )) {
             for( final Path p: (Iterable<Path>)pp::iterator ) pullPath( p ); }
         catch( IOException x ) { throw new RuntimeException( x ); }}
 
@@ -75,9 +75,9 @@ public final class ImageMould {
     /** @param p A path to pull into the mould.
       */
     private void pullPath( final Path p ) {
-        if( Files.isReadable( p )) { // Herein cf. `formImage`.
-            if( Files.isDirectory( p )) {
-                if( Files.isWritable( p )) pullDirectory( p );
+        if( isReadable( p )) { // Herein cf. `formImage`.
+            if( isDirectory( p )) {
+                if( isWritable( p )) pullDirectory( p );
                 else logger.log( FINE, "Skipping unwritable directory: {0}/", p ); }
             else pullFile( p ); }
         else if( logger.isLoggable(FINE) && wouldRead(p) ) {
@@ -95,7 +95,7 @@ public final class ImageMould {
 
     /** Answers whether path `p` would be read during image formation if it were readable.
       */
-    private boolean wouldRead( final Path p ) { return Files.isDirectory(p) || looksBreccian(p); }}
+    private boolean wouldRead( final Path p ) { return isDirectory(p) || looksBreccian(p); }}
 
 
 
