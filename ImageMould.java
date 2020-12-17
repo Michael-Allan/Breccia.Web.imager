@@ -3,7 +3,8 @@ package Breccia.Web.imager;
 import java.io.IOException;
 import java.nio.file.Path;
 import Java.UserError;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import static Breccia.Web.imager.Project.logger;
@@ -30,20 +31,36 @@ public final class ImageMould {
 
 
 
-    /** Forms or reforms the image.  Logs a record at level `FINE` for any unreadable
-      * Breccian source file, and for any unreadable or unwritable directory.
-      *
-      *     @see java.util.logging.Level#FINE
+    /** Forms or reforms the image.
       */
     public void formImage() {
+
+      // Pull source files into the mould, sorting them as imageable or indeterminate
+      // ────────────────────────────────
         for( final Path p: sourcePaths ) { /* Herein a streamlined process versus that of `pullPath`
               whose added testing and logging would be redundant for these top paths. */
             if( isDirectory( p )) pullDirectory( p );
-            else pullFile( p ); }}
+            else pullFile( p ); }
+
+      // Transform each imageable source file, forming or reforming part of the image
+      // ────────────────────────────────────
+        imageabilityDetermination.forEach( (f, isImageable) -> {
+            if( isImageable != null && isImageable.get() == false ) return;
+            try { transformer.transform( f ); }
+            catch( IOException x ) { throw new RuntimeException( x ); }});}
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    /** Source files (keys) mapped each to the present determination of the file’s
+      * imageability (value).  Initially the mapped value is either null or false.
+      * A false value may, in the process of determination, change to true.
+      * Null and true values never change and alone indicate an imageable file.
+      */
+    final Map<Path,AtomicBoolean> imageabilityDetermination = new HashMap<>( /*initial capacity*/8192 );
+
 
 
     /** @param f The path of a file.
@@ -66,8 +83,14 @@ public final class ImageMould {
       */
     private void pullFile( final Path f ) {
         if( !looksBreccian( f )) return;
-        System.out.println( "   ← " + f ); // TEST
-        try { transformer.transform( f ); }
+        if( imageabilityDetermination.containsKey( f )) return;
+        final Path fImage = f.resolveSibling( f.getFileName() + ".xht" );
+        try {
+            if( !exists(fImage) || getLastModifiedTime(f).compareTo(getLastModifiedTime(fImage)) >= 0 ) {
+                System.out.println( "   ← " + f ); // TEST
+                imageabilityDetermination.put​( f, null ); } // The source file is to be imaged.
+            else imageabilityDetermination.put​( f, new AtomicBoolean() ); }
+              // The imageability of the source file is to be determined.
         catch( IOException x ) { throw new RuntimeException( x ); }}
 
 
