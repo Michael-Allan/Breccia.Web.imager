@@ -1,12 +1,15 @@
 #!/usr/bin/env --split-string=${JDK_HOME}/bin/java @Breccia/Web/imager/java_arguments \c [SS]
 package Breccia.Web.imager; // [AFN]
 
-// This command runs directly from the present source file, which is uncompiled during builds.
+// This command runs directly from the present source file, it needs no compiling.
 
+import java.io.IOException;
 import java.nio.file.Path;
 import Java.UserError;
-import java.util.HashSet;
-import java.util.Set;
+
+import static Java.Files.emptyDirectory;
+import static java.nio.file.Files.createDirectories;
+import static Breccia.Web.imager.Project.placeImageFiles;
 
 
 /** A shell command to make a Web image.
@@ -17,37 +20,54 @@ public final class ImageCommand { // [AFN]
 
 
 
-    private ImageCommand( final String[] arguments ) { this.arguments = arguments; }
+    private ImageCommand( final Path boundaryPath ) { this.boundaryPath = boundaryPath; }
 
 
 
     /** Takes an `image` command from the shell and executes it.
       */
     public static void main( final String[] arguments ) {
-        if( arguments.length == 0
-         || arguments[0].startsWith( "-" )) { // Allowing e.g. for a deliberate `-?`.
-            System.err.println( "Usage: image <path>..." );
-            System.exit( 1 ); }
-        new ImageCommand( arguments ).execute(); }
+        final boolean hasFailed;
+        final String argument;
+        if( arguments.length == 1
+         && !(argument = arguments[0]).startsWith( "-" )) { // Allowing e.g. for a deliberate `-?`.
+            final var command = new ImageCommand( Path.of( argument ));
+            hasFailed = !command.execute(); }
+        else {
+            System.err.println( "Usage: image <boundary path>" );
+            hasFailed = true; }
+        if( hasFailed ) System.exit( 1 ); }
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    private final String[] arguments;
+    private final Path boundaryPath;
 
 
 
     /** Executes the command.
+      *
+      *     @return True on success, false on failure.
       */
-    private void execute() {
-        final Set<Path> paths = new HashSet<>();
-        for( final String argument: arguments ) paths.add( Path.of( argument ));
-        try { new ImageMould( paths, new BrecciaHTMLTransformer() ).formImage(); }
-        catch( final UserError x ) {
-            System.err.println( "image: " + x.getMessage() );
-            System.exit( 1 ); }}}
+    private boolean execute() {
+        boolean hasFailed = false;
+        try {
+            final var out = emptyDirectory( createDirectories(
+              Project.outDirectory.resolve( Path.of( "mould" ))));
+            final ImageMould mould; {
+                final var t = new BrecciaHTMLTransformer();
+                mould = new ImageMould( boundaryPath, t, out ); }
+            try { mould.formImage(); }
+            catch( final UserError x ) {
+                System.err.println( "image: " + x.getMessage() );
+                hasFailed = true; }
+            placeImageFiles( /*from*/out, /*to*/mould.boundaryPathDirectory ); }
+        catch( final IOException x ) {
+            System.err.println( "image: " + x );
+            hasFailed = true; }
+        return !hasFailed; }}
 
 
 

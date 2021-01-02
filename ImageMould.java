@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import static Breccia.Web.imager.Imageability.*;
 import static Breccia.Web.imager.Pinger.msPingInterval;
 import static Breccia.Web.imager.Project.logger;
+import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
 import static java.nio.file.Files.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -23,19 +24,37 @@ import static java.util.logging.Level.FINE;
 public final class ImageMould {
 
 
-    /** @param bounds The top-level paths that define the extent of the Web image.
-      * @param transformer The file transformer to use.
-      * @throws UserError If any of `bounds` denotes an unwritable or unreadable directory,
-      *   or an unreadable Breccian file.
+    /** @see #boundaryPath
+      * @see #transformer
+      * @see #outDirectory
+      * @throws IllegalArgumentException If `outDirectory` is not an empty directory.
       */
-    public ImageMould( final Set<Path> bounds, final FileTransformer transformer )
-          throws UserError {
-        for( final Path p: bounds ) { // Test their accessibility up front.
-            if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
-            if( isDirectory(p) && !isWritable(p) ) {
-                throw new UserError( "Directory is unwritable: " + p ); }}
-        this.bounds = bounds;
-        this.transformer = transformer; }
+    public ImageMould( final Path boundaryPath, final FileTransformer transformer,
+        final Path outDirectory ) throws IOException {{
+            final Path out = outDirectory;
+            try {
+                if( !( isDirectory(out) && isDirectoryEmpty(out) )) {
+                    throw new IllegalArgumentException( "Not an empty directory: " + out ); }}
+            catch( IOException x ) { throw new Unhandled( x ); }}
+        boundaryPathDirectory = isDirectory( boundaryPath )?  boundaryPath : boundaryPath.getParent();
+        this.boundaryPath = boundaryPath;
+        this.transformer = transformer;
+        this.outDirectory = outDirectory; }
+
+
+
+    /** The topmost path of the Web image, which defines its extent.  It comprises or contains
+      * the Breccian source files of the image, each accompanied by any previously formed image file,
+      * a sibling namesake with a `.xht` extension.
+      */
+    public final Path boundaryPath;
+
+
+
+    /** The directory of the boundary path: either `boundaryPath` itself if it is a directory,
+      * otherwise its parent.
+      */
+    public final Path boundaryPathDirectory;
 
 
 
@@ -55,17 +74,28 @@ public final class ImageMould {
 
 
 
-    /** Forms or reforms the image.
+    /** Forms or reforms any new files that are required to update the image,
+      * writing each to the {@linkplain #outDirectory output directory}
+      *
+      *     @throws UserError If `boundaryPath` is unreadable.
+      *     @throws UserError If `{@linkplain #toRequireWritableBounds toRequireWritableBounds}`
+      *       and `boundaryPath` denotes an unwritable directory.
       */
-    public void formImage() {
+    public void formImage() throws UserError {
+        /* Sanity test on boundary path */ {
+            final Path p = boundaryPath;
+            if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
+            if( toRequireWritableBounds && isDirectory(p) && !isWritable(p) ) {
+                throw new UserError( "Directory is unwritable: " + p ); }} /* While writing into the
+              boundary path itself is no responsibility of the mould, skipping unwritable directories is,
+              and is like enough to the test above that the mould takes responsibility for both. */
 
       // ═══════════════════════
       // 1. Pull in source files, sorting them as apodictically imageable or indeterminate
       // ═══════════════════════
-        for( final Path p: bounds ) { /* Herein a streamlined process versus that of `pullPath`
-              whose added testing and logging would be redundant for these top paths. */
-            if( isDirectory( p )) pullDirectory( p );
-            else pullFile( p ); }
+        if( isDirectory( boundaryPath )) {   // A streamlined process versus that of `pullPath`
+            pullDirectory( boundaryPath ); } // whose added testing and logging would be redundant
+        else pullFile( boundaryPath );       // for this topmost path.
 
       // ════════════════════════════════════
       // 2. Begin reducing the indeterminates, determining the imageability of each
@@ -108,7 +138,10 @@ public final class ImageMould {
           // ────────────────────────
             for( final var det: imageabilityDetermination.entrySet() ) {
                 if( det.getValue().get() != imageable ) return;
-                try { transformer.transform( /*source file*/det.getKey() ); }
+                final Path sourceFile = det.getKey();
+                final Path imageDirectory = outDirectory.resolve(
+                  boundaryPathDirectory.relativize( sourceFile.getParent() ));
+                try { transformer.transform( sourceFile, imageDirectory ); }
                 catch( IOException x ) { throw new Unhandled( x ); }
                 ++count; }
             if( isFinalPass ) break;
@@ -160,11 +193,26 @@ public final class ImageMould {
 
 
 
+    /** The directory in which to write any newly formed image files.
+      */
+    public final Path outDirectory;
+
+
+
+    /** Whether writability is a condition of directory imaging.  Unwritable directories are skipped
+      * when the value is true, leaving writable ones alone to be imaged.  The default value is true.
+      */
+    public boolean toRequireWritableBounds = true;
+
+
+
+    /** The file transformer to be used for image formation.
+      */
+    public final FileTransformer transformer;
+
+
+
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
-
-
-    private final Set<Path> bounds;
-
 
 
     /** Puts to `documentReferences` the external document references of source file `f`
@@ -227,18 +275,14 @@ public final class ImageMould {
         if( isReadable( p )) { // Herein cf. `formImage`.
             if( isDirectory( p )) {
                 if( isWritable( p )) pullDirectory( p );
-                else logger.log( FINE, "Skipping unwritable directory: {0}/", p ); }
+                else logger.fine( () -> "Skipping unwritable directory: " + p + "/" ); }
             else pullFile( p ); }
         else if( logger.isLoggable(FINE) && wouldRead(p) ) {
-            logger.log( FINE, "Skipping unreadable path: {0}", p ); }}
+            logger.log( FINE, "Skipping unreadable path: " + p ); }}
 
 
 
-    private final FileTransformer transformer;
-
-
-
-    /** Answers whether path `p` would be read during image formation if it were readable.
+    /** Tells whether path `p` would be read during image formation if it were readable.
       */
     private static boolean wouldRead( final Path p ) { return isDirectory(p) || looksBreccian(p); }}
 

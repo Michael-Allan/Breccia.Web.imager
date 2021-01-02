@@ -10,7 +10,8 @@ import static Breccia.parser.BrecciaXCursor.EMPTY;
 import static Breccia.parser.BrecciaXCursor.START_DOCUMENT;
 import static Breccia.Web.imager.Project.logger;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.logging.Level.FINE;
+import static java.nio.file.Files.createFile;
+import static java.nio.file.Files.newInputStream;
 
 
 public final class BrecciaHTMLTransformer implements FileTransformer {
@@ -19,18 +20,18 @@ public final class BrecciaHTMLTransformer implements FileTransformer {
    // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override void transform( Path sourceFile ) throws IOException {
-        try( final InputStream byteSource = Files.newInputStream​( sourceFile );
+    public @Override void transform( final Path sourceFile, final Path imageDirectory )
+          throws IOException {
+        try( final InputStream byteSource = newInputStream​( sourceFile );
              final InputStreamReader charSource = new InputStreamReader( byteSource, UTF_8 )) {
                // Cursor `in` does the buffering of `charSource` recommended by `InputStreamReader`.
                // The underlying `byteSource` needs none.  https://stackoverflow.com/a/27347262/2402790
             in.markupSource( charSource );
             final int t = in.getEventType();
             if( t == EMPTY ) {
-                logger.log( FINE, "Imaging empty source file: {0}", sourceFile );
-                final Path imageFile = sourceFile.resolveSibling( sourceFile.getFileName() + ".xht" );
-                Files.deleteIfExists( imageFile );
-                Files.createFile( imageFile );
+                logger.fine( () -> "Imaging empty source file: " + sourceFile );
+                final Path imageFile = imageDirectory.resolve( sourceFile.getFileName() + ".xht" );
+                createFile( imageFile );
                 return; }
             assert t == START_DOCUMENT;
             for( ;; ) {
