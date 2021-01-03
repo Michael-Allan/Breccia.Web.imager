@@ -30,7 +30,7 @@ public final class ImageMould {
       * @throws IllegalArgumentException If `outDirectory` is not an empty directory.
       */
     public ImageMould( final Path boundaryPath, final FileTransformer transformer,
-        final Path outDirectory ) throws IOException {{
+        final Path outDirectory ) {{
             final Path out = outDirectory;
             try {
                 if( !( isDirectory(out) && isDirectoryEmpty(out) )) {
