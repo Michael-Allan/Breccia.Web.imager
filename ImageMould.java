@@ -36,7 +36,7 @@ public final class ImageMould {
                 if( !( isDirectory(out) && isDirectoryEmpty(out) )) {
                     throw new IllegalArgumentException( "Not an empty directory: " + out ); }}
             catch( IOException x ) { throw new Unhandled( x ); }}
-        boundaryPathDirectory = isDirectory( boundaryPath )?  boundaryPath : boundaryPath.getParent();
+        boundaryPathDirectory = isDirectory(boundaryPath)?  boundaryPath : boundaryPath.getParent();
         this.boundaryPath = boundaryPath;
         this.transformer = transformer;
         this.outDirectory = outDirectory; }
