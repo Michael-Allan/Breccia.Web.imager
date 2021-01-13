@@ -1,10 +1,10 @@
 package Breccia.Web.imager;
 
-import Breccia.parser.BrecciaCursor;
-import Breccia.parser.BrecciaXCursor;
+import Breccia.parser.*;
 import java.io.*;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import Java.Unhandled;
+import javax.xml.stream.XMLStreamException;
 
 import static Breccia.parser.BrecciaXCursor.EMPTY;
 import static Breccia.parser.BrecciaXCursor.START_DOCUMENT;
@@ -21,7 +21,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer {
 
 
     public @Override void transform( final Path sourceFile, final Path imageDirectory )
-          throws IOException {
+          throws IOException, ParseError {
         try( final InputStream byteSource = newInputStream​( sourceFile );
              final InputStreamReader charSource = new InputStreamReader( byteSource, UTF_8 )) {
                // Cursor `in` does the buffering of `charSource` recommended by `InputStreamReader`.
@@ -36,8 +36,12 @@ public final class BrecciaHTMLTransformer implements FileTransformer {
             assert t == START_DOCUMENT;
             for( ;; ) {
                 // TODO, the actual transform.
-                if( in.hasNext() ) in.next();
-                else break; }}}
+                if( !in.hasNext() ) break;
+                try { in.next(); }
+                catch( final XMLStreamException x ) {
+                    final var cause = x.getCause();
+                    if( cause instanceof ParseError ) throw (ParseError)cause;
+                    throw new Unhandled( x ); }}}}
 
 
 
@@ -48,4 +52,4 @@ public final class BrecciaHTMLTransformer implements FileTransformer {
 
 
 
-                                                        // Copyright © 2020  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.

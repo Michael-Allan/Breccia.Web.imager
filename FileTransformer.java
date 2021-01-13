@@ -1,5 +1,6 @@
 package Breccia.Web.imager;
 
+import Breccia.parser.ParseError;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -13,7 +14,7 @@ public interface FileTransformer {
       *     @param imageDirectory The directory in which to write the image file.
       *       If no such directory exists, then one is formed.
       */
-    public void transform( Path sourceFile, Path imageDirectory ) throws IOException; }
+    public void transform( Path sourceFile, Path imageDirectory ) throws IOException, ParseError; }
 
 
-                                                        // Copyright © 2020  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.
