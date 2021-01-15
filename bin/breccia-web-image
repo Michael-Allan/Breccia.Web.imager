@@ -14,26 +14,27 @@ import static java.nio.file.Files.createDirectories;
 
 /** A shell command to make a Web image.
   *
-  *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/image.brec'>The `image` command</a>
+  *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
+  *       The `breccia-web-image` command</a>
   */
-public final class ImageCommand { // [AFN]
+public final class BrecciaWebImageCommand { // [AFN]
 
 
-    private ImageCommand( final Path boundaryPath ) { this.boundaryPath = boundaryPath; }
+    private BrecciaWebImageCommand( final Path boundaryPath ) { this.boundaryPath = boundaryPath; }
 
 
 
-    /** Takes an `image` command from the shell and executes it.
+    /** Takes a `breccia-web-image` command from the shell and executes it.
       */
     public static void main( final String[] arguments ) {
         final boolean hasFailed;
         final String argument;
         if( arguments.length == 1
          && !(argument = arguments[0]).startsWith( "-" )) { // Allowing e.g. for a deliberate `-?`.
-            final var command = new ImageCommand( Path.of( argument ));
+            final var command = new BrecciaWebImageCommand( Path.of( argument ));
             hasFailed = !command.execute(); }
         else {
-            System.err.println( "Usage: image <boundary path>" );
+            System.err.println( "Usage: breccia-web-image <boundary path>" );
             hasFailed = true; }
         if( hasFailed ) System.exit( 1 ); }
 

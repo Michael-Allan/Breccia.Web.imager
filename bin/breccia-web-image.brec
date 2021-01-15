@@ -1,8 +1,8 @@
-`image` - Make a Web image
+`breccia-web-image` - Make a Web image
 
-        image <boundary path>
+        breccia-web-image <boundary path>
 
-    - The `image` command makes a Web image delimited by the given boundary path,
+    - The `breccia-web-image` command makes a Web image delimited by the given boundary path,
       which is the path of a single file or directory.
         - It ensures that each Breccian source file stored at or under the boundary path
           is accompanied by its image, a sibling namesake with a `.xht` extension.
@@ -16,10 +16,10 @@
     ━━━━━━━━━━
      See also
     ──────────
-        • The `image` command of the waycast Web imager.
-            : see http://reluk.ca/project/wayic/Web/imager/bin/image.brec
+        • The `waycast-web-image` command.
+            : see http://reluk.ca/project/wayic/Web/imager/bin/waycast-web-image.brec
             - For imaging a boundary path that might include a waycast.
 
 
 
-                                                         \ Copyright © 2020  Michael Allan.  Licence MIT.
+                                                    \ Copyright © 2020-2021  Michael Allan.  Licence MIT.

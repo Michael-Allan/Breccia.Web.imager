@@ -19,20 +19,20 @@ public final class Imaging {
 
 
 
-    /** Executes an `image` shell command.
+    /** Executes a `breccia-web-image` shell command.
       *
       *     @param mould The image mould to use.
       *     @return True on success, false on failure.
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/image.brec'>
-      *       The `image` command of the Breccia Web imager</a>
-      *     @see <a href='http://reluk.ca/project/wayic/Web/imager/bin/image.brec'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
+      *       The `breccia-web-image` command of the Breccia Web imager</a>
+      *     @see <a href='http://reluk.ca/project/wayic/Web/imager/bin/breccia-web-image.brec'>
       *       The `image` command of the waycast Web imager</a>
       */
     public static boolean image( final ImageMould mould ) {
         boolean hasFailed = false;
         try { mould.formImage(); }
         catch( final UserError x ) {
-            System.err.println( "image: " + x.getMessage() );
+            System.err.println( "breccia-web-image: " + x.getMessage() );
             hasFailed = true; }
         try { placeImageFiles( /*from*/mould.outDirectory, /*to*/mould.boundaryPathDirectory ); }
         catch( IOException x ) { throw new Unhandled( x ); } /* Failure might occur owing to an
