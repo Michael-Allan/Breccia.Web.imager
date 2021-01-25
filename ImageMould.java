@@ -282,7 +282,7 @@ public final class ImageMould {
 
 
 
-    /** Tells whether path `p` would be read during image formation if it were readable.
+    /** Whether path `p` would be read during image formation if it were readable.
       */
     private static boolean wouldRead( final Path p ) { return isDirectory(p) || looksBreccian(p); }}
 
@@ -299,4 +299,4 @@ public final class ImageMould {
 
 
 
-                                                        // Copyright © 2020  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.
