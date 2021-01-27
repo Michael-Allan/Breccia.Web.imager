@@ -68,7 +68,7 @@ final class Pinger implements Runnable {
 
 
     private void ping( final URI referent, final Set<Path> referrers ) {
-        ; }} // TODO
+        System.err.println( " ——— TEST, ping referent " + referent ); }}
 
 
 
