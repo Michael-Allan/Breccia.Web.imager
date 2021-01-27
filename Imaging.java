@@ -1,6 +1,7 @@
 package Breccia.Web.imager;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import Java.Unhandled;
@@ -41,6 +42,24 @@ public final class Imaging {
 
 
 
+    /** Whether it appears a Web imager could read the indicated referent.
+      *
+      *     @param ref A referent indication
+      *       formed as a <a href='https://tools.ietf.org/html/rfc3986#section-4.1'>
+      *       URI reference</a>.
+      */
+    public static boolean looksReachable( final URI ref ) {
+        boolean answer = true;
+        if( ref.isOpaque() ) answer = false;
+        else {
+            final String scheme = ref.getScheme();
+            if( ref.getHost() == null ) {
+                if( scheme != null ) answer = false; }
+            else if( !isHTTP( scheme )) answer = false; }
+        return answer; }
+
+
+
     /** Moves all simple files of directory `dFrom` to the same relative path of `dTo`,
       * replacing any that are already present.
       *
@@ -53,7 +72,19 @@ public final class Imaging {
             public @Override FileVisitResult visitFile( final Path f, BasicFileAttributes _a )
                   throws IOException {
                 Files.move( f, dTo.resolve(dFrom.relativize(f)), REPLACE_EXISTING );
-                return CONTINUE; }});}}
+                return CONTINUE; }});}
+
+
+
+////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    private static final boolean isHTTP( final String scheme ) {
+        if( scheme.startsWith( "http" )) {
+            final int sN = scheme.length();
+            if( sN == 4  ) return true;
+            if( sN == 5 && scheme.endsWith("s") ) return true; }
+        return false; }}
 
 
 

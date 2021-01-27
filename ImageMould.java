@@ -10,6 +10,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import static Breccia.Web.imager.Imageability.*;
+import static Breccia.Web.imager.Imaging.looksReachable;
 import static Breccia.Web.imager.Pinger.msPingInterval;
 import static Breccia.Web.imager.Project.logger;
 import static Java.Files.isDirectoryEmpty;
@@ -58,19 +59,19 @@ public final class ImageMould {
 
 
 
-    /** Map encoding all references to external Breccian documents from source files
-      * whose imageability is initally indeterminate.  Each entry is formed as the normalized URI
-      * of the referent document (key) mapped to the set (value) of indeterminate source files
-      * that refer to it.  ‘External’ here means located outside of the source file.
+    /** Map encoding all references of source files whose imageability is initally indeterminate
+      * (referrers) to external yet {@linkplain Imaging#looksReachable(URI) reachable-looking} Breccian
+      * documents (referents).  Each entry is formed as the normalized URI of the referent (key) mapped
+      * to the set (value) of referrers.  ‘External’ here means located outside of the source file.
       *
       * <p>The map is thread safe for all but structural modification, structural modification
       * being defined as for `{@linkplain HashMap HashMap}`.</p>
       *
-      */ @Async // See `start` of pingers in `formImage`. [HBS]
+      */ @Async // See `start` of pinger threads in `formImage`. [HBS]
     final Map<URI,Set<Path>> documentReferences = new HashMap<>( // Nulled after final use.
       initialCapacity( 8192/*referents*/, 0.75f/*default load factor*/ ));
       // Threads started after completion of this map in stage two of `formImage` may safely
-      // access it for all but structural modification.
+      // use it for all but structural modification.
 
 
 
@@ -110,7 +111,7 @@ public final class ImageMould {
           initialCapacity( 256, 0.75f/*default load factor*/ ));
         documentReferences.keySet().forEach( ref -> // Ensure a pinger is assigned, if called for.
             pingers.compute( host(ref), (host, pinger) -> {
-                if( host == null ) return null; // No network access to `ref`, no pinger required.
+                if( host == null ) return null; // Not a network reference, no pinger required.
                 if( pinger != null ) return null; // Already a pinger is assigned to `ref`.
                 pinger = new Pinger( host, ImageMould.this );
                 barrier.register();
@@ -158,28 +159,19 @@ public final class ImageMould {
 
 
 
-    /** Gives the identifier of any network accessible host of a document reference,
-      * which (after sanity checks) is simply the formal host part of the reference.
-      * A value of null effectively means *same host*: the referent is accessible
-      * not through the network, but through a local file system of the same host.
+    /** Gives the identifier of any network host of a document reference.
+      * This (after sanity checks) is simply the host part of `ref`, or null if there is none.
       *
       *     @param ref A document reference, a key
       *       of `{@linkplain #documentReferences documentReferences}`.
-      *     @return The explicit host part of `ref`, which may be null.
-      *     @see Pinger
       */
     static @AsyncSafe String host( URI ref ) {
         // TEST: Temporarily throwing `IllegalStateException` for any reference that should have been
         // weeded out during initial parsing of the references from their source documents, at which time
         // warnings could be issued (where appropriate) complete with line numbers.  Later these throws
         // to be replaced by counter-assertions.
-        if( ref.isOpaque() ) throw new IllegalStateException();
-        final String scheme = ref.getScheme();
-        final String host = ref.getHost();
-        if( host == null ) {
-            if( scheme != null ) throw new IllegalStateException(); }
-        else if( !isHTTP( scheme )) throw new IllegalStateException();
-        return host; }
+        if( !looksReachable( ref )) throw new IllegalStateException();
+        return ref.getHost(); }
 
 
 
