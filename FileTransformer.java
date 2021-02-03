@@ -1,11 +1,35 @@
 package Breccia.Web.imager;
 
-import Breccia.parser.ParseError;
+import Breccia.parser.*;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Path;
 
 
-public interface FileTransformer {
+/** A transformer of Breccian source files into namesake image files.
+  *
+  *     @param <C> The type of source cursor used by this transformer.
+  */
+public interface FileTransformer<C extends BrecciaCursor> {
+
+
+    /** From the present position of the given source cursor, this method returns any nominal,
+      * URI reference to an external imaging resource that would be formal were it obtained
+      * by this transformer.  ‘Nominal’ here means that whether the reference is well formed
+      * or its referent looks reachable is immaterial.
+      *
+      *     @see ImageMould#formalResources
+      *     @see Imaging#looksReachable(URI)
+      */
+    public Markup formalReferenceAt( C sourceCursor );
+
+
+
+    /** A source cursor of the type used by this transformer.
+      * Between calls to the transformer, it may be used for other purposes.
+      */
+    public C sourceCursor();
+
 
 
     /** Transforms a single Breccian source file into a namesake image file, forming or reforming
@@ -14,7 +38,8 @@ public interface FileTransformer {
       *     @param imageDirectory The directory in which to write the image file.
       *       If no such directory exists, then one is formed.
       */
-    public void transform( Path sourceFile, Path imageDirectory ) throws IOException, ParseError; }
+    public void transform( Path sourceFile, Path imageDirectory ) throws ParseError, TransformError; }
+
 
 
                                                    // Copyright © 2020-2021  Michael Allan.  Licence MIT.

@@ -1,6 +1,7 @@
 package Breccia.Web.imager;
 
-import java.io.IOException;
+import Breccia.parser.BrecciaCursor;
+import java.io.*;
 import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -20,42 +21,75 @@ public final class Imaging {
 
 
 
-    /** Executes a `breccia-web-image` shell command.
+    /** Executes an imaging shell command.
       *
-      *     @param mould The image mould to use.
-      *     @return True on success, false on failure.
+      *     @param <C> The type of source cursor used by the image mould.
+      *     @param name The name of the shell command.
+      *     @see ImageMould#boundaryPath
+      *     @see ImageMould#transformer
+      *     @see ImageMould#outDirectory
+      *     @return True on success; false on failure.
+      *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
       *       The `breccia-web-image` command of the Breccia Web imager</a>
       *     @see <a href='http://reluk.ca/project/wayic/Web/imager/bin/breccia-web-image.brec'>
       *       The `image` command of the waycast Web imager</a>
       */
-    public static boolean image( final ImageMould mould ) {
-        boolean hasFailed = false;
-        try { mould.formImage(); }
-        catch( final UserError x ) {
-            System.err.println( "breccia-web-image: " + x.getMessage() );
-            hasFailed = true; }
+    public static <C extends BrecciaCursor> boolean image( final String name,  final Path boundaryPath,
+          final FileTransformer<C> transformer, final Path outDirectory ) {
+        boolean hasFailed;
+        final StringWriter errHolder = new StringWriter();
+        final ImageMould<C> mould;
+        try( final PrintWriter err = new PrintWriter( errHolder )) {
+            mould = new ImageMould<>( boundaryPath, transformer, outDirectory, err );
+            try { hasFailed = mould.formImage(); }
+            catch( final UserError x ) {
+                System.err.println( name + ": " + x.getMessage() );
+                hasFailed = true; }
+            err.flush(); }
         try { placeImageFiles( /*from*/mould.outDirectory, /*to*/mould.boundaryPathDirectory ); }
         catch( IOException x ) { throw new Unhandled( x ); } /* Failure might occur owing to an
           unwritable directory, but this is unlikely; the mould images only writeable directories. */
+        System.err.print( errHolder.toString() );
+        System.err.flush();
         return !hasFailed; }
 
 
 
-    /** Whether it appears a Web imager could read the indicated referent.
+    /** Returns the image file for the given source file: a sibling namesake with a `.xht` extension.
+      * The image file of `dir/foo.brec`, for example, is `dir/foo.brec.xht`.
+      */
+    public static Path imageFile( final Path sourceFile ) {
+        return sourceFile.resolveSibling( imageSimpleName( sourceFile )); }
+
+
+
+    /** Returns the result of `sourceFile.{@linkplain Path#getFileName() getFileName}() + ".xht"`.
+      */
+    public static String imageSimpleName( final Path sourceFile ) {
+        return sourceFile.getFileName() + ".xht"; }
+
+
+
+    /** Whether the given reference is formally recognized, such that a Web imager
+      * might try to obtain its referent.
       *
-      *     @param ref A referent indication
-      *       formed as a <a href='https://tools.ietf.org/html/rfc3986#section-4.1'>
+      *     @param ref A <a href='https://tools.ietf.org/html/rfc3986#section-4.1'>
       *       URI reference</a>.
       */
-    public static boolean looksReachable( final URI ref ) {
+    static boolean looksReachable( final URI ref ) { /* Note that whether an imager
+          would go ahead and image `ref` as a hyperlink is a separate question. */
         boolean answer = true;
-        if( ref.isOpaque() ) answer = false;
+        if( ref.isOpaque() ) answer = false; // No known use case.
         else {
             final String scheme = ref.getScheme();
-            if( ref.getHost() == null ) {
-                if( scheme != null ) answer = false; }
-            else if( !isHTTP( scheme )) answer = false; }
+            if( scheme == null ) {
+                if( ref.getHost() != null ) answer = false; } // Too weird to trouble over.
+            else {
+                if( ref.getHost() == null ) answer = false; /* Too weird to trouble over.
+                  Moreover such a hostless URI is allowed a rootless path, making it hard to
+                  resolve from outside the network context (e.g. HTTP) implied by the scheme. */
+                else if( !isHTTP( scheme )) answer = false; }} // No known use case.
         return answer; }
 
 

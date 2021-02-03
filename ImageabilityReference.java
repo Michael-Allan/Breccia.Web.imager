@@ -4,7 +4,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static java.util.Objects.requireNonNull​;
 
 
-final class ImageabilityReference extends AtomicReference<Imageability> { // An alias, for convenience.
+final class ImageabilityReference extends AtomicReference<Imageability> { // An alias, for concision.
 
 
     ImageabilityReference( final Imageability i ) { super( requireNonNull​( i )); }}
