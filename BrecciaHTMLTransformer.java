@@ -34,7 +34,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCurs
    // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override Markup formalReferenceAt( final BrecciaCursor sourceCursor ) {
+    public @Override FractalDetail formalReferenceAt( final BrecciaCursor sourceCursor ) {
         return null; } // TODO
 
 

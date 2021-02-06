@@ -21,7 +21,7 @@ public interface FileTransformer<C extends BrecciaCursor> {
       *     @see ImageMould#formalResources
       *     @see Imaging#looksReachable(URI)
       */
-    public Markup formalReferenceAt( C sourceCursor );
+    public FractalDetail formalReferenceAt( C sourceCursor );
 
 
 

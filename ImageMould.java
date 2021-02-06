@@ -267,9 +267,9 @@ public final class ImageMould<C extends BrecciaCursor> {
         if( iR.get() != indeterminate ) return;
         final C in = transformer.sourceCursor();
         try { in.perStateConditionally( f, state -> {
-            final Markup markup = transformer.formalReferenceAt( in );
-            if( markup == null ) return true;
-            final String sRef = markup.toString();
+            final FractalDetail detail = transformer.formalReferenceAt( in );
+            if( detail == null ) return true;
+            final String sRef = detail.toString();
             if( sRef.startsWith("//") || schemedPattern.matcher(sRef).lookingAt() ) { /* Then the
                   resource is reachable only through a network.  The ‘//’ case would indicate a
                   network-path reference.  https://tools.ietf.org/html/rfc3986#section-4.2 */
@@ -279,7 +279,7 @@ public final class ImageMould<C extends BrecciaCursor> {
                     if( !looksReachable( pRef )) {
                         throw new URISyntaxException( sRef, "Unrecognized form of reference" ); }}
                 catch( final URISyntaxException x ) {
-                    err().println( errMsg( f, markup.lineNumber(), x ));
+                    err().println( errMsg( f, detail.lineNumber(), x ));
                     iR.set( unimageable );
                     return false; }
                 assert pRef.getHost() != null; /* Assured by `looksReachable`.  Else, as described there,
