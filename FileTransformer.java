@@ -14,14 +14,14 @@ public interface FileTransformer<C extends BrecciaCursor> {
 
 
     /** From the present position of the given source cursor, this method returns any nominal,
-      * URI reference to an external imaging resource that would be formal were it obtained
-      * by this transformer.  ‘Nominal’ here means that whether the reference is well formed
-      * or its referent looks reachable is immaterial.
+      * URI reference to an external imaging resource that would be formal were it obtained by
+      * this transformer.  ‘Nominal’ here means that what is returned ought to be these things,
+      * e.g. based on where it occurs in the markup, though actually it might not be.
       *
       *     @see ImageMould#formalResources
-      *     @see Imaging#looksReachable(URI)
+      *     @return The formal reference, or null if there is none.
       */
-    public FractalDetail formalReferenceAt( C sourceCursor );
+    public FlatMarkup formalReferenceAt( C sourceCursor );
 
 
 

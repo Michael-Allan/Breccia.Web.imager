@@ -257,7 +257,7 @@ public final class ImageMould<C extends BrecciaCursor> {
 
 
 
-    /** Records any formal resources of source file `f`.
+    /** Records all formal resources of source file `f`.
       *
       *     @see #formalResources
       *     @param f The path of a source file.
@@ -267,19 +267,19 @@ public final class ImageMould<C extends BrecciaCursor> {
         if( iR.get() != indeterminate ) return;
         final C in = transformer.sourceCursor();
         try { in.perStateConditionally( f, state -> {
-            final FractalDetail detail = transformer.formalReferenceAt( in );
-            if( detail == null ) return true;
-            final String sRef = detail.toString();
+            final FlatMarkup mRef = transformer.formalReferenceAt( in ); // Marked-up reference.
+            if( mRef == null ) return true;
+            final String sRef = mRef.text().toString(); // Strung reference.
             if( sRef.startsWith("//") || schemedPattern.matcher(sRef).lookingAt() ) { /* Then the
                   resource is reachable only through a network.  The ‘//’ case would indicate a
                   network-path reference.  https://tools.ietf.org/html/rfc3986#section-4.2 */
-                URI pRef;
+                URI pRef; // Parsed reference.
                 try {
                     pRef = new URI( sRef ); // To parsed form.
                     if( !looksReachable( pRef )) {
                         throw new URISyntaxException( sRef, "Unrecognized form of reference" ); }}
                 catch( final URISyntaxException x ) {
-                    err().println( errMsg( f, detail.lineNumber(), x ));
+                    err().println( errMsg( f, mRef.lineNumber(), x ));
                     iR.set( unimageable );
                     return false; }
                 assert pRef.getHost() != null; /* Assured by `looksReachable`.  Else, as described there,
