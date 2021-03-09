@@ -4,8 +4,8 @@ Installation instructions for the Breccia Web imager
         1+ Ensure the following projects are installed.
             • Makeshift
                 : see http://reluk.ca/project/building/Makeshift/
-            • Breccia Parser
-                : see http://reluk.ca/project/Breccia/parser/
+            • Breccia X-Breccia Translator
+                : see http://reluk.ca/project/Breccia/XML/translator/
         2+ Install the files of the present project.
             >+ cd <command-directory>/
                 / The command directory is where project installations are accessible by their
@@ -53,4 +53,4 @@ Installation instructions for the Breccia Web imager
 
 
 
-                                                         \ Copyright © 2020  Michael Allan.  Licence MIT.
+                                                    \ Copyright © 2020-2021  Michael Allan.  Licence MIT.

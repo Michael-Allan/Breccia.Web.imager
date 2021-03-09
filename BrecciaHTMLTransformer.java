@@ -1,6 +1,7 @@
 package Breccia.Web.imager;
 
 import Breccia.parser.*;
+import Breccia.XML.translator.BrecciaXCursor;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
@@ -9,26 +10,29 @@ import Java.Unhandled;
 import javax.xml.stream.XMLStreamException;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
-import static Breccia.parser.BrecciaXCursor.EMPTY;
 import static Breccia.parser.Project.newSourceReader;
 import static Breccia.Web.imager.Imaging.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
+import static Breccia.XML.translator.BrecciaXCursor.EMPTY;
 import static java.nio.file.Files.createFile;
 
 
 public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCursor> {
 
 
-    /** @see #inX
+    /** @see #sourceCursor
+      * @see #sourceTranslator
       */
-    public BrecciaHTMLTransformer( BrecciaXCursor inX ) { this.inX = inX; }
+    public BrecciaHTMLTransformer( BrecciaCursor sourceCursor, BrecciaXCursor sourceTranslator ) {
+        this.sourceCursor = sourceCursor;
+        this.sourceTranslator = sourceTranslator; }
 
 
 
     /** The source translator to use during calls to this transformer.
       * Between calls, it may be used for other purposes.
       */
-    public final BrecciaXCursor inX;
+    public final BrecciaXCursor sourceTranslator;
 
 
 
@@ -67,13 +71,14 @@ public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCurs
 
 
 
-    public @Override BrecciaCursor sourceCursor() { return inX.sourceCursor(); }
+    public @Override BrecciaCursor sourceCursor() { return sourceCursor; }
 
 
 
     public @Override void transform( final Path sourceFile, final Path imageDirectory )
           throws ParseError, TransformError {
         try( final Reader source = newSourceReader​( sourceFile )) {
+            final BrecciaXCursor inX = sourceTranslator;
             inX.markupSource( source ); /* Better not to parse functionally using `inX.perState`
               and mess with shipping a checked `TransformError` out of the lambda function. */
             for( ;; ) {
@@ -86,7 +91,14 @@ public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCurs
                 if( !inX.hasNext() ) break;
                 try { inX.next(); }
                 catch( final XMLStreamException x ) { throw (ParseError)(x.getCause()); }}}
-        catch( IOException x ) { throw new Unhandled( x ); }}}
+        catch( IOException x ) { throw new Unhandled( x ); }}
+
+
+
+////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    private final BrecciaCursor sourceCursor; }
 
 
 
