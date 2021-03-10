@@ -52,11 +52,10 @@ public final class BrecciaWebImageCommand { // [AFN]
     /** @return True on success, false on failure.
       */
     private boolean run() {
-        final BrecciaCursor c = new BrecciaCursor();
-        final BrecciaHTMLTransformer t = new BrecciaHTMLTransformer( c, new BrecciaXCursor( c ));
         final Path out;
         try { out = emptyDirectory( createDirectories( outDirectory.resolve( Path.of( "mould" )))); }
         catch( IOException x ) { throw new Unhandled( x ); } // Unexpected for `outDirectory`.
+        final var t = new BrecciaHTMLTransformer( new BrecciaCursor(), new BrecciaXCursor() );
         return Imaging.image( "breccia-web-image", boundaryPath, t, out ); }}
 
 

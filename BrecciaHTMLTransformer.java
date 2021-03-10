@@ -77,11 +77,11 @@ public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCurs
 
     public @Override void transform( final Path sourceFile, final Path imageDirectory )
           throws ParseError, TransformError {
-        try( final Reader source = newSourceReader​( sourceFile )) {
-            final BrecciaXCursor inX = sourceTranslator;
-            inX.markupSource( source ); /* Better not to parse functionally using `inX.perState`
-              and mess with shipping a checked `TransformError` out of the lambda function. */
-            for( ;; ) {
+        try( final Reader sourceReader = newSourceReader​( sourceFile )) {
+            sourceCursor.markupSource( sourceReader );
+            sourceTranslator.markupSource( sourceCursor ); /* Better not to parse functionally using its
+              `perState` and mess with shipping a checked `TransformError` out of the lambda function. */
+            for( final BrecciaXCursor inX = sourceTranslator;; ) {
                 switch( inX.getEventType() ) {
                     case EMPTY -> {
                         logger.fine( () -> "Imaging empty source file: " + sourceFile );
