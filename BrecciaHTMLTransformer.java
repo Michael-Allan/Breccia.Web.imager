@@ -10,20 +10,20 @@ import Java.Unhandled;
 import javax.xml.stream.XMLStreamException;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
-import static Breccia.parser.Project.newSourceReader;
+import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Imaging.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.XML.translator.BrecciaXCursor.EMPTY;
 import static java.nio.file.Files.createFile;
 
 
-public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCursor> {
+public final class BrecciaHTMLTransformer implements FileTransformer<FileCursor> {
 
 
     /** @see #sourceCursor
       * @see #sourceTranslator
       */
-    public BrecciaHTMLTransformer( BrecciaCursor sourceCursor, BrecciaXCursor sourceTranslator ) {
+    public BrecciaHTMLTransformer( FileCursor sourceCursor, BrecciaXCursor sourceTranslator ) {
         this.sourceCursor = sourceCursor;
         this.sourceTranslator = sourceTranslator; }
 
@@ -39,12 +39,12 @@ public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCurs
    // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override FlatMarkup formalReferenceAt( final BrecciaCursor in ) {
+    public @Override Markup formalReferenceAt( final FileCursor in ) {
         // Only two ‘formal’ cases exist, each contained in (iR) a resource indicator.
         ResourceIndicator iR; iR: {      // Each `iR`, in turn, is contained in (cR) the
             ReferentClause cR = null; { // referent clause of an associative reference.
                 var __ =              in.asAssociativeReference(); // ↓ Drill down.
-                if( __ != null ) cR = __.imperativeClause.referentClause(); }
+                if( __ != null ) cR = __.imperativeClause().referentClause(); }
             if( cR == null ) return null;
 
           // inferential referent indicator with (iF) a fractum indicator, in turn
@@ -53,7 +53,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCurs
             if( __ != null ) {
                 var ___ =            __.containmentClause();
                 if( ___ != null ) {
-                    final var iF =  ___.fractumIndicator;
+                    final var iF =  ___.fractumIndicator();
                     iR =             iF.resourceIndicator();
                     if( iR != null ) break iR; }}
 
@@ -61,17 +61,17 @@ public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCurs
           // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
             final var iF = cR.fractumIndicator();
             if( iF == null ) return null;
-            if( iF.patterns.size() == 0 || (iR = iF.resourceIndicator()) == null ) return null; }
+            if( iF.patterns().size() == 0 || (iR = iF.resourceIndicator()) == null ) return null; }
 
         if( !iR.isFractal() ) return null; /* Fractal alone implies formal, non-fractal implying a
           resource whose content is opaque to this transformer and ∴ indeterminate of image form. */
-        return iR.reference; } /* The indicated resource of `iR` is formal ∵ the associative reference
+        return iR.reference(); } /* The indicated resource of `iR` is formal ∵ the associative reference
           (the markup in which indicator `iR` is contained) will be imaged as a hyperlink whose form
           depends on the content of the resource.  In short, it is formal ∵ it informs the image. */
 
 
 
-    public @Override BrecciaCursor sourceCursor() { return sourceCursor; }
+    public @Override FileCursor sourceCursor() { return sourceCursor; }
 
 
 
@@ -98,7 +98,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<BrecciaCurs
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    private final BrecciaCursor sourceCursor; }
+    private final FileCursor sourceCursor; }
 
 
 

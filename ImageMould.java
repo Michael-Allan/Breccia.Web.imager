@@ -32,7 +32,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
   *
   *     @param <C> The type of source cursor used by this mould.
   */
-public final class ImageMould<C extends BrecciaCursor> {
+public final class ImageMould<C extends FileCursor> {
 
 
     /** @see #boundaryPath
@@ -267,7 +267,7 @@ public final class ImageMould<C extends BrecciaCursor> {
         if( iR.get() != indeterminate ) return;
         final C in = transformer.sourceCursor();
         try { in.perStateConditionally( f, state -> {
-            final FlatMarkup mRef = transformer.formalReferenceAt( in ); // Marked-up reference.
+            final Markup mRef = transformer.formalReferenceAt( in ); // Marked-up reference.
             if( mRef == null ) return true;
             final String sRef = mRef.text().toString(); // Strung reference.
             if( sRef.startsWith("//") || schemedPattern.matcher(sRef).lookingAt() ) { /* Then the

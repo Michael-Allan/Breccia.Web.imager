@@ -3,7 +3,7 @@ package Breccia.Web.imager; // [AFN]
 
 // This command runs directly from the present source file, it needs no compiling.
 
-import Breccia.parser.BrecciaCursor;
+import Breccia.parser.plain.BrecciaCursor;
 import Breccia.XML.translator.BrecciaXCursor;
 import java.io.IOException;
 import java.nio.file.Path;

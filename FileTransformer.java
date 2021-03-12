@@ -10,7 +10,7 @@ import java.nio.file.Path;
   *
   *     @param <C> The type of source cursor used by this transformer.
   */
-public interface FileTransformer<C extends BrecciaCursor> {
+public interface FileTransformer<C extends FileCursor> {
 
 
     /** From the present position of the given source cursor, this method returns any nominal,
@@ -21,7 +21,7 @@ public interface FileTransformer<C extends BrecciaCursor> {
       *     @see ImageMould#formalResources
       *     @return The formal reference, or null if there is none.
       */
-    public FlatMarkup formalReferenceAt( C sourceCursor );
+    public Markup formalReferenceAt( C sourceCursor );
 
 
 

@@ -6,6 +6,8 @@ Installation instructions for the Breccia Web imager
                 : see http://reluk.ca/project/building/Makeshift/
             • Breccia X-Breccia Translator
                 : see http://reluk.ca/project/Breccia/XML/translator/
+            • The parser of plain Breccia
+                : see http://reluk.ca/project/Breccia/parser/plain/
         2+ Install the files of the present project.
             >+ cd <command-directory>/
                 / The command directory is where project installations are accessible by their
