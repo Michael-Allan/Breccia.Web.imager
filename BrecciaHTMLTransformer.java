@@ -17,13 +17,13 @@ import static Breccia.XML.translator.BrecciaXCursor.EMPTY;
 import static java.nio.file.Files.createFile;
 
 
-public final class BrecciaHTMLTransformer implements FileTransformer<FileCursor> {
+public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCursor> {
 
 
     /** @see #sourceCursor
       * @see #sourceTranslator
       */
-    public BrecciaHTMLTransformer( FileCursor sourceCursor, BrecciaXCursor sourceTranslator ) {
+    public BrecciaHTMLTransformer( ReusableCursor sourceCursor, BrecciaXCursor sourceTranslator ) {
         this.sourceCursor = sourceCursor;
         this.sourceTranslator = sourceTranslator; }
 
@@ -39,7 +39,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<FileCursor>
    // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override Markup formalReferenceAt( final FileCursor in ) {
+    public @Override Markup formalReferenceAt( final ReusableCursor in ) {
         // Only two ‘formal’ cases exist, each contained in (iR) a resource indicator.
         ResourceIndicator iR; iR: {      // Each `iR`, in turn, is contained in (cR) the
             ReferentClause cR = null; { // referent clause of an associative reference.
@@ -71,7 +71,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<FileCursor>
 
 
 
-    public @Override FileCursor sourceCursor() { return sourceCursor; }
+    public @Override ReusableCursor sourceCursor() { return sourceCursor; }
 
 
 
@@ -98,7 +98,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<FileCursor>
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    private final FileCursor sourceCursor; }
+    private final ReusableCursor sourceCursor; }
 
 
 

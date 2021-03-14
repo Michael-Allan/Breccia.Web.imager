@@ -1,6 +1,6 @@
 package Breccia.Web.imager;
 
-import Breccia.parser.FileCursor;
+import Breccia.parser.ReusableCursor;
 import java.io.*;
 import java.net.URI;
 import java.nio.file.*;
@@ -35,7 +35,7 @@ public final class Imaging {
       *     @see <a href='http://reluk.ca/project/wayic/Web/imager/bin/breccia-web-image.brec'>
       *       The `image` command of the waycast Web imager</a>
       */
-    public static <C extends FileCursor> boolean image( final String name,  final Path boundaryPath,
+    public static <C extends ReusableCursor> boolean image( final String name,  final Path boundaryPath,
           final FileTransformer<C> transformer, final Path outDirectory ) {
         boolean hasFailed;
         final StringWriter errHolder = new StringWriter();

@@ -32,7 +32,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
   *
   *     @param <C> The type of source cursor used by this mould.
   */
-public final class ImageMould<C extends FileCursor> {
+public final class ImageMould<C extends ReusableCursor> {
 
 
     /** @see #boundaryPath

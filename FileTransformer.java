@@ -10,7 +10,7 @@ import java.nio.file.Path;
   *
   *     @param <C> The type of source cursor used by this transformer.
   */
-public interface FileTransformer<C extends FileCursor> {
+public interface FileTransformer<C extends ReusableCursor> {
 
 
     /** From the present position of the given source cursor, this method returns any nominal,
