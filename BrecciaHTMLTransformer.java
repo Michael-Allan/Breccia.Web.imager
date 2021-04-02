@@ -49,13 +49,11 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
           // inferential referent indicator with (iF) a fractum indicator, in turn
           // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ with (iR) a resource indicator
-            var __ =                 cR.inferentialReferentIndicator(); // ↓ Drill down.
+            var __ =            cR.inferentialReferentIndicator(); // ↓ Drill down.
             if( __ != null ) {
-                var ___ =            __.containmentClause();
-                if( ___ != null ) {
-                    final var iF =  ___.fractumIndicator();
-                    iR =             iF.resourceIndicator();
-                    if( iR != null ) break iR; }}
+                final var iF =  __.fractumIndicator();
+                iR =            iF.resourceIndicator();
+                if( iR != null ) break iR; }
 
           // bare fractum indicator (iF) with both a pattern and (iR) resource indicator
           // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
