@@ -23,7 +23,7 @@ final class RemoteChangeProbe implements Runnable {
 
 
     /** @param host The identifier of the network host whose resources to probe,
-      *   as per `{@linkplain ImageMould#host(java.net.URI) ImageMould.host}`.
+      *   concordant with `{@linkplain ImageMould#host(java.net.URI) ImageMould.host}`.
       * @param mould The mould to use.
       */
     RemoteChangeProbe( final String host, final ImageMould<?> mould ) {
