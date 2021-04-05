@@ -40,31 +40,31 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
 
     public @Override Markup formalReferenceAt( final ReusableCursor in ) {
-        // Only two ‘formal’ cases exist, each contained in (iR) a resource indicator.
-        ResourceIndicator iR; iR: {      // Each `iR`, in turn, is contained in (cR) the
+        // Only two ‘formal’ cases exist, each contained in (iR) a resource indicant.
+        ResourceIndicant iR; iR: {       // Each `iR`, in turn, is contained in (cR) the
             ReferentClause cR = null; { // referent clause of an associative reference.
                 var __ =              in.asAssociativeReference(); // ↓ Drill down.
                 if( __ != null ) cR = __.imperativeClause().referentClause(); }
             if( cR == null ) return null;
 
-          // inferential referent indicator with (iF) a fractum indicator, in turn
-          // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ with (iR) a resource indicator
-            var __ =            cR.inferentialReferentIndicator(); // ↓ Drill down.
+          // inferential referent indicant with (iF) a fractum indicant, in turn
+          // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈ with (iR) a resource indicant
+            var __ =            cR.inferentialReferentIndicant(); // ↓ Drill down.
             if( __ != null ) {
-                final var iF =  __.fractumIndicator();
-                iR =            iF.resourceIndicator();
+                final var iF =  __.fractumIndicant();
+                iR =            iF.resourceIndicant();
                 if( iR != null ) break iR; }
 
-          // bare fractum indicator (iF) with both a pattern and (iR) resource indicator
-          // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-            final var iF = cR.fractumIndicator();
+          // bare fractum indicant (iF) with both a pattern and (iR) resource indicant
+          // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            final var iF = cR.fractumIndicant();
             if( iF == null ) return null;
-            if( iF.patterns().size() == 0 || (iR = iF.resourceIndicator()) == null ) return null; }
+            if( iF.patterns().size() == 0 || (iR = iF.resourceIndicant()) == null ) return null; }
 
         if( !iR.isFractal() ) return null; /* Fractal alone implies formal, non-fractal implying a
           resource whose content is opaque to this transformer and ∴ indeterminate of image form. */
         return iR.reference(); } /* The indicated resource of `iR` is formal ∵ the associative reference
-          (the markup in which indicator `iR` is contained) will be imaged as a hyperlink whose form
+          (the markup in which indicant `iR` is contained) will be imaged as a hyperlink whose form
           depends on the content of the resource.  In short, it is formal ∵ it informs the image. */
 
 
