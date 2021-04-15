@@ -21,7 +21,7 @@ public interface FileTransformer<C extends ReusableCursor> {
       *     @see ImageMould#formalResources
       *     @return The formal reference, or null if there is none.
       */
-    public Markup formalReferenceAt( C sourceCursor );
+    public Markup formalReferenceAt( C sourceCursor ) throws ParseError;
 
 
 

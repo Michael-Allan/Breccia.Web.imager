@@ -267,7 +267,12 @@ public final class ImageMould<C extends ReusableCursor> {
         if( iR.get() != indeterminate ) return;
         final C in = transformer.sourceCursor();
         try { in.perStateConditionally( f, state -> {
-            final Markup mRef = transformer.formalReferenceAt( in ); // Marked-up reference.
+            final Markup mRef; // Marked-up reference.
+            try { mRef = transformer.formalReferenceAt( in ); }
+            catch( final ParseError x ) {
+                err().println( errMsg( f, x ));
+                iR.set( unimageable );
+                return false; }
             if( mRef == null ) return true;
             final String sRef = mRef.text().toString(); // Strung reference.
             if( sRef.startsWith("//") || schemedPattern.matcher(sRef).lookingAt() ) { /* Then the

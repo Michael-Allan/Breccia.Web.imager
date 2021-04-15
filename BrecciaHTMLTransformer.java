@@ -39,12 +39,12 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
    // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override Markup formalReferenceAt( final ReusableCursor in ) {
+    public @Override Markup formalReferenceAt( final ReusableCursor in ) throws ParseError {
         // Only two ‘formal’ cases exist, each contained in (iR) a resource indicant.
         ResourceIndicant iR; iR: {       // Each `iR`, in turn, is contained in (cR) the
             ReferentClause cR = null; { // referent clause of an associative reference.
                 var __ =              in.asAssociativeReference(); // ↓ Drill down.
-                if( __ != null ) cR = __.imperativeClause().referentClause(); }
+                if( __ != null ) cR = __.referentClause(); }
             if( cR == null ) return null;
 
           // inferential referent indicant with (iF) a fractum indicant, in turn
