@@ -20,7 +20,7 @@ public class TransformError extends Exception {
       *
       *     @see #wrnHead(Path)
       */
-    public static String errHead( final Path file ) { return file + ", error: "; }
+    public static String errHead( final Path file ) { return file + ": error: "; }
 
 
 
@@ -29,7 +29,7 @@ public class TransformError extends Exception {
       *     @see #wrnHead(Path,int)
       */
     public static String errHead( final Path file, final int lineNumber ) {
-        return file + " " + lineNumber + ", error: "; }
+        return file + ":" + lineNumber + ": error: "; }
 
 
 
@@ -70,7 +70,7 @@ public class TransformError extends Exception {
       *
       *     @see #errHead(Path)
       */
-    public static String wrnHead( final Path file ) { return file + ", warning: "; }
+    public static String wrnHead( final Path file ) { return file + ": warning: "; }
 
 
 
@@ -79,7 +79,7 @@ public class TransformError extends Exception {
       *     @see #errHead(Path,int)
       */
     public static String wrnHead( final Path file, final int lineNumber ) {
-        return file + " " + lineNumber + ", warning: "; }
+        return file + ":" + lineNumber + ": warning: "; }
 
 
 
