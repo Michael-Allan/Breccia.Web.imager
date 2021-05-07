@@ -59,8 +59,9 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
             iR = iF.resourceIndicant();
             if( iR == null ) return null; } /* The absence of `iR` implies that the indicated resource
               is the containing file, which is not an external resource as required by the API. */
-        if( !iR.isFractal() ) return null; /* Fractal alone implies formal, non-fractal implying a
-          resource whose content is opaque to this transformer and ∴ indeterminate of image form. */
+        if( iR.qualifiers().contains( "non-fractal" )) return null; /* Fractal alone implies formal,
+          non-fractal implying a resource whose content is opaque to this transformer and therefore
+          indeterminate of image form. */
         return iR.reference(); } /* The resource of `iR` is formal ∵ the associative reference containing
           `iR`refers to a pattern of markup *in* the resource and ∴ will be imaged as a hyperlink whose
           form depends on the content of the resource.  In short, it is formal ∵ it informs the image. */
