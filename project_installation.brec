@@ -49,6 +49,12 @@ Installation instructions for the Breccia Web imager
         working example
             : see http://reluk.ca/sys/computer/workstation/opt/_/java-logging.properties
 
+    rebuild script
+        - If you expect to modify the source code of dependencies (direct or indirect),
+          then a rebuild script may be useful.
+            : re `dependencies` see `^^.\+ Ensure the following projects are installed`
+            : re `rebuild script` e.g. http://reluk.ca/project/Breccia/Web/imager/build-all
+
     Web publication
         • Breccian files
             : join @ http://reluk.ca/project/Breccia/project_installation.brec
