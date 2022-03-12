@@ -374,7 +374,7 @@ public final class ImageMould<C extends ReusableCursor> {
 //        followed by a report to the user complete with source path and line number.
 //
 //   SM · Structural modification of a `HashMap` defined.
-//        https://docs.oracle.com/en/java/javase/15/docs/api/java.base/java/util/HashMap.html
+//        https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html
 
 
 
