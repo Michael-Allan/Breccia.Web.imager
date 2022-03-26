@@ -11,9 +11,10 @@ import static Java.Collections.forEachRemaining;
 import static java.lang.Thread.sleep;
 
 
-/** A Web crawler to query the timestamps of remote, formal resources and so determine the imageability
-  * of their dependent source files.  Assigned a particular network host among the `formalResources`,
-  * it determines as imageable any dependant of a hosted resource whose image file does not postdate
+/** A crawling probe of the formal resources at a remote Web host.  It reads the timestamps
+  * of each resource and so determines the imageability of the local source files that depend
+  * on it (dependants).  Assigned a particular host from among `formalResources`, the probe
+  * determines as imageable any dependant of a resource whose image file does not postdate
   * the resource, then updates the dependant’s `imageabilityDetermination` accordingly.
   *
   *     @see ImageMould#formalResources
@@ -32,7 +33,7 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
-    /** The delay in milliseconds before each successive timestamp query.
+    /** The delay in milliseconds before each successive HTTP query to a Web host.
       */
     static final int msQueryInterval = 1000; /* Cf. `Crawl-delay`.
       https://en.wikipedia.org/wiki/Robots_exclusion_standard#Crawl-delay_directive */
@@ -86,4 +87,4 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
-                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.
