@@ -51,10 +51,10 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
                 final var iIR = cR.inferentialReferentIndicant();
                 if( iIR == null ) { // Then `cR` itself directly contains any `iF`.
                     iF = cR.fractumIndicant();
-                    if( iF.patterns() == null ) return null; } /* With no pattern, this `iF` indicates
-                      the resource as a whole and will therefore be informal within the image. */
+                    if( iF.patternMatchers() == null ) return null; } /* Without a matcher, `iF`
+                      indicates the resource as a whole, making it informal within the image. */
                 else iF = iIR.fractumIndicant(); /* The `iIR` of `cR` alone contains any `iF`.  Whether
-                  this `iF` includes a pattern is immaterial ∵ already `iIR` itself infers a pattern */
+                  this `iF` includes a matcher is immaterial ∵ already `iIR` itself infers one. */
                 if( iF == null ) return null; }
             iR = iF.resourceIndicant();
             if( iR == null ) return null; } /* The absence of `iR` implies that the indicated resource
@@ -63,7 +63,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
           non-fractal implying a resource whose content is opaque to this transformer and therefore
           indeterminate of image form. */
         return iR.reference(); } /* The resource of `iR` is formal ∵ the associative reference containing
-          `iR`refers to a pattern of markup *in* the resource and ∴ will be imaged as a hyperlink whose
+          `iR`refers to a matcher of markup *in* the resource and ∴ will be imaged as a hyperlink whose
           form depends on the content of the resource.  In short, it is formal ∵ it informs the image. */
 
 
@@ -99,4 +99,4 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
 
 
-                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.
