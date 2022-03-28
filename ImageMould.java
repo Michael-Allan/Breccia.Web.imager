@@ -257,7 +257,8 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Records all formal resources of source file `f`.
+    /** Records all formal resources of source file `f`, provided it is of indeterminate imageability;
+      * otherwise does nothing.
       *
       *     @see #formalResources
       *     @param f The path of a source file.
@@ -274,7 +275,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 iR.set( unimageable );
                 return false; }
             if( mRef == null ) return true;
-            final String sRef = mRef.text().toString(); // Strung reference.
+            final String sRef = mRef.text().toString(); // String reference.
             if( sRef.startsWith("//") || schemedPattern.matcher(sRef).lookingAt() ) { /* Then the
                   resource is reachable only through a network.  The ‘//’ case would indicate a
                   network-path reference.  https://tools.ietf.org/html/rfc3986#section-4.2 */
@@ -378,4 +379,4 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.
