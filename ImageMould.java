@@ -1,13 +1,13 @@
 package Breccia.Web.imager;
 
 import Breccia.parser.*;
+import Java.*;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import Java.*;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeoutException;
@@ -22,9 +22,9 @@ import static Breccia.Web.imager.TransformError.errMsg;
 import static Breccia.Web.imager.TransformError.wrnHead;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
+import static java.nio.file.Files.*;
 import static Java.URIs.schemedPattern;
 import static Java.URIs.unfragmented;
-import static java.nio.file.Files.*;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 

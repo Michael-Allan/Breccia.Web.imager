@@ -29,7 +29,7 @@ enum Imageability {
 
     /** The source file needed imaging and is now imaged.  This is a final state.
       */
-    imaged; }
+    imaged }
 
 
                                                    // Copyright © 2020-2021  Michael Allan.  Licence MIT.
