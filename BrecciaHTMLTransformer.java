@@ -95,7 +95,10 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
                         case END_ELEMENT -> out.writeEndElement();
                         case START_DOCUMENT -> out.writeStartDocument();
                         case START_ELEMENT -> out.writeStartElement( in.getLocalName() );
-                        default -> throw new IllegalStateException(); }
+                        default -> throw new IllegalStateException(); } /* The event type being
+                          either `HALT`, or one not actually emitted by `BrecciaXCursor` at the time
+                          of coding.  For the event types emitted, see the `assert` statement
+                          and comment at the foot of method `BrecciaXCursor.next`. */
                     if( !in.hasNext() ) break;
                     try { in.next(); }
                     catch( final XMLStreamException x ) { throw (ParseError)(x.getCause()); }}}
