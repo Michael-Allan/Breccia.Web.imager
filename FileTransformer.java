@@ -1,8 +1,6 @@
 package Breccia.Web.imager;
 
 import Breccia.parser.*;
-import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Path;
 
 
