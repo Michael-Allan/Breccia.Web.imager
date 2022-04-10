@@ -3,17 +3,23 @@ package Breccia.Web.imager;
 import Breccia.parser.*;
 import Breccia.XML.translator.BrecciaXCursor;
 import java.io.*;
-import java.net.URI;
 import java.nio.file.Path;
 import Java.Unhandled;
-import javax.xml.stream.*;
+import javax.xml.transform.*;
+import javax.xml.transform.stax.StAXSource;
+import javax.xml.transform.stream.StreamResult;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
+import static Breccia.parser.Typestamp.empty;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Imaging.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
-import static Breccia.XML.translator.BrecciaXCursor.EMPTY;
-import static javax.xml.stream.XMLStreamConstants.*;
+import static Breccia.XML.translator.XStreamConstants.EMPTY;
+import static java.nio.file.Files.createFile;
+import static java.nio.file.Files.newOutputStream;
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static javax.xml.transform.OutputKeys.ENCODING;
+import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
 
 
 public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCursor> {
@@ -74,60 +80,40 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
     public @Override void transform( final Path sourceFile, final Path imageDirectory )
           throws ParseError, TransformError {
         final Path imageFile = imageDirectory.resolve( imageSimpleName( sourceFile ));
-        try( final Reader sourceReader = newSourceReader​( sourceFile );
-             final Writer imageWriter = newImageWriter​( imageFile )) {
+        try( final Reader sourceReader = newSourceReader​( sourceFile )) {
             sourceCursor.markupSource( sourceReader );
+            if( sourceCursor.state().typestamp() == empty ) {
+                logger.fine( () -> "Imaging empty source file: " + sourceFile );
+                createFile( imageFile );
+                return; }
             sourceTranslator.markupSource( sourceCursor );
-            final XMLStreamWriter out = xmlOutputFactory.createXMLStreamWriter( imageWriter );
-            try {
-                for( final BrecciaXCursor in = sourceTranslator;; ) {
-                    switch( in.getEventType() ) {
-                        case CHARACTERS -> {
-                            final int bN = buffer.length;
-                            for( int i = 0;; i += bN ) {
-                                final int iN = in.getTextCharacters( i, buffer, 0, bN );
-                                if( iN == 0 ) break; // End of input and nothing to write.
-                                assert iN > 0 && iN <= bN;
-                                out.writeCharacters( buffer, 0, iN );
-                                if( iN < bN ) break; }} // End of input.
-                        case EMPTY -> logger.fine( () -> "Imaging empty source file: " + sourceFile );
-                        case END_DOCUMENT -> out.writeEndDocument();
-                        case END_ELEMENT -> out.writeEndElement();
-                        case START_DOCUMENT -> out.writeStartDocument();
-                        case START_ELEMENT -> out.writeStartElement( in.getLocalName() );
-                        default -> throw new IllegalStateException(); } /* The event type being
-                          either `HALT`, or one not actually emitted by `BrecciaXCursor` at the time
-                          of coding.  For the event types emitted, see the `assert` statement
-                          and comment at the foot of method `BrecciaXCursor.next`. */
-                    if( !in.hasNext() ) break;
-                    try { in.next(); }
-                    catch( final XMLStreamException x ) { throw (ParseError)(x.getCause()); }}}
-            finally { out.close(); }}
-        catch( IOException|XMLStreamException x ) { throw new Unhandled( x ); }}
+            try( final OutputStream imageWriter = newOutputStream​( imageFile, CREATE_NEW )) {
+                imageFileOutput.setOutputStream( imageWriter );
+                identityTransformer.transform( new StAXSource(sourceTranslator), imageFileOutput ); }}
+                  // `StAXSource` is ‘not reusable’ according to its API.  How that could be is puzzling
+                  // given that it’s a pure wrapper, but let’s humour it.
+        catch( IOException|TransformerException x ) { throw new Unhandled( x ); }}
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    final char[] buffer = new char[0x2000]; // or 8192
+    private final Transformer identityTransformer; {
+        Transformer t;
+        try { t = TransformerFactory.newInstance().newTransformer(); }
+        catch( TransformerConfigurationException x ) { throw new Unhandled( x ); }
+        t.setOutputProperty( ENCODING, "UTF-8" );
+        t.setOutputProperty( OMIT_XML_DECLARATION, "yes" );
+        identityTransformer = t; }
 
 
 
-    /** Opens an image file for writing, returning a writer suited to the purpose.
-      */
-    private static Writer newImageWriter( final Path imageFile ) throws IOException { /* Little point
-           in dealing with the `IOException` at this level, because anyway the caller must deal with it
-           on closing the writer, usually by appending a `catch` to a try-with-resources block. */
-        return java.nio.file.Files.newBuffered​Writer( imageFile ); }
+    private final StreamResult imageFileOutput = new StreamResult();
 
 
 
-    private final ReusableCursor sourceCursor;
-
-
-
-    private static final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newDefaultFactory(); }
+    private final ReusableCursor sourceCursor; }
 
 
 
