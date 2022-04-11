@@ -5,6 +5,7 @@ import Breccia.XML.translator.BrecciaXCursor;
 import java.io.*;
 import java.nio.file.Path;
 import Java.Unhandled;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.*;
 import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.dom.DOMResult;
@@ -93,9 +94,15 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
                     return; }
                 sourceTranslator.markupSource( sourceCursor );
                 domOutput.setNode( null/*make a new document*/ );
-                identityTransformer.transform( new StAXSource(sourceTranslator), domOutput ); }
+                try { identityTransformer.transform( new StAXSource(sourceTranslator), domOutput ); }
                   // `StAXSource` is ‘not reusable’ according to its API.  How that could be is puzzling
                   // given that it’s a pure wrapper, but let’s humour it.
+                catch( final TransformerException xT ) {
+                    if( xT.getCause() instanceof XMLStreamException ) {
+                        final XMLStreamException xS = (XMLStreamException)(xT.getCause());
+                        throw (ParseError)(xS.getCause()); } /* So advertising that the location data
+                          of `ParseError` is available for the exception, in case the caller wants it. */
+                    throw xT; }}
 
           // X-Breccia DOM → X-Breccia text file
           // ───────────────────────────────────
@@ -103,7 +110,8 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
             try( final OutputStream imageWriter = newOutputStream​( imageFile, CREATE_NEW )) {
                 imageFileOutput.setOutputStream( imageWriter );
                 identityTransformer.transform( domInput, imageFileOutput ); }}
-        catch( IOException|TransformerException x ) { throw new Unhandled( x ); }}
+        catch( IOException|TransformerException x ) {
+            throw new TransformError( imageFile, "Unable to make image file", x ); }}
 
 
 
