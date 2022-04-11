@@ -9,6 +9,7 @@ public class TransformError extends Exception {
 
     /** @see #file
       * @see #getMessage()
+      * @see #getCause()
       */
     public TransformError( Path file, String message, Throwable cause ) {
         super( message, cause );
@@ -123,9 +124,9 @@ public class TransformError extends Exception {
         b.append( super.getMessage() );
         final Throwable cause = getCause();
         if( cause != null ) {
-            b.append( ':' );
+            b.append( ": " );
             b.append( cause ); }
         return b.toString(); }}
 
 
-                                                        // Copyright © 2021  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2021-2022  Michael Allan.  Licence MIT.
