@@ -7,6 +7,8 @@ import java.nio.file.Path;
 import Java.Unhandled;
 import javax.xml.transform.*;
 import javax.xml.transform.stax.StAXSource;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
@@ -80,23 +82,40 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
     public @Override void transform( final Path sourceFile, final Path imageDirectory )
           throws ParseError, TransformError {
         final Path imageFile = imageDirectory.resolve( imageSimpleName( sourceFile ));
-        try( final Reader sourceReader = newSourceReader​( sourceFile )) {
-            sourceCursor.markupSource( sourceReader );
-            if( sourceCursor.state().typestamp() == empty ) {
-                logger.fine( () -> "Imaging empty source file: " + sourceFile );
-                createFile( imageFile );
-                return; }
-            sourceTranslator.markupSource( sourceCursor );
-            try( final OutputStream imageWriter = newOutputStream​( imageFile, CREATE_NEW )) {
-                imageFileOutput.setOutputStream( imageWriter );
-                identityTransformer.transform( new StAXSource(sourceTranslator), imageFileOutput ); }}
+        try {
+          // Breccia text file → X-Breccia parse events → X-Breccia DOM
+          // ──────────────────────────────────────────────────────────
+            try( final Reader sourceReader = newSourceReader​( sourceFile )) {
+                sourceCursor.markupSource( sourceReader );
+                if( sourceCursor.state().typestamp() == empty ) {
+                    logger.fine( () -> "Imaging empty source file: " + sourceFile );
+                    createFile( imageFile ); // Special case, no content to transform.
+                    return; }
+                sourceTranslator.markupSource( sourceCursor );
+                domOutput.setNode( null/*make a new document*/ );
+                identityTransformer.transform( new StAXSource(sourceTranslator), domOutput ); }
                   // `StAXSource` is ‘not reusable’ according to its API.  How that could be is puzzling
                   // given that it’s a pure wrapper, but let’s humour it.
+
+          // X-Breccia DOM → X-Breccia text file
+          // ───────────────────────────────────
+            domInput.setNode( domOutput.getNode() );
+            try( final OutputStream imageWriter = newOutputStream​( imageFile, CREATE_NEW )) {
+                imageFileOutput.setOutputStream( imageWriter );
+                identityTransformer.transform( domInput, imageFileOutput ); }}
         catch( IOException|TransformerException x ) { throw new Unhandled( x ); }}
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    private final DOMSource domInput = new DOMSource();
+
+
+
+    private final DOMResult domOutput = new DOMResult();
+
 
 
     private final Transformer identityTransformer; {
