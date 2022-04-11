@@ -55,8 +55,9 @@ public final class BrecciaWebImageCommand { // [AFN]
         final Path out;
         try { out = emptyDirectory( createDirectories( outDirectory.resolve( Path.of( "mould" )))); }
         catch( IOException x ) { throw new Unhandled( x ); } // Unexpected for `outDirectory`.
-        final var t = new BrecciaHTMLTransformer( new BrecciaCursor(), new BrecciaXCursor() );
-        return Imaging.image( "breccia-web-image", boundaryPath, t, out ); }}
+        try( final BrecciaXCursor sourceTranslator = new BrecciaXCursor() ) {
+            final var t = new BrecciaHTMLTransformer( new BrecciaCursor(), sourceTranslator );
+            return Imaging.image( "breccia-web-image", boundaryPath, t, out ); }}}
 
 
 
@@ -74,4 +75,4 @@ public final class BrecciaWebImageCommand { // [AFN]
 
 
 
-                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.
