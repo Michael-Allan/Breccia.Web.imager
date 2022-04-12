@@ -2,7 +2,9 @@ package Breccia.Web.imager;
 
 import Breccia.parser.*;
 import Breccia.XML.translator.BrecciaXCursor;
-import java.io.*;
+import java.io.OutputStream;
+import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.Path;
 import Java.Unhandled;
 import javax.xml.stream.XMLStreamException;
@@ -11,6 +13,9 @@ import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
 import static Breccia.parser.Typestamp.empty;
@@ -84,6 +89,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
           throws ParseError, TransformError {
         final Path imageFile = imageDirectory.resolve( imageSimpleName( sourceFile ));
         try {
+
           // Breccia text file → X-Breccia parse events → X-Breccia DOM
           // ──────────────────────────────────────────────────────────
             try( final Reader sourceReader = newSourceReader​( sourceFile )) {
@@ -104,9 +110,21 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
                           of `ParseError` is available for the exception, in case the caller wants it. */
                     throw xT; }}
 
-          // X-Breccia DOM → X-Breccia text file
-          // ───────────────────────────────────
-            domInput.setNode( domOutput.getNode() );
+          // X-Breccia DOM → XHTML DOM
+          // ─────────────────────────
+            final Document document = (Document)(domOutput.getNode());
+            final Node fileFractum = document.removeChild( document.getFirstChild() );
+            if( document.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
+            final Element html = document.createElementNS( "http://www.w3.org/1999/xhtml", "html" );
+            document.appendChild( html );
+            html.appendChild( document.createElement( "head" ));
+            final Element body = document.createElement( "body" );
+            html.appendChild( body );
+            body.appendChild( fileFractum );
+
+          // XHTML DOM → XHTML text file
+          // ───────────────────────────
+            domInput.setNode( document );
             try( final OutputStream imageWriter = newOutputStream​( imageFile, CREATE_NEW )) {
                 imageFileOutput.setOutputStream( imageWriter );
                 identityTransformer.transform( domInput, imageFileOutput ); }}
