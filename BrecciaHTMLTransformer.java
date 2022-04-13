@@ -112,19 +112,20 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
           // X-Breccia DOM → XHTML DOM
           // ─────────────────────────
-            final Document document = (Document)(domOutput.getNode());
-            final Node fileFractum = document.removeChild( document.getFirstChild() );
-            if( document.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
-            final Element html = document.createElementNS( "http://www.w3.org/1999/xhtml", "html" );
-            document.appendChild( html );
-            html.appendChild( document.createElement( "head" ));
-            final Element body = document.createElement( "body" );
+            final Document d = (Document)(domOutput.getNode());
+            final Node fileFractum = d.removeChild( d.getFirstChild() );
+            assert "FileFractum".equals( fileFractum.getLocalName() );
+            if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
+            final Element html = d.createElementNS( "http://www.w3.org/1999/xhtml", "html" );
+            d.appendChild( html );
+            html.appendChild( d.createElement( "head" ) );
+            final Element body = d.createElement( "body" );
             html.appendChild( body );
             body.appendChild( fileFractum );
 
           // XHTML DOM → XHTML text file
           // ───────────────────────────
-            domInput.setNode( document );
+            domInput.setNode( d );
             try( final OutputStream imageWriter = newOutputStream​( imageFile, CREATE_NEW )) {
                 imageFileOutput.setOutputStream( imageWriter );
                 identityTransformer.transform( domInput, imageFileOutput ); }}
