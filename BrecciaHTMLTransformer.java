@@ -26,6 +26,10 @@ import static Breccia.XML.translator.XStreamConstants.EMPTY;
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static Java.Nodes.successor;
+import static Java.Nodes.successorAfter;
+import static Java.StringBuilding.clear;
+import static Java.StringBuilding.collapseWhitespace;
 import static javax.xml.transform.OutputKeys.ENCODING;
 import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
 
@@ -118,10 +122,25 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
             if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
             final Element html = d.createElementNS( "http://www.w3.org/1999/xhtml", "html" );
             d.appendChild( html );
-            html.appendChild( d.createElement( "head" ) );
-            final Element body = d.createElement( "body" );
-            html.appendChild( body );
-            body.appendChild( fileFractum );
+
+          // head
+          // ┈┈┈┈
+            final Element documentHead = d.createElement( "head" );
+            html.appendChild( documentHead );
+            for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
+                if( !"Head".equals( n.getLocalName() )) continue;
+                final String tF = fileTitle( n );
+                if( tF != null ) {
+                    final Element title = d.createElement( "title" );
+                    title.appendChild( d.createTextNode( tF ));
+                    documentHead.appendChild( title );
+                    break; }}
+
+          // body
+          // ┈┈┈┈
+            final Element documentBody = d.createElement( "body" );
+            html.appendChild( documentBody );
+            documentBody.appendChild( fileFractum );
 
           // XHTML DOM → XHTML text file
           // ───────────────────────────
@@ -145,6 +164,39 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
 
 
+    /** @param head A `Head` element representing a fractal head.
+      * @return The file title as derived from the head, or null if it yields none.
+      */
+    private String fileTitle( Node head ) throws TransformError {
+        final String titlingExtract; // The relevant text extracted from the fractal head.
+        if( "Division".equals( head.getParentNode().getLocalName() )) { // Then `head` is a divider.
+            for( Node n = successor(head);;  n = successor(n) ) {
+                if( n == null ) return null;
+                if( "DivisionLabel".equals( n.getLocalName() )) {
+                    titlingExtract = n.getTextContent();
+                    break; }}}
+        else { // Presumeably `head` is a file head or point head.
+            head = head.cloneNode( /*deeply*/true ); /* So both preserving the original,
+              and keeping the nodal scan that follows within the bounds of the isolated copy. */
+            strip: for( Node p, n = successor(p = head);  n != null;  n = successor(p = n) ) {
+                final String localName = n.getLocalName();
+                if( "IndentBlind".equals( localName )) for( ;; ) { // Then remove `n` and all successors.
+                    final Node s = successorAfter( n );
+                    n.getParentNode().removeChild( n );
+                    if( s == null ) break strip;
+                    n = s; }
+                if( "CommentAppender".equals( localName )
+                 || "CommentBlock"   .equals( localName )) { // Then `n` is a comment carrier, remove it.
+                    final Node c = n;
+                    c.getParentNode().removeChild( c );
+                    n = p; }} // Resuming from the predecessor of comment carrier `n`, now removed.
+            titlingExtract = head.getTextContent(); }
+        final StringBuilder b = clear(stringBuilder).append( titlingExtract );
+        collapseWhitespace( b );
+        return b.isEmpty() ? null : b.toString(); }
+
+
+
     private final Transformer identityTransformer; {
         Transformer t;
         try { t = TransformerFactory.newInstance().newTransformer(); }
@@ -156,6 +208,11 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
 
     private final StreamResult imageFileOutput = new StreamResult();
+
+
+
+    private final StringBuilder stringBuilder = new StringBuilder(
+      /*initial capacity*/0x2000/*or 8192*/ );
 
 
 
