@@ -30,6 +30,7 @@ import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
+import static javax.xml.transform.OutputKeys.DOCTYPE_SYSTEM;
 import static javax.xml.transform.OutputKeys.ENCODING;
 import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
 
@@ -201,6 +202,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
         Transformer t;
         try { t = TransformerFactory.newInstance().newTransformer(); }
         catch( TransformerConfigurationException x ) { throw new Unhandled( x ); }
+        t.setOutputProperty( DOCTYPE_SYSTEM, "about:legacy-compat" ); // [DI]
         t.setOutputProperty( ENCODING, "UTF-8" );
         t.setOutputProperty( OMIT_XML_DECLARATION, "yes" );
         identityTransformer = t; }
@@ -217,6 +219,15 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
 
     private final ReusableCursor sourceCursor; }
+
+
+
+// NOTE
+// ────
+//   DI  `DOCTYPE` inclusion.  The would-be alternative of using, at an earlier stage, the likes of
+//       `d.appendChild( d.getImplementation().createDocumentType( "html", null, "about:legacy-compat" ))`
+//        in order to give the initial DOM document (here `d`) a `DOCTYPE` turns out not to suffice
+//        because it has no effect on the output.
 
 
 
