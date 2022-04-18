@@ -14,6 +14,7 @@ import static Java.Files.emptyDirectory;
 import static java.lang.System.err;
 import static java.lang.System.exit;
 import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.exists;
 
 
 /** A shell command to make a Web image.
@@ -38,7 +39,7 @@ public final class BrecciaWebImageCommand { // [AFN]
             if( p < 0 ) {
                 err.println( "breccia-web-image: Too few arguments: " + aN );
                 exitWithUsage( 1 ); }}
-        final var command = new BrecciaWebImageCommand( Path.of(arguments[p]) );
+        final var command = new BrecciaWebImageCommand( Path.of(arguments[p]).toAbsolutePath() );
         for( int a = 0; a < p/*argument is nominal*/; ++a ) {
             final String arg = arguments[a];
             exitOnDemand( arg );
@@ -73,6 +74,9 @@ public final class BrecciaWebImageCommand { // [AFN]
     /** @return True on success, false on failure.
       */
     private boolean run() {
+        if( !exists( boundaryPath )) {
+            err.println( "breccia-web-image: No such file or directory: " + boundaryPath );
+            return false; }
         final Path out;
         try { out = emptyDirectory( createDirectories( outDirectory.resolve( Path.of( "mould" )))); }
         catch( IOException x ) { throw new Unhandled( x ); } // Unexpected for `outDirectory`.

@@ -40,14 +40,18 @@ public final class ImageMould<C extends ReusableCursor> {
       * @see #outDirectory
       * @param errorStream Where to report any warnings or survivable errors that occur
       *   during image formation.
+      * @throws IllegalArgumentException If `boundaryPath` is relative or non-existent.
       * @throws IllegalArgumentException If `outDirectory` is not an empty directory.
       */
     public ImageMould( final Path boundaryPath, final FileTransformer<C> transformer,
-        final Path outDirectory, final PrintWriter errorStream ) {{
-            final Path d = outDirectory;
+          final Path outDirectory, final PrintWriter errorStream ) {
+        /* Sanity tests */ {
+            Path p = boundaryPath;
+            if( !exists( p )) throw new IllegalArgumentException( "No such file or directory: " + p );
+            if( !p.isAbsolute() ) throw new IllegalArgumentException( "Not an absolute path: " + p );
             try {
-                if( !( isDirectory(d) && isDirectoryEmpty(d) )) {
-                    throw new IllegalArgumentException( "Not an empty directory: " + d ); }}
+                if( !( isDirectory(p = outDirectory) && isDirectoryEmpty(p) )) {
+                    throw new IllegalArgumentException( "Not an empty directory: " + p ); }}
             catch( IOException x ) { throw new Unhandled( x ); }}
         boundaryPathDirectory = isDirectory(boundaryPath)?  boundaryPath : boundaryPath.getParent();
         this.boundaryPath = boundaryPath;
@@ -57,9 +61,9 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** The topmost path of the Web image, which defines its extent.  It comprises or contains
-      * the Breccian source files of the image, each accompanied by any previously formed image file,
-      * a sibling namesake with a `.xht` extension.
+    /** The topmost path of the Web image, which defines its extent.  This is an absolute path.
+      * It comprises or contains the Breccian source files of the image, each accompanied
+      * by any previously formed image file, a sibling namesake with a `.xht` extension.
       */
     public final Path boundaryPath;
 
@@ -101,9 +105,9 @@ public final class ImageMould<C extends ReusableCursor> {
       */
     public boolean formImage() throws UserError {
         /* Sanity test on boundary path */ {
-            final Path p = boundaryPath;
+            Path p = boundaryPath;
             if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
-            if( toRequireWritableBounds && isDirectory(p) && !isWritable(p) ) {
+            if( toRequireWritableBounds && !isWritable(p = boundaryPathDirectory) ) {
                 throw new UserError( "Directory is unwritable: " + p ); }} /* While writing into the
               boundary path itself is no responsibility of the mould, skipping unwritable directories is,
               and is like enough to the test above that the mould takes responsibility for both. */
