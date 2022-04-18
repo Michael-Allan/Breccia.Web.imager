@@ -1,17 +1,34 @@
 `breccia-web-image` - Make a Web image
 
-        breccia-web-image <boundary path>
+        breccia-web-image  [--style-sheet=<URI reference>]  <boundary path>
+        breccia-web-image  --help | -?
 
-    - The `breccia-web-image` command makes a Web image delimited by the given boundary path,
-      which is the path of a single file or directory.
-        - It ensures that each Breccian source file stored at or under the boundary path
-          is accompanied by its image file, a sibling namesake with a `.xht` extension.
-        - It reforms any image file that does not postdate both its source file
-          and all formal resources of its source.
-            : re `formal resources` see non-fractal `formalResources` @ ../ExternalResources.java :
-              Typically these are Breccian referent files.
-    - The working directory must be the command directory.
-        : see `^^working directory$` @ `^^shell commands$` @ http://reluk.ca/project/Java/notepad.brec
+    - The `breccia-web-image` command makes a Web image delimited by the given boundary path.
+        - It ensures that each Breccian source file (`.brec`) stored at or under the boundary path
+          is accompanied by its image file, a sibling namesake with a `.brec.xht` extension.
+        - Any image file that is missing is formed anew, any that is outdated is reformed.
+            - An image file is outdated unless it postdates both its source file
+              and all formal resources of the source file.
+                : re `formal resources` see non-fractal `formalResources` @ ../ExternalResources.java :
+                  Typically these are Breccian referent files.
+        - The working directory must be the command directory.
+            : see `^^working directory$` @ `^^shell commands$` @ http://reluk.ca/project/Java/notepad.brec
+    - One positional argument is required:
+
+        <boundary path>
+            / The path of a file or directory.
+            - Sets the bounds of the Web image: each Breccian source file stored at or under this path
+              is made eligible for imaging.
+
+    - The positional argument may be preceded by a nominal argument:
+
+        --style-sheet: --style-sheet=<URI reference>
+                : re `URI reference` see https://tools.ietf.org/html/rfc3986#section-4.1
+            - Writes into each image file the given URI reference,
+              making its referent the style sheet for the image.
+            - The default value is `http://reluk.ca/project/Breccia/Web/imager/image.css`.
+                / Do not rely on it, however, because its content may postdate your installation
+                  and lead to mistyling.
 
 
     ━━━━━━━━━━

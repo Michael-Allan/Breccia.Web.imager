@@ -11,6 +11,8 @@ import Java.Unhandled;
 
 import static Breccia.Web.imager.Project.outDirectory;
 import static Java.Files.emptyDirectory;
+import static java.lang.System.err;
+import static java.lang.System.exit;
 import static java.nio.file.Files.createDirectories;
 
 
@@ -29,16 +31,23 @@ public final class BrecciaWebImageCommand { // [AFN]
     /** Takes a `breccia-web-image` command from the shell and executes it.
       */
     public static void main( final String[] arguments ) {
-        final boolean hasFailed;
-        final String argument;
-        if( arguments.length == 1
-         && !(argument = arguments[0]).startsWith( "-" )) { // Allowing e.g. for a deliberate `-?`.
-            final var command = new BrecciaWebImageCommand( Path.of( argument ));
-            hasFailed = !command.run(); }
-        else {
-            System.err.println( "Usage: breccia-web-image <boundary path>" );
-            hasFailed = true; }
-        if( hasFailed ) System.exit( 1 ); }
+        final int p; { // Expected start of positional arguments.
+            final int aN = arguments.length;
+            if( aN == 1 ) exitOnDemand( arguments[0] );
+            p = aN - 1;
+            if( p < 0 ) {
+                err.println( "breccia-web-image: Too few arguments: " + aN );
+                exitWithUsage( 1 ); }}
+        final var command = new BrecciaWebImageCommand( Path.of(arguments[p]) );
+        for( int a = 0; a < p/*argument is nominal*/; ++a ) {
+            final String arg = arguments[a];
+            exitOnDemand( arg );
+            String s;
+            if( arg.startsWith( s = "--style-sheet=" )) command.styleSheet = arg.substring( s.length() );
+            else {
+                err.println( "breccia-web-image: Unrecognized argument: " + arg );
+                exit( 1 ); }}
+        if( !command.run() ) exit( 1 ); }
 
 
 
@@ -49,6 +58,18 @@ public final class BrecciaWebImageCommand { // [AFN]
 
 
 
+    private static void exitOnDemand( final String arg ) {
+        if( arg.equals("-?") || arg.equals("--help") ) exitWithUsage( 0 ); }
+
+
+
+    private static void exitWithUsage( final int status ) {
+        err.println( "Usage: breccia-web-image [--style-sheet=<URI reference>] <boundary path>" );
+        err.println( "       breccia-web-image --help | -?" );
+        exit( status ); }
+
+
+
     /** @return True on success, false on failure.
       */
     private boolean run() {
@@ -56,8 +77,13 @@ public final class BrecciaWebImageCommand { // [AFN]
         try { out = emptyDirectory( createDirectories( outDirectory.resolve( Path.of( "mould" )))); }
         catch( IOException x ) { throw new Unhandled( x ); } // Unexpected for `outDirectory`.
         try( final BrecciaXCursor sourceTranslator = new BrecciaXCursor() ) {
-            final var t = new BrecciaHTMLTransformer( new BrecciaCursor(), sourceTranslator );
-            return Imaging.image( "breccia-web-image", boundaryPath, t, out ); }}}
+            final var t = new BrecciaHTMLTransformer( new BrecciaCursor(), sourceTranslator,
+              styleSheet );
+            return Imaging.image( "breccia-web-image", boundaryPath, t, out ); }}
+
+
+
+    String styleSheet = "http://reluk.ca/project/Breccia/Web/imager/image.css"; }
 
 
 

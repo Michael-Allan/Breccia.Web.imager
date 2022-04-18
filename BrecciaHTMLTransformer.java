@@ -38,12 +38,14 @@ import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
 public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCursor> {
 
 
-    /** @see #sourceCursor
-      * @see #sourceTranslator
+    /** @see #sourceTranslator
+      * @see #styleSheet
       */
-    public BrecciaHTMLTransformer( ReusableCursor sourceCursor, BrecciaXCursor sourceTranslator ) {
+    public BrecciaHTMLTransformer( ReusableCursor sourceCursor, BrecciaXCursor sourceTranslator,
+          String styleSheet ) {
         this.sourceCursor = sourceCursor;
-        this.sourceTranslator = sourceTranslator; }
+        this.sourceTranslator = sourceTranslator;
+        this.styleSheet = styleSheet; }
 
 
 
@@ -118,8 +120,8 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
           // X-Breccia DOM → XHTML DOM
           // ─────────────────────────
             final Document d = (Document)(domOutput.getNode());
-            final Node fileFractum = d.removeChild( d.getFirstChild() );
-            assert "FileFractum".equals( fileFractum.getLocalName() );
+            final Node fileFractum = d.removeChild( d.getFirstChild() ); // To be reintroduced
+            assert "FileFractum".equals( fileFractum.getLocalName() );  // further below.
             if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
             final Element html = d.createElementNS( "http://www.w3.org/1999/xhtml", "html" );
             d.appendChild( html );
@@ -128,14 +130,17 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
           // ┈┈┈┈
             final Element documentHead = d.createElement( "head" );
             html.appendChild( documentHead );
+            Element e;
             for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
                 if( !"Head".equals( n.getLocalName() )) continue;
                 final String tF = fileTitle( n );
                 if( tF != null ) {
-                    final Element title = d.createElement( "title" );
-                    title.appendChild( d.createTextNode( tF ));
-                    documentHead.appendChild( title );
+                    documentHead.appendChild( e = d.createElement( "title" ));
+                    e.appendChild( d.createTextNode( tF ));
                     break; }}
+            documentHead.appendChild( e = d.createElement( "link" ));
+            e.setAttribute( "rel", "stylesheet" );
+            e.setAttribute( "href", styleSheet );
 
           // body
           // ┈┈┈┈
@@ -218,7 +223,16 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
 
 
-    private final ReusableCursor sourceCursor; }
+    private final ReusableCursor sourceCursor;
+
+
+
+    /** The location of the style sheet for the Web image, formally a URI reference.
+      * It will be written verbatim into each image file.
+      *
+      *     @see <a href='https://tools.ietf.org/html/rfc3986#section-4.1'>URI reference</a>
+      */
+        private final String styleSheet; }
 
 
 
