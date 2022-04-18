@@ -4,6 +4,27 @@
  * this file will be fetched to the client side where it will order the presentation of the image.
  * http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec  */
 
+@namespace brec 'data:,Breccia/XML';
+@namespace html 'http://www.w3.org/1999/xhtml';
+
+
+    html|body {
+        font-family: monospace; }
+
+
+
+    brec|FileFractum {
+        display: block;
+        white-space: pre; }
+
+
+
+    brec|Head ~ brec|*, /* Body fracta */
+    brec|FileFractum > *:not(brec|Head) { /*
+          The top selector covers the typical case of a headed parent, the bottom the special case
+          of a headless parent, which means a file fractal parent. */
+        display: block; }
+
 
 
                                                      /* Copyright © 2022  Michael Allan.  Licence MIT. */
