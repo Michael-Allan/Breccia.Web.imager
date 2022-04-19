@@ -13,17 +13,38 @@
 
 
 
-    brec|FileFractum {
-        display: block;
-        white-space: pre; }
-
-
-
-    brec|Head ~ brec|*, /* Body fracta */
+    brec|Head ~ brec|*, /* Fracta */
+    brec|FileFractum,
     brec|FileFractum > *:not(brec|Head) { /*
-          The top selector covers the typical case of a headed parent, the bottom the special case
-          of a headless parent, which means a file fractal parent. */
+          The top selector covers child fracta of headed parents, the middle the parentless file fractum,
+          and the bottom child fracta of a headless file fractum. */
         display: block; }
+
+
+
+    brec|Head { /* Fractal heads */
+        display: block;
+        white-space: pre; } /* [T] */
+
+
+
+    brec|DividerSegment {
+        display: block; }
+
+
+
+    brec|CommentBlock, brec|CommentBlock > brec|Line, /* Block constructs and their component lines */
+    brec|IndentBlind,  brec|IndentBlind  > brec|Line {
+     /* display: block; */ } /* While this would be truer to Breccia, it serves no present need
+          and might lead to difficulties.  Often an ancestor (e.g. descriptor) has inline display,
+          and the ramifications of a block-in-inline arrangement confuse even the CSS people.
+          https://github.com/w3c/csswg-drafts/issues/1477 */
+
+
+
+/* NOTE
+ * ────
+ *   T ·· Text properties are set on the fractal head alone, where all Breccian text is confined. */
 
 
 
