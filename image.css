@@ -15,7 +15,7 @@
 
     brec|Head ~ brec|*, /* Fracta */
     brec|FileFractum,
-    brec|FileFractum > *:not(brec|Head) { /*
+    brec|FileFractum > brec|*:not(Head) { /*
           The top selector covers child fracta of headed parents, the middle the parentless file fractum,
           and the bottom child fracta of a headless file fractum. */
         display: block; }
