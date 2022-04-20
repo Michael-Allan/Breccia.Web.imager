@@ -38,11 +38,11 @@ import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
 public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCursor> {
 
 
-    /** @see #sourceTranslator
+    /** @see #sourceCursor
+      * @see #sourceTranslator
       * @see #styleSheet
       */
-    public BrecciaHTMLTransformer( ReusableCursor sourceCursor, BrecciaXCursor sourceTranslator,
-          String styleSheet ) {
+    public BrecciaHTMLTransformer( C sourceCursor, BrecciaXCursor sourceTranslator, String styleSheet ) {
         this.sourceCursor = sourceCursor;
         this.sourceTranslator = sourceTranslator;
         this.styleSheet = styleSheet; }
@@ -232,7 +232,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
       *
       *     @see <a href='https://tools.ietf.org/html/rfc3986#section-4.1'>URI reference</a>
       */
-        private final String styleSheet; }
+    private final String styleSheet; }
 
 
 
