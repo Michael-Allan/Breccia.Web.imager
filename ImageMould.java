@@ -106,9 +106,9 @@ public final class ImageMould<C extends ReusableCursor> {
             Path p = boundaryPath;
             if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
             if( !isWritable(p = boundaryPathDirectory) ) {
-                throw new UserError( "Directory is unwritable: " + p ); }} /* While writing into the
-              boundary path itself is no responsibility of the mould, skipping unwritable directories is,
-              and is like enough to the test above that the mould takes responsibility for both. */
+                throw new UserError( "Directory is unwritable: " + p ); }} /* While writing in itself
+              is no responsibility of the mould, skipping unwritable directories is, and the gaurd
+              here similar enough to its predecessor to warrant the inclusion of both. */
 
       // ═══════════════════════
       // 1. Pull in source files, sorting them as apodictically imageable or indeterminate
