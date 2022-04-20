@@ -99,16 +99,19 @@ public final class ImageMould<C extends ReusableCursor> {
       *
       *     @return True on success; false if a survivable error was reported to the error stream
       *       given in the constructor, in which case the image may be incomplete.
-      *     @throws UserError If `boundaryPath` is unreadable or denotes an unwritable directory.
+      *     @throws UserError If `boundaryPath` is unreadable, or denotes an unwritable directory
+      *       or a file that looks un-Breccian.
       */
     public boolean formImage() throws UserError {
-        /* Sanity test on boundary path */ {
+        /* Sanity tests on boundary path */ {
             Path p = boundaryPath;
             if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
+            if( !isDirectory(p) && !looksBreccian(p) ) {
+                throw new UserError( "File looks un-Breccian: " + p ); }
             if( !isWritable(p = boundaryPathDirectory) ) {
                 throw new UserError( "Directory is unwritable: " + p ); }} /* While writing in itself
               is no responsibility of the mould, skipping unwritable directories is, and the gaurd
-              here similar enough to its predecessor to warrant the inclusion of both. */
+              here similar enough to its predecessors to warrant inclusion. */
 
       // ═══════════════════════
       // 1. Pull in source files, sorting them as apodictically imageable or indeterminate
