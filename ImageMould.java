@@ -99,15 +99,13 @@ public final class ImageMould<C extends ReusableCursor> {
       *
       *     @return True on success; false if a survivable error was reported to the error stream
       *       given in the constructor, in which case the image may be incomplete.
-      *     @throws UserError If `boundaryPath` is unreadable.
-      *     @throws UserError If `{@linkplain #toRequireWritableBounds toRequireWritableBounds}`
-      *       and `boundaryPath` denotes an unwritable directory.
+      *     @throws UserError If `boundaryPath` is unreadable or denotes an unwritable directory.
       */
     public boolean formImage() throws UserError {
         /* Sanity test on boundary path */ {
             Path p = boundaryPath;
             if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
-            if( toRequireWritableBounds && !isWritable(p = boundaryPathDirectory) ) {
+            if( !isWritable(p = boundaryPathDirectory) ) {
                 throw new UserError( "Directory is unwritable: " + p ); }} /* While writing into the
               boundary path itself is no responsibility of the mould, skipping unwritable directories is,
               and is like enough to the test above that the mould takes responsibility for both. */
@@ -229,13 +227,6 @@ public final class ImageMould<C extends ReusableCursor> {
     /** The directory in which to write any newly formed image files.
       */
     public final Path outDirectory;
-
-
-
-    /** Whether writability is a condition of directory imaging.  Unwritable directories are skipped
-      * when the value is true, leaving writable ones alone to be imaged.  The default value is true.
-      */
-    public boolean toRequireWritableBounds = true;
 
 
 
