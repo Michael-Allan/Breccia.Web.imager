@@ -256,8 +256,8 @@ public final class ImageMould<C extends ReusableCursor> {
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    private final PrintWriter errorStream; /* Do not write to the stream through
-      this field.  Instead write to it through the wrapper methods `err` and `wrn`. */
+    private final PrintWriter errorStream; /* Do not write to the stream through this field.
+      Instead write to it through the wrapper methods `err` and `wrn`. */
 
 
 
