@@ -35,7 +35,9 @@ import static javax.xml.transform.OutputKeys.ENCODING;
 import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
 
 
-public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCursor> {
+/** @param <C> The type of source cursor used by this transformer.
+  */
+public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTransformer<C> {
 
 
     /** @see #sourceCursor
@@ -59,7 +61,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
    // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override Markup formalReferenceAt( final ReusableCursor in ) throws ParseError {
+    public @Override Markup formalReferenceAt( final C in ) throws ParseError {
         final ResourceIndicant iR; {
             FractumIndicant iF; {
                 final ReferentClause cR; {
@@ -88,7 +90,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
 
 
-    public @Override ReusableCursor sourceCursor() { return sourceCursor; }
+    public final @Override C sourceCursor() { return sourceCursor; }
 
 
 
@@ -223,7 +225,7 @@ public final class BrecciaHTMLTransformer implements FileTransformer<ReusableCur
 
 
 
-    private final ReusableCursor sourceCursor;
+    private final C sourceCursor;
 
 
 
