@@ -124,33 +124,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
           // X-Breccia DOM → XHTML DOM
           // ─────────────────────────
             final Document d = (Document)(domOutput.getNode());
-            final Node fileFractum = d.removeChild( d.getFirstChild() ); // To be reintroduced
-            assert "FileFractum".equals( fileFractum.getLocalName() );  // further below.
-            if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
-            final Element html = d.createElementNS( "http://www.w3.org/1999/xhtml", "html" );
-            d.appendChild( html );
-
-          // head
-          // ┈┈┈┈
-            final Element documentHead = d.createElement( "head" );
-            html.appendChild( documentHead );
-            Element e;
-            for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
-                if( !"Head".equals( n.getLocalName() )) continue;
-                final String tF = fileTitle( n );
-                if( tF != null ) {
-                    documentHead.appendChild( e = d.createElement( "title" ));
-                    e.appendChild( d.createTextNode( tF ));
-                    break; }}
-            documentHead.appendChild( e = d.createElement( "link" ));
-            e.setAttribute( "rel", "stylesheet" );
-            e.setAttribute( "href", styleSheet );
-
-          // body
-          // ┈┈┈┈
-            final Element documentBody = d.createElement( "body" );
-            html.appendChild( documentBody );
-            documentBody.appendChild( fileFractum );
+            transform( d );
 
           // XHTML DOM → XHTML text file
           // ───────────────────────────
@@ -177,7 +151,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
     /** @param head A `Head` element representing a fractal head.
       * @return The file title as derived from the head, or null if it yields none.
       */
-    private String fileTitle( Node head ) throws TransformError {
+    private String fileTitle( Node head ) {
         final String titlingExtract; // The relevant text extracted from the fractal head.
         if( "Division".equals( head.getParentNode().getLocalName() )) { // Then `head` is a divider.
             for( Node n = successor(head);;  n = successor(n) ) {
@@ -222,6 +196,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
+    private static final String nsHTML = "http://www.w3.org/1999/xhtml";
+
+
+
     private final StringBuilder stringBuilder = new StringBuilder(
       /*initial capacity*/0x2000/*or 8192*/ );
 
@@ -236,7 +214,38 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
       *
       *     @see <a href='https://tools.ietf.org/html/rfc3986#section-4.1'>URI reference</a>
       */
-    private final String styleSheet; }
+    private final String styleSheet;
+
+
+
+    protected void transform( final Document d ) {
+        final Node fileFractum = d.removeChild( d.getFirstChild() ); // To be reintroduced
+        assert "FileFractum".equals( fileFractum.getLocalName() );  // further below.
+        if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
+        final Element html = d.createElementNS( nsHTML, "html" );
+        d.appendChild( html );
+
+      // head
+      // ┈┈┈┈
+        final Element documentHead = d.createElementNS( nsHTML, "head" );
+        html.appendChild( documentHead );
+        Element e;
+        for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
+            if( !"Head".equals( n.getLocalName() )) continue;
+            final String tF = fileTitle( n );
+            if( tF != null ) {
+                documentHead.appendChild( e = d.createElementNS( nsHTML, "title" ));
+                e.appendChild( d.createTextNode( tF ));
+                break; }}
+        documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
+        e.setAttribute( "rel", "stylesheet" );
+        e.setAttribute( "href", styleSheet );
+
+      // body
+      // ┈┈┈┈
+        final Element documentBody = d.createElementNS( nsHTML, "body" );
+        html.appendChild( documentBody );
+        documentBody.appendChild( fileFractum ); }}
 
 
 
