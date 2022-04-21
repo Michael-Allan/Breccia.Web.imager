@@ -81,7 +81,7 @@ public final class BrecciaWebImageCommand { // [AFN]
         try { out = emptyDirectory( createDirectories( outDirectory.resolve( Path.of( "mould" )))); }
         catch( IOException x ) { throw new Unhandled( x ); } // Unexpected for `outDirectory`.
         try( final BrecciaXCursor sourceTranslator = new BrecciaXCursor() ) {
-            final var t = new BrecciaHTMLTransformer( new BrecciaCursor(), sourceTranslator,
+            final var t = new BrecciaHTMLTransformer<>( new BrecciaCursor(), sourceTranslator,
               styleSheet );
             return Imaging.image( "breccia-web-image", boundaryPath, t, out ); }}
 
