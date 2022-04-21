@@ -23,6 +23,7 @@ import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Imaging.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.XML.translator.XStreamConstants.EMPTY;
+import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
@@ -98,6 +99,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
           throws ParseError, TransformError {
         final Path imageFile = imageDirectory.resolve( imageSimpleName( sourceFile ));
         try {
+            createDirectories( imageFile.getParent() ); // Ensure the parent exists.
 
           // Breccia text file → X-Breccia parse events → X-Breccia DOM
           // ──────────────────────────────────────────────────────────
