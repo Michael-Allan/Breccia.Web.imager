@@ -7,6 +7,8 @@ import Breccia.parser.plain.BrecciaCursor;
 import Breccia.XML.translator.BrecciaXCursor;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import Java.Unhandled;
 
 import static Breccia.Web.imager.Project.outDirectory;
@@ -25,29 +27,36 @@ import static java.nio.file.Files.exists;
 public final class BrecciaWebImageCommand { // [AFN]
 
 
-    private BrecciaWebImageCommand( final Path boundaryPath ) { this.boundaryPath = boundaryPath; }
+    /** @param argsO Nominal arguments, aka options.
+      * @param argsP Positional arguments.
+      */
+    private BrecciaWebImageCommand( final  List<String> argsO, final List<String> argsP ) {
+        int aN = argsP.size();
+        if( aN != 1 ) {
+            err.println( "breccia-web-image: Expecting 1 argument, found " + aN );
+            exitWithUsage( 1 ); }
+        boundaryPath = Path.of(argsP.get(0)).toAbsolutePath();
+        aN = argsO.size();
+        for( int a = 0; a < aN; ++a ) {
+            final String arg = argsO.get( a );
+            String s;
+            if( arg.startsWith( s = "--style-sheet=" )) styleSheet = value( arg, s );
+            else {
+                err.println( "breccia-web-image: Unrecognized argument: " + arg );
+                exit( 1 ); }}}
 
 
 
     /** Takes a `breccia-web-image` command from the shell and executes it.
       */
     public static void main( final String[] arguments ) {
-        final int p; { // Expected start of positional arguments.
-            final int aN = arguments.length;
-            if( aN == 1 ) exitOnDemand( arguments[0] );
-            p = aN - 1;
-            if( p < 0 ) {
-                err.println( "breccia-web-image: Too few arguments: " + aN );
-                exitWithUsage( 1 ); }}
-        final var command = new BrecciaWebImageCommand( Path.of(arguments[p]).toAbsolutePath() );
-        for( int a = 0; a < p/*argument is nominal*/; ++a ) {
+        final var argsO = new ArrayList<String>();
+        final var argsP = new ArrayList<String>();
+        for( int a = 0, aN = arguments.length; a < aN; ++a ) {
             final String arg = arguments[a];
             exitOnDemand( arg );
-            String s;
-            if( arg.startsWith( s = "--style-sheet=" )) command.styleSheet = arg.substring( s.length() );
-            else {
-                err.println( "breccia-web-image: Unrecognized argument: " + arg );
-                exit( 1 ); }}
+            (arg.startsWith("--") ? argsO : argsP).add( arg ); }
+        final var command = new BrecciaWebImageCommand( argsO, argsP );
         if( !command.run() ) exit( 1 ); }
 
 
@@ -87,7 +96,15 @@ public final class BrecciaWebImageCommand { // [AFN]
 
 
 
-    String styleSheet = "http://reluk.ca/project/Breccia/Web/imager/image.css"; }
+    String styleSheet = "http://reluk.ca/project/Breccia/Web/imager/image.css";
+
+
+
+    /** @param arg A nominal argument, aka option.
+      * @param prefix The leading name and equals sign, e.g. "foo=".
+      */
+    private static String value( final String arg, final String prefix ) {
+        return arg.substring( prefix.length() ); }}
 
 
 
