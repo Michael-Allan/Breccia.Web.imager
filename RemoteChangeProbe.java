@@ -35,7 +35,7 @@ final class RemoteChangeProbe implements Runnable {
 
     /** The delay in milliseconds before each successive HTTP query to a Web host.
       */
-    static final int msQueryInterval = /*TEST*/100; /* Cf. `Crawl-delay`.
+    static final int msQueryInterval = /*TEST*/0; /* Cf. `Crawl-delay`.
       https://en.wikipedia.org/wiki/Robots_exclusion_standard#Crawl-delay_directive */
 
 
@@ -84,7 +84,7 @@ final class RemoteChangeProbe implements Runnable {
 
       // Probe the resource
       // ──────────────────
-        System.err.println( " ——— probe TEST: " + resource );
+     // System.err.println( " ——— probe TEST: " + resource );
         /* TODO, the actual probe */; }}
 
 

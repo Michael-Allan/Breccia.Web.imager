@@ -170,9 +170,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     catch( final IOException x ) {
                         logger.warning( () -> "Forcefully reimaging `" + depImage // [ML]
                           + "` its timestamp being unreadable: " + x ); }}
-                if( toReformImage ) {
-                    System.out.println( "   ← " + dep ); // TEST
-                    imageabilityDetermination.get(dep).set( imageable ); }}); });
+                if( toReformImage ) imageabilityDetermination.get(dep).set( imageable ); }); });
 
 
       // ═══════════════════════════
@@ -196,6 +194,8 @@ public final class ImageMould<C extends ReusableCursor> {
                 final Path imageDirectory = outDirectory.resolve(
                   boundaryPathDirectory.relativize( sourceFile.getParent() ));
                 boolean wasTransformed = false;
+                System.out./*TEST*/println( "i   "
+                  + Imaging.imageFile( boundaryPathDirectory.relativize( sourceFile )));
                 try {
                     transformer.transform( sourceFile, imageDirectory );
                     wasTransformed = true; }
@@ -352,7 +352,6 @@ public final class ImageMould<C extends ReusableCursor> {
         final Imageability i;
         try {
             if( !exists(fImage) || getLastModifiedTime(f).compareTo(getLastModifiedTime(fImage)) >= 0 ) {
-                System.out.println( "   ← " + f ); // TEST
                 i = imageable; }
             else i = indeterminate; }
         catch( IOException x ) { throw new Unhandled( x ); }
