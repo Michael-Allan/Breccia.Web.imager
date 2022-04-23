@@ -292,6 +292,13 @@ public final class ImageMould<C extends ReusableCursor> {
                 map( formalResources.remote, /*resource*/pRef, /*dependant*/f ); }
             else { /* This `sRef` is an absolute-path reference or relative-path reference (ibid.),
                   making the resource reachable through local file systems. */
+                if( sRef.startsWith( "~" )) { // [PUR]
+                    if( !wasTildeEncountered ) {
+                        logger.config( () ->
+                          "Ignoring references with unsupported tilde prefix (~) here and hereafter: "
+                          + f );
+                        wasTildeEncountered = true; }
+                    return true; }
                 Path pRef = f.getParent().resolve( sRef ); /* Reference in parsed `Path` form,
                   resolved from its context. */
                 pRef = pRef.normalize();
@@ -361,6 +368,10 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    private boolean wasTildeEncountered; // Viz. a file path prefixed by `~`.
+
+
+
     /** Whether path `p` would be read during image formation if it were readable.
       */
     private static boolean wouldRead( final Path p ) { return isDirectory(p) || looksBreccian(p); }}
@@ -372,6 +383,9 @@ public final class ImageMould<C extends ReusableCursor> {
 //   ML · Mere logging of the IO error in order to avoid redundant and incomplete reporting.  The same
 //        or similar error is almost certain to recur at least once during imaging, each recurrence
 //        followed by a report to the user complete with source path and line number.
+//
+//   PUR  A peculiar URI reference yet unsupported by this image mould.  See *peculiar URI reference*
+//        at `http://reluk.ca/project/wayic/Web/imager/notepad.brec`.
 //
 //   SM · Structural modification of a `HashMap` defined.
 //        https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html
