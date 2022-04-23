@@ -301,6 +301,10 @@ public final class ImageMould<C extends ReusableCursor> {
                     return true; }
                 Path pRef = f.getParent().resolve( sRef ); /* Reference in parsed `Path` form,
                   resolved from its context. */
+                if( !exists( pRef )) {
+                    wrn().println( wrnHead(f, mRef.lineNumber())
+                      + "No such file or directory: " + pRef );
+                    return true; }
                 pRef = pRef.normalize();
                 map( formalResources.local, /*resource*/pRef, /*dependant*/f ); }
             return true; });}
