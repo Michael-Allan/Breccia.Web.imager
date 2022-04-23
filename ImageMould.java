@@ -156,7 +156,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 try { t = getLastModifiedTime( res ); }
                 catch( final IOException x ) {
                     logger.warning( () -> "Forcefully reimaging dependants of resource `" + res // [ML]
-                      + "` its timestamp being unreadable: " + x );}
+                      + "` its timestamp being unreadable: " + x ); }
                 resTime = t; }
             dependants.forEach( dep -> {
                 final ImageabilityReference depImageability = imageabilityDetermination.get( dep );
@@ -169,10 +169,10 @@ public final class ImageMould<C extends ReusableCursor> {
                       // Viz. iff the formal resource has changed since the image was formed.
                     catch( final IOException x ) {
                         logger.warning( () -> "Forcefully reimaging `" + depImage // [ML]
-                          + "` its timestamp being unreadable: " + x );}}
+                          + "` its timestamp being unreadable: " + x ); }}
                 if( toReformImage ) {
                     System.out.println( "   ← " + dep ); // TEST
-                    imageabilityDetermination.get(dep).set( imageable ); }});});
+                    imageabilityDetermination.get(dep).set( imageable ); }}); });
 
 
       // ═══════════════════════════
@@ -207,7 +207,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
           // Await further reduction of indeterminates
           // ───────────────────────
-            try { barrier.awaitAdvanceInterruptibly​( /*phase*/0, msQueryInterval, MILLISECONDS );}
+            try { barrier.awaitAdvanceInterruptibly​( /*phase*/0, msQueryInterval, MILLISECONDS ); }
             catch( final InterruptedException x ) {
                 Thread.currentThread().interrupt(); // Avoid hiding the fact of interruption.
                 throw new UnsourcedInterrupt( x ); }
@@ -307,7 +307,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     return true; }
                 pRef = pRef.normalize();
                 map( formalResources.local, /*resource*/pRef, /*dependant*/f ); }
-            return true; });}
+            return true; }); }
         catch( final ParseError x ) {
             err().println( errMsg( f, x ));
             iR.set( unimageable ); }}

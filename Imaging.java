@@ -106,7 +106,7 @@ public final class Imaging {
             public @Override FileVisitResult visitFile( final Path f, BasicFileAttributes _a )
                   throws IOException {
                 Files.move( f, dTo.resolve(dFrom.relativize(f)), REPLACE_EXISTING );
-                return CONTINUE; }});}
+                return CONTINUE; }}); }
 
 
 
