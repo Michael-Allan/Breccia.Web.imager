@@ -8,7 +8,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -136,9 +137,8 @@ public final class ImageMould<C extends ReusableCursor> {
         final Map<String,RemoteChangeProbe> probes = new HashMap<>( initialCapacity( 256 ));
           // Network hosts (keys) mapped each to its assigned probe (value).
         formalResources.remote.keySet().forEach( res -> // Ensure a probe is assigned, if called for.
-            probes.compute( res.getHost(), (host, probe) -> {
-                if( probe != null ) return null; // Already a probe is assigned to the host of `res`.
-                probe = new RemoteChangeProbe( host, ImageMould.this );
+            probes.computeIfAbsent( res.getHost(), host -> {
+                final var probe = new RemoteChangeProbe( host, ImageMould.this );
                 barrier.register();
                 final Thread thread = new Thread( probe, "Probe thread `" + host + "`" ) {
                     public @Override void run() {

@@ -35,7 +35,7 @@ final class RemoteChangeProbe implements Runnable {
 
     /** The delay in milliseconds before each successive HTTP query to a Web host.
       */
-    static final int msQueryInterval = 1000; /* Cf. `Crawl-delay`.
+    static final int msQueryInterval = /*TEST*/100; /* Cf. `Crawl-delay`.
       https://en.wikipedia.org/wiki/Robots_exclusion_standard#Crawl-delay_directive */
 
 
@@ -48,12 +48,13 @@ final class RemoteChangeProbe implements Runnable {
     public @Async @Override void run() {
         final var rr = mould.formalResources.remote.entrySet().iterator();
         forEachRemaining( rr, (resource, dependants) -> {
+            if( !host.equals( resource.getHost() )) return;
             probe( resource, dependants );
             if( rr.hasNext() ) {
                 try { sleep( msQueryInterval ); }
                 catch( final InterruptedException x ) {
                     Thread.currentThread().interrupt(); // Avoid hiding the fact of interruption.
-                    throw new UnsourcedInterrupt( x ); }}});}
+                    throw new UnsourcedInterrupt( x ); }}}); }
 
 
 
@@ -83,7 +84,8 @@ final class RemoteChangeProbe implements Runnable {
 
       // Probe the resource
       // ──────────────────
-        System.err.println( " ——— TEST, probe remote resource " + resource ); }}
+        System.err.println( " ——— probe TEST: " + resource );
+        /* TODO, the actual probe */; }}
 
 
 
