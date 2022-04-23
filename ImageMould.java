@@ -155,7 +155,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 FileTime t = null;
                 try { t = getLastModifiedTime( res ); }
                 catch( final IOException x ) {
-                    logger.fine( () -> "Forcefully reimaging dependants of resource `" + res // [ML]
+                    logger.warning( () -> "Forcefully reimaging dependants of resource `" + res // [ML]
                       + "` its timestamp being unreadable: " + x );}
                 resTime = t; }
             dependants.forEach( dep -> {
@@ -168,7 +168,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     try { toReformImage = resTime.compareTo(getLastModifiedTime(depImage)) >= 0; }
                       // Viz. iff the formal resource has changed since the image was formed.
                     catch( final IOException x ) {
-                        logger.fine( () -> "Forcefully reimaging `" + depImage // [ML]
+                        logger.warning( () -> "Forcefully reimaging `" + depImage // [ML]
                           + "` its timestamp being unreadable: " + x );}}
                 if( toReformImage ) {
                     System.out.println( "   ← " + dep ); // TEST
