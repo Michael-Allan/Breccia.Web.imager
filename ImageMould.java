@@ -266,20 +266,20 @@ public final class ImageMould<C extends ReusableCursor> {
         if( iR.get() != indeterminate ) return;
         final C in = transformer.sourceCursor();
         try { in.perStateConditionally( f, state -> {
-            final Markup mRef; // Marked-up reference.
+            final Markup mRef; // Reference in `Markup` form.
             try { mRef = transformer.formalReferenceAt( in ); }
             catch( final ParseError x ) {
                 err().println( errMsg( f, x ));
                 iR.set( unimageable );
                 return false; }
             if( mRef == null ) return true;
-            final String sRef = mRef.text().toString(); // String reference.
+            final String sRef = mRef.text().toString(); // Reference in string form.
             if( sRef.startsWith("//") || schemedPattern.matcher(sRef).lookingAt() ) { /* Then the
                   resource is reachable only through a network.  The ‘//’ case would indicate a
                   network-path reference.  https://tools.ietf.org/html/rfc3986#section-4.2 */
-                URI pRef; // Parsed reference.
+                URI pRef; // Reference in parsed `URI` form.
                 try {
-                    pRef = new URI( sRef ); // To parsed form.
+                    pRef = new URI( sRef );
                     if( !looksReachable( pRef )) {
                         throw new URISyntaxException( sRef, "Unrecognized form of reference" ); }}
                 catch( final URISyntaxException x ) {
@@ -292,7 +292,8 @@ public final class ImageMould<C extends ReusableCursor> {
                 map( formalResources.remote, /*resource*/pRef, /*dependant*/f ); }
             else { /* This `sRef` is an absolute-path reference or relative-path reference (ibid.),
                   making the resource reachable through local file systems. */
-                Path pRef = f.resolve( sRef ); // To parsed form, and resolved from its context.
+                Path pRef = f.getParent().resolve( sRef ); /* Reference in parsed `Path` form,
+                  resolved from its context. */
                 pRef = pRef.normalize();
                 map( formalResources.local, /*resource*/pRef, /*dependant*/f ); }
             return true; });}
