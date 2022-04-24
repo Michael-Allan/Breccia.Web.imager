@@ -7,7 +7,7 @@
 @namespace html 'http://www.w3.org/1999/xhtml';
 
 
-    html|body {
+    :root {
         font-family: monospace; }
 
 
@@ -38,6 +38,24 @@
           and might lead to difficulties.  Often an ancestor (e.g. descriptor) has inline display,
           and the ramifications of a block-in-inline arrangement confuse even the CSS people.
           https://github.com/w3c/csswg-drafts/issues/1477 */
+
+
+
+/* ───  P o i n t  ──────────────────────────────────────────────────────────────────────────────────────
+ */
+
+    brec|Bullet {
+        font-weight: bold; }
+
+
+
+    brec|PlainPoint > brec|Head > brec|Bullet {
+        filter: contrast(2.2); }
+
+
+
+    brec|TaskPoint > brec|Head > brec|Bullet {
+        color: LinkText; }
 
 
 
