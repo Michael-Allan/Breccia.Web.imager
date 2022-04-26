@@ -8,6 +8,8 @@
 
 
     :root {
+        background-color: hsl( 0, 0%, 15% );
+                   color: hsl( 0, 0%, 79% );
         font-family: monospace; }
 
 
@@ -50,12 +52,12 @@
 
 
     brec|PlainPoint > brec|Head > brec|Bullet {
-        filter: contrast(2.2); }
+        color: hsl( 0, 0%, 100% ); }
 
 
 
     brec|TaskPoint > brec|Head > brec|Bullet {
-        color: LinkText; }
+        color: hsl( 27/*orange*/, 70%, 60% );
 
 
 
