@@ -28,6 +28,7 @@ public final class Imaging {
       *     @see ImageMould#boundaryPath
       *     @see ImageMould#transformer
       *     @see ImageMould#outDirectory
+      *     @see ImageMould#toForce
       *     @return True on success; false on failure.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
@@ -36,12 +37,12 @@ public final class Imaging {
       *       The `image` command of the waycast Web imager</a>
       */
     public static <C extends ReusableCursor> boolean image( final String name,  final Path boundaryPath,
-          final FileTransformer<C> transformer, final Path outDirectory ) {
+          final FileTransformer<C> transformer, final Path outDirectory, final boolean toForce ) {
         boolean hasFailed;
         final StringWriter errHolder = new StringWriter();
         final ImageMould<C> mould;
         try( final PrintWriter err = new PrintWriter( errHolder )) {
-            mould = new ImageMould<>( boundaryPath, transformer, outDirectory, err );
+            mould = new ImageMould<>( boundaryPath, transformer, outDirectory, err, toForce );
             try { hasFailed = mould.formImage(); }
             catch( final UserError x ) {
                 System.err.println( name + ": " + x.getMessage() );
@@ -122,4 +123,4 @@ public final class Imaging {
 
 
 
-                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.

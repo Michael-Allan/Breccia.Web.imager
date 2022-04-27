@@ -41,11 +41,12 @@ public final class ImageMould<C extends ReusableCursor> {
       * @see #outDirectory
       * @param errorStream Where to report any warnings or survivable errors that occur
       *   during image formation.
+      * @see #toForce
       * @throws IllegalArgumentException If `boundaryPath` is relative or non-existent.
       * @throws IllegalArgumentException If `outDirectory` is not an empty directory.
       */
     public ImageMould( final Path boundaryPath, final FileTransformer<C> transformer,
-          final Path outDirectory, final PrintWriter errorStream ) {
+          final Path outDirectory, final PrintWriter errorStream, final boolean toForce ) {
         /* Sanity tests */ {
             Path p = boundaryPath;
             if( !exists( p )) throw new IllegalArgumentException( "No such file or directory: " + p );
@@ -58,7 +59,8 @@ public final class ImageMould<C extends ReusableCursor> {
         this.boundaryPath = boundaryPath;
         this.transformer = transformer;
         this.outDirectory = outDirectory;
-        this.errorStream = errorStream; }
+        this.errorStream = errorStream;
+        this.toForce = toForce; }
 
 
 
@@ -96,7 +98,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
     /** Forms or reforms any new files that are required to update the image,
-      * writing each to the {@linkplain #outDirectory output directory}
+      * writing each to the {@linkplain #outDirectory output directory}.  Call once only.
       *
       *     @return True on success; false if a survivable error was reported to the error stream
       *       given in the constructor, in which case the image may be incomplete.
@@ -347,15 +349,17 @@ public final class ImageMould<C extends ReusableCursor> {
       */
     private void pullFile( final Path f ) {
         if( !looksBreccian( f )) return;
-        if( imageabilityDetermination.containsKey( f )) return;
-        final Path fImage = Imaging.imageFile( f );
-        final Imageability i;
-        try {
-            if( !exists(fImage) || getLastModifiedTime(f).compareTo(getLastModifiedTime(fImage)) >= 0 ) {
-                i = imageable; }
-            else i = indeterminate; }
-        catch( IOException x ) { throw new Unhandled( x ); }
-        imageabilityDetermination.put( f, new ImageabilityReference( i )); }
+        imageabilityDetermination.computeIfAbsent( f, f_ -> {
+            final Imageability i;
+            if( toForce ) i = imageable;
+            else {
+                final Path fI = Imaging.imageFile( f );
+                try {
+                    if( !exists(fI) || getLastModifiedTime(f).compareTo(getLastModifiedTime(fI)) >= 0 ) {
+                        i = imageable; }
+                    else i = indeterminate; }
+                catch( IOException x ) { throw new Unhandled( x ); }}
+            return new ImageabilityReference( i ); }); }
 
 
 
@@ -368,6 +372,13 @@ public final class ImageMould<C extends ReusableCursor> {
                 else wrn().println( wrnHead(p) + "Skipping this unwritable directory" ); }
             else pullFile( p ); }
         else if( wouldRead( p )) wrn().println( wrnHead(p) + "Skipping this unreadable path" ); }
+
+
+
+    /** Whether to forcefully reform the Web image.  If true, then any preexisting image file is reformed
+      * regardless of whether it was out of date.
+      */
+    private final boolean toForce;
 
 
 

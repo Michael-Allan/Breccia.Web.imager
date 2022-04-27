@@ -40,7 +40,8 @@ public final class BrecciaWebImageCommand { // [AFN]
         for( int a = 0; a < aN; ++a ) {
             final String arg = argsO.get( a );
             String s;
-            if( arg.startsWith( s = "--style-sheet=" )) styleSheet = value( arg, s );
+            if( arg.startsWith( "--force" )) toForce = true;
+            else if( arg.startsWith( s = "--style-sheet=" )) styleSheet = value( arg, s );
             else {
                 err.println( "breccia-web-image: Unrecognized argument: " + arg );
                 exit( 1 ); }}}
@@ -92,11 +93,15 @@ public final class BrecciaWebImageCommand { // [AFN]
         try( final BrecciaXCursor sourceTranslator = new BrecciaXCursor() ) {
             final var t = new BrecciaHTMLTransformer<>( new BrecciaCursor(), sourceTranslator,
               styleSheet );
-            return Imaging.image( "breccia-web-image", boundaryPath, t, out ); }}
+            return Imaging.image( "breccia-web-image", boundaryPath, t, out, toForce ); }}
 
 
 
     String styleSheet = "http://reluk.ca/project/Breccia/Web/imager/image.css";
+
+
+
+    private boolean toForce;
 
 
 
