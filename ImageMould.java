@@ -120,7 +120,7 @@ public final class ImageMould<C extends ReusableCursor> {
         if( isDirectory( boundaryPath )) {   // A streamlined process versus that of `pullPath`
             pullDirectory( boundaryPath ); } // whose added testing and messaging would be redundant
         else pullFile( boundaryPath );       // for this topmost path.
-        // Now the structuring of `imageabilityDetermination` is complete, newly started threads
+        // Now `imageabilityDetermination` is structurally complete.  Newly started threads
         // may safely use it for all but structural modification.
 
 
@@ -128,7 +128,7 @@ public final class ImageMould<C extends ReusableCursor> {
       // 2. Begin reducing the indeterminates, determining the imageability of each
       // ════════════════════════════════════
         imageabilityDetermination.forEach( this::formalResources_recordFrom ); // Collate the resources.
-        // Now the structuring of `formalResources` is complete, newly started threads
+        // Now `formalResources` is structurally complete.  Newly started threads
         // may safely use it for all but structural modification.
 
       // Start any change probes that are required for remote resources
