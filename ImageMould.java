@@ -41,12 +41,11 @@ public final class ImageMould<C extends ReusableCursor> {
       * @see #outDirectory
       * @param errorStream Where to report any warnings or survivable errors that occur
       *   during image formation.
-      * @see #toForce
       * @throws IllegalArgumentException If `boundaryPath` is relative or non-existent.
       * @throws IllegalArgumentException If `outDirectory` is not an empty directory.
       */
     public ImageMould( final Path boundaryPath, final FileTransformer<C> transformer,
-          final Path outDirectory, final PrintWriter errorStream, final boolean toForce ) {
+          final Path outDirectory, final PrintWriter errorStream ) {
         /* Sanity tests */ {
             Path p = boundaryPath;
             if( !exists( p )) throw new IllegalArgumentException( "No such file or directory: " + p );
@@ -60,7 +59,7 @@ public final class ImageMould<C extends ReusableCursor> {
         this.transformer = transformer;
         this.outDirectory = outDirectory;
         this.errorStream = errorStream;
-        this.toForce = toForce; }
+        opt = transformer.imagingOptions(); }
 
 
 
@@ -320,6 +319,10 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    private final ImagingOptions opt;
+
+
+
     private static final boolean isHTTP( final String scheme ) {
         if( scheme.startsWith( "http" )) {
             final int sN = scheme.length();
@@ -351,7 +354,7 @@ public final class ImageMould<C extends ReusableCursor> {
         if( !looksBreccian( f )) return;
         imageabilityDetermination.computeIfAbsent( f, f_ -> {
             final Imageability i;
-            if( toForce ) i = imageable;
+            if( opt.toForce ) i = imageable;
             else {
                 final Path fI = Imaging.imageFile( f );
                 try {
@@ -372,13 +375,6 @@ public final class ImageMould<C extends ReusableCursor> {
                 else wrn().println( wrnHead(p) + "Skipping this unwritable directory" ); }
             else pullFile( p ); }
         else if( wouldRead( p )) wrn().println( wrnHead(p) + "Skipping this unreadable path" ); }
-
-
-
-    /** Whether to forcefully reform the Web image.  If true, then any preexisting image file is reformed
-      * regardless of whether it was out of date.
-      */
-    private final boolean toForce;
 
 
 

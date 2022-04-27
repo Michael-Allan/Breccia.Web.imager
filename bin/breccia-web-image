@@ -40,8 +40,8 @@ public final class BrecciaWebImageCommand { // [AFN]
         for( int a = 0; a < aN; ++a ) {
             final String arg = argsO.get( a );
             String s;
-            if( arg.startsWith( "--force" )) toForce = true;
-            else if( arg.startsWith( s = "--style-sheet=" )) styleSheet = value( arg, s );
+            if( arg.startsWith( "--force" )) opt.toForce = true;
+            else if( arg.startsWith( s = "--style-sheet=" )) opt.styleSheet = value( arg, s );
             else {
                 err.println( "breccia-web-image: Unrecognized argument: " + arg );
                 exit( 1 ); }}}
@@ -81,6 +81,10 @@ public final class BrecciaWebImageCommand { // [AFN]
 
 
 
+    private final ImagingOptions opt = new ImagingOptions();
+
+
+
     /** @return True on success, false on failure.
       */
     private boolean run() {
@@ -91,17 +95,8 @@ public final class BrecciaWebImageCommand { // [AFN]
         try { out = emptyDirectory( createDirectories( outDirectory.resolve( Path.of( "mould" )))); }
         catch( IOException x ) { throw new Unhandled( x ); } // Unexpected for `outDirectory`.
         try( final BrecciaXCursor sourceTranslator = new BrecciaXCursor() ) {
-            final var t = new BrecciaHTMLTransformer<>( new BrecciaCursor(), sourceTranslator,
-              styleSheet );
-            return Imaging.image( "breccia-web-image", boundaryPath, t, out, toForce ); }}
-
-
-
-    String styleSheet = "http://reluk.ca/project/Breccia/Web/imager/image.css";
-
-
-
-    private boolean toForce;
+            final var t = new BrecciaHTMLTransformer<>( new BrecciaCursor(), sourceTranslator, opt );
+            return Imaging.image( "breccia-web-image", boundaryPath, t, out ); }}
 
 
 

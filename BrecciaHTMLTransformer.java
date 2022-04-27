@@ -41,14 +41,15 @@ import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
 public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTransformer<C> {
 
 
-    /** @see #sourceCursor
+    /** @see #sourceCursor()
       * @see #sourceTranslator
-      * @see #styleSheet
+      * @see #imagingOptions()
       */
-    public BrecciaHTMLTransformer( C sourceCursor, BrecciaXCursor sourceTranslator, String styleSheet ) {
+    public BrecciaHTMLTransformer( C sourceCursor, BrecciaXCursor sourceTranslator,
+          ImagingOptions opt ) {
         this.sourceCursor = sourceCursor;
         this.sourceTranslator = sourceTranslator;
-        this.styleSheet = styleSheet; }
+        this.opt = opt; }
 
 
 
@@ -88,6 +89,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         return iR.reference(); } /* The resource of `iR` is formal ∵ the associative reference containing
           `iR`refers to a matcher of markup *in* the resource and ∴ will be imaged as a hyperlink whose
           form depends on the content of the resource.  In short, it is formal ∵ it informs the image. */
+
+
+
+    public final @Override ImagingOptions imagingOptions() { return opt; }
 
 
 
@@ -200,21 +205,16 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
+    private final ImagingOptions opt;
+
+
+
     private final StringBuilder stringBuilder = new StringBuilder(
       /*initial capacity*/0x2000/*or 8192*/ );
 
 
 
     private final C sourceCursor;
-
-
-
-    /** The location of the style sheet for the Web image, formally a URI reference.
-      * It will be written verbatim into each image file.
-      *
-      *     @see <a href='https://tools.ietf.org/html/rfc3986#section-4.1'>URI reference</a>
-      */
-    private final String styleSheet;
 
 
 
@@ -239,7 +239,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 break; }}
         documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
         e.setAttribute( "rel", "stylesheet" );
-        e.setAttribute( "href", styleSheet );
+        e.setAttribute( "href", opt.styleSheet );
 
       // body
       // ┈┈┈┈
