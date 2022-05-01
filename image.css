@@ -51,6 +51,17 @@
 
 
 
+/* ━━━  P a g e   l a y o u t  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+    /* Centring the whole text in the page
+     */
+    brec|FileFractum {
+        width: min-content/*collapsed onto the Breccian text*/;
+        margin: /*top, bottom*/0  /*left, right*/auto/*centred*/; }
+
+
+
 /* ━━━  P o i n t s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
