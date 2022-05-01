@@ -1,8 +1,8 @@
 /* Style sheet for Breccian Web images
  *
  * See the `--style-sheet` argument of the Web imager for instructions on using this file.
- * http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec  */
-
+ * http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec
+ */
 @namespace brec 'data:,Breccia/XML';
 @namespace html 'http://www.w3.org/1999/xhtml';
 
@@ -14,7 +14,12 @@
 
 
 
-    brec|Head ~ brec|*, /* Fracta */
+/* ━━━  B r e c c i a n   l a y o u t  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+    /* Fracta
+     */
+    brec|Head ~ brec|*,
     brec|FileFractum,
     brec|FileFractum > brec|*:not(Head) { /*
           The top selector covers child fracta of headed parents, the middle the parentless file fractum,
@@ -23,19 +28,22 @@
 
 
 
-    brec|Head { /* Fractal heads */
+    /* Fractal heads
+     */
+    brec|Head {
         display: block;
         white-space: pre; } /* [T] */
 
 
-
-    brec|DividerSegment {
+    brec|/*division*/Head/*aka divider*/ > DividerSegment {
         display: block; }
 
 
 
-    brec|CommentBlock, brec|CommentBlock > brec|Line, /* Block constructs and their component lines */
-    brec|IndentBlind,  brec|IndentBlind  > brec|Line {
+    /* Block constructs and their component lines
+     */
+    brec|CommentBlock, brec|CommentBlock > Line,
+    brec|IndentBlind,  brec|IndentBlind  > Line {
      /* display: block; */ } /* While this would be truer to Breccia, it serves no present need
           and might lead to difficulties.  Often an ancestor (e.g. descriptor) has inline display,
           and the ramifications of a block-in-inline arrangement confuse even the CSS people.
@@ -43,28 +51,28 @@
 
 
 
-/* ───  P o i n t  ──────────────────────────────────────────────────────────────────────────────────────
+/* ━━━  P o i n t s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
+    /* Bullets
+     */
     brec|Bullet {
         font-weight: bold; }
 
 
-
-    brec|PlainPoint > brec|Head > brec|Bullet {
+    brec|PlainPoint > Head > Bullet {
         color: hsl( 0, 0%, 100% ); }
 
 
-
-    brec|TaskPoint > brec|Head > brec|Bullet {
+    brec|TaskPoint > Head > Bullet {
         color: hsl( 27/*orange*/, 70%, 60% );
 
 
 
 /* NOTE
- * ────
- *   T ·· Text properties are set on the fractal head alone, where all Breccian text is confined. */
-
+ *
+ *   T ·· Text properties are set on the fractal head alone, where all Breccian text is confined.
+ */
 
 
                                                      /* Copyright © 2022  Michael Allan.  Licence MIT. */
