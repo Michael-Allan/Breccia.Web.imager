@@ -7,7 +7,12 @@
 @namespace html 'http://www.w3.org/1999/xhtml';
 
 
-    :root {
+    :root { /*
+        --centre-column:   The value of the namesake imager option [BWI] is effectively written here. */
+        --viewport-width: calc( 100vw - /*maximum expected width of vertical scroll bar*/9mm ); /*
+             An estimate of the true viewport width, such that content this wide will not of itself
+             cause the horizontal scroll bar to appear.  This is a work around for a fault in CSS.
+             https://www.w3.org/TR/css-values/#issue-56221f3d */
         background-color: hsl( 0, 0%, 15% );
                    color: hsl( 0, 0%, 79% );
         font-family: monospace; }
@@ -54,11 +59,14 @@
 /* ━━━  P a g e   l a y o u t  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
-    /* Centring the whole text in the page
+    /* Centring the text in the page
      */
     brec|FileFractum {
-        width: min-content/*collapsed onto the Breccian text*/;
-        margin: /*top, bottom*/0  /*left, right*/auto/*centred*/; }
+        margin: /*top, bottom*/0  /*left, right*/auto/*centred*/;
+        width: min(  /*(a)*/var(--centre-column) * 2,  /*(b)*/var(--viewport-width) ); } /*
+          Value (a) sizes the file fractum to be centred as per imager option `--centre-column`. [BWI]
+          Value (b) defeats the effect in narrow viewports, where it might needlessly balloon the width
+          and force the horizontal scroll bar to appear. */
 
 
 
@@ -80,7 +88,9 @@
 
 
 
-/* NOTE
+/* NOTES
+ *
+ *   BWI  http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec
  *
  *   T ·· Text properties are applicable within fractal heads alone, where all Breccian text is confined.
  */

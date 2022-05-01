@@ -31,9 +31,7 @@ import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
-import static javax.xml.transform.OutputKeys.DOCTYPE_SYSTEM;
-import static javax.xml.transform.OutputKeys.ENCODING;
-import static javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION;
+import static javax.xml.transform.OutputKeys.*;
 
 
 /** @param <C> The type of source cursor used by this transformer.
@@ -192,6 +190,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         catch( TransformerConfigurationException x ) { throw new Unhandled( x ); }
         t.setOutputProperty( DOCTYPE_SYSTEM, "about:legacy-compat" ); // [DI]
         t.setOutputProperty( ENCODING, "UTF-8" );
+        t.setOutputProperty( METHOD, "XML" );
         t.setOutputProperty( OMIT_XML_DECLARATION, "yes" );
         identityTransformer = t; }
 
@@ -224,6 +223,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
         final Element html = d.createElementNS( nsHTML, "html" );
         d.appendChild( html );
+        html.setAttribute( "style", "--centre-column:" + opt.centreColumn + "ch" );
 
       // head
       // ┈┈┈┈

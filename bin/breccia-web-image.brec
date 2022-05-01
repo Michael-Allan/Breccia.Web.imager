@@ -23,6 +23,12 @@
 
     - The positional argument may be preceded by one or more nominal arguments, aka options:
 
+        --centre-column: --centre-column=<number>
+            - The columnar offset on which to centre the text.
+                : re `columnar offset` see http://reluk.ca/project/Breccia/parser/Markup.java :
+                  Columnar offsets are zero based.
+                - In wide viewports, this column of the source file will appear at centre.
+            - The default value is 52.5.
         --force
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.
