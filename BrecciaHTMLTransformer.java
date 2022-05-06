@@ -239,7 +239,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 break; }}
         documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
         e.setAttribute( "rel", "stylesheet" );
-        e.setAttribute( "href", opt.styleSheet );
+        e.setAttribute( "href", opt.coServiceDirectory + "Breccia/Web/imager/image.css" );
 
       // body
       // ┈┈┈┈

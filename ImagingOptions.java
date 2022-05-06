@@ -13,12 +13,13 @@ public class ImagingOptions {
 
 
 
-    /** The location of the style sheet for the Web image.
+    /** The enslashed name of the directory containing the auxiliary files of the Web image.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
-      *         command option `--style-sheet`</a>
+      *         command option `--co-service-directory`</a>
+      *     @see Java.Path.#enslash(String)
       */
-    public String styleSheet = "http://reluk.ca/project/Breccia/Web/imager/image.css";
+    public String coServiceDirectory = "http://reluk.ca/_/Web_service/";
 
 
 

@@ -17,6 +17,7 @@ import static java.lang.System.err;
 import static java.lang.System.exit;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.exists;
+import static Java.Path.enslash;
 
 
 /** A shell command to make a Web image.
@@ -41,8 +42,9 @@ public final class BrecciaWebImageCommand { // [AFN]
             final String arg = argsO.get( a );
             String s;
             if( arg.startsWith( s = "--centre-column" )) opt.centreColumn = value( arg, s );
+            else if( arg.startsWith( s = "--co-service-directory=" )) {
+                opt.coServiceDirectory = enslash( value( arg, s )); }
             else if( arg.startsWith( "--force" )) opt.toForce = true;
-            else if( arg.startsWith( s = "--style-sheet=" )) opt.styleSheet = value( arg, s );
             else {
                 err.println( "breccia-web-image: Unrecognized argument: " + arg );
                 exit( 1 ); }}}
@@ -80,8 +82,8 @@ public final class BrecciaWebImageCommand { // [AFN]
         err.println( "       breccia-web-image --help | -?" );
         err.println( "Options, one or more of:" );
         err.println( "    --centre-column=<number>" );
+        err.println( "    --co-service-directory=<URI reference>" );
         err.println( "    --force" );
-        err.println( "    --style-sheet=<URI reference>" );
         exit( status ); }
 
 

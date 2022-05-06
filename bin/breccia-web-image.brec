@@ -29,16 +29,21 @@
                   Columnar offsets are zero based.
                 - In wide viewports, this column of the source file will appear at centre.
             - The default value is 52.5.
+        --co-service-directory: --co-service-directory=<URI reference>
+                : re `URI reference` see https://tools.ietf.org/html/rfc3986#section-4.1
+            - The directory containing the auxiliary files of the Web image.
+                - It may be given with or without a trailing ‘/’.
+                - It must be accessible to Web clients.
+            - Under this directory (here CS) the following files must be stored.
+                • `<CS>/Breccia/Web/imager/image.css`
+                    : see image.css
+            - The default value is `http://reluk.ca/_/Web_service/`.
+                / Better not rely on it, however.  The files there may be incompatible
+                  with your installation, or become so at any time, or be slow to serve.
+                  Rather you should give the name of a directory under your own control.
         --force
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.
-        --style-sheet: --style-sheet=<URI reference>
-                : re `URI reference` see https://tools.ietf.org/html/rfc3986#section-4.1
-            - Writes into each image file the given URI reference,
-              making its referent the style sheet for the image.
-            - The default value is `http://reluk.ca/project/Breccia/Web/imager/image.css`.
-                / Do not rely on it, however, because its content may postdate your installation
-                  and lead to mistyling.
 
 
     ━━━━━━━━━━
