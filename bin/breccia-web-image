@@ -76,8 +76,12 @@ public final class BrecciaWebImageCommand { // [AFN]
 
 
     private static void exitWithUsage( final int status ) {
-        err.println( "Usage: breccia-web-image [--style-sheet=<URI reference>] <boundary path>" );
+        err.println( "Usage: breccia-web-image [<options>] <boundary path>" );
         err.println( "       breccia-web-image --help | -?" );
+        err.println( "Options, one or more of:" );
+        err.println( "    --centre-column=<number>" );
+        err.println( "    --force" );
+        err.println( "    --style-sheet=<URI reference>" );
         exit( status ); }
 
 
