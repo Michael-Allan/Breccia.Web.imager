@@ -20,11 +20,9 @@
 
     /* Fracta
      */
-    brec|Head ~ brec|*,
-    brec|FileFractum,
-    brec|FileFractum > brec|*:not(Head) { /*
-          The top selector covers child fracta of headed parents, the middle the parentless file fractum,
-          and the bottom child fracta of a headless file fractum. */
+    brec|FileFractum,                     /*  The file fractum,    */
+    brec|FileFractum > brec|*:not(Head), /*  its fractal children,  */
+    brec|Head ~ brec|* {                /*  and other fracta’s fractal children. */
         display: block; }
 
 
@@ -93,7 +91,7 @@
      */
     brec|FileFractum {
         margin: /*top, bottom*/0  /*left, right*/auto/*centred*/;
-        width: min(  /*(a)*/var(--centre-column) * 2,  /*(b)*/var(--viewport-width) ); } /*
+        width: min( /*(a)*/var(--centre-column) * 2,  /*(b)*/var(--viewport-width) ); } /*
           Value (a) sizes the file fractum to be centred as per imager option `--centre-column`. [BWI]
           Value (b) defeats the effect in narrow viewports, where it might needlessly balloon the width
           and force the horizontal scroll bar to appear. */
