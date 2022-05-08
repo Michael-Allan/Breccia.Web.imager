@@ -11,8 +11,7 @@
              cause the horizontal scroll bar to appear.  This is a work around for a fault in CSS.
              https://www.w3.org/TR/css-values/#issue-56221f3d */
         background-color: hsl( 0, 0%, 15% );
-                   color: hsl( 0, 0%, 79% );
-        font-family: monospace; }
+                   color: hsl( 0, 0%, 79% ); }
 
 
 
@@ -46,10 +45,44 @@
      */
     brec|CommentBlock, brec|CommentBlock > Line,
     brec|IndentBlind,  brec|IndentBlind  > Line {
-     /* display: block; */ } /* While this would be truer to Breccia, it serves no present need
-          and might lead to difficulties.  Often an ancestor (e.g. descriptor) has inline display,
-          and the ramifications of a block-in-inline arrangement confuse even the CSS people.
-          https://github.com/w3c/csswg-drafts/issues/1477 */
+        display: block; } /* This might lead to difficulties.  Often an ancestor (e.g. descriptor)
+          will have inline display, and the ramifications of a block-in-inline arrangement confuse even
+          the CSS people.  https://github.com/w3c/csswg-drafts/issues/1477
+             Yet these *are* block constructs and saying so, while it makes no difference to text flow,
+          enables a reduction (elsewhere) of their `line-height`. */
+
+
+
+/* ━━━  F o n t s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+    @font-face {
+        font-family: 'Fairfax HD';
+        src: url('../../../font/FairfaxHD.ttf')  format('opentype'); }
+
+
+
+    :root {
+        font-family:
+          'Fairfax HD', /* Gives near-seamless jointing of semigraphics and good alignment of lines
+             and triangles (ab)used as arrow heads.  So does JetBrains Mono, but its stubby ascenders
+             and descenders harm readability.  Others worthy of mention are DejaVu Sans Mono and Mensch,
+             variants  of Vera Sans Mono. */
+          'monospace';
+        line-height: 1.1; } /* For consistency across clients.
+          E.g. the default value is 1 for Chrome 98, yet 1.2 for Firefox 91. */
+
+
+
+    @media screen {
+        :root {
+            font-size: max( 16px, 1em ); }} /* What is known to look reliably good across clients,
+              but never smaller than the reader prefers. */
+
+
+
+    brec|IndentBlind {
+        line-height: 1.0; } /* Required for seamless vertical jointing of semigraphics. */
 
 
 

@@ -37,6 +37,8 @@
             - Under this directory (here CS) the following files must be stored.
                 • `<CS>/Breccia/Web/imager/image.css`
                     : see image.css
+                • `<CS>/font/FairfaxHD.ttf`
+                    : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
             - The default value is `http://reluk.ca/_/Web_service/`.
                 / Better not rely on it, however.  The files there may be incompatible
                   with your installation, or become so at any time, or be slow to serve.
