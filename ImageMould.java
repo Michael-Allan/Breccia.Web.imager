@@ -395,7 +395,7 @@ public final class ImageMould<C extends ReusableCursor> {
 //        followed by a report to the user complete with source path and line number.
 //
 //   PUR  A peculiar URI reference yet unsupported by this image mould.  See *peculiar URI reference*
-//        at `http://reluk.ca/project/wayic/Web/imager/notepad.brec`.
+//        at `http://reluk.ca/project/Breccia/Web/imager/notepad.brec`.
 //
 //   SM · Structural modification of a `HashMap` defined.
 //        https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html
