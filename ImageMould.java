@@ -24,7 +24,7 @@ import static Breccia.Web.imager.TransformError.wrnHead;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
 import static java.nio.file.Files.*;
-import static Java.URIs.schemedPattern;
+import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
@@ -275,9 +275,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 return false; }
             if( mRef == null ) return true;
             final String sRef = mRef.text().toString(); // Reference in string form.
-            if( sRef.startsWith("//") || schemedPattern.matcher(sRef).lookingAt() ) { /* Then the
-                  resource is reachable only through a network.  The ‘//’ case would indicate a
-                  network-path reference.  https://tools.ietf.org/html/rfc3986#section-4.2 */
+            if( isRemote( sRef )) { // Then the resource is reachable only through a network.
                 URI pRef; // Reference in parsed `URI` form.
                 try {
                     pRef = new URI( sRef );
