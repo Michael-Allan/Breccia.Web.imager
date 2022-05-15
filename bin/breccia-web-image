@@ -8,15 +8,13 @@ import Breccia.XML.translator.BrecciaXCursor;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.function.Function;
 import java.util.List;
 import Java.Unhandled;
 
 import static Breccia.Web.imager.Project.outDirectory;
-import static Java.Files.emptyDirectory;
 import static java.lang.System.err;
 import static java.lang.System.exit;
-import static java.nio.file.Files.createDirectories;
-import static java.nio.file.Files.exists;
 import static Java.Path.enslash;
 
 
@@ -44,7 +42,9 @@ public final class BrecciaWebImageCommand { // [AFN]
             if( arg.startsWith( s = "--centre-column" )) opt.centreColumn = value( arg, s );
             else if( arg.startsWith( s = "--co-service-directory=" )) {
                 opt.coServiceDirectory = enslash( value( arg, s )); }
+            else if( arg.startsWith( s = "--font" )) opt.font = value( arg, s );
             else if( arg.startsWith( "--force" )) opt.toForce = true;
+            else if( arg.startsWith( s = "--glyph-test-font" )) opt.glyphTestFont = value( arg, s );
             else {
                 err.println( "breccia-web-image: Unrecognized argument: " + arg );
                 exit( 1 ); }}}
@@ -83,7 +83,9 @@ public final class BrecciaWebImageCommand { // [AFN]
         err.println( "Options, one or more of:" );
         err.println( "    --centre-column=<number>" );
         err.println( "    --co-service-directory=<URI reference>" );
+        err.println( "    --font=<relative file path>" );
         err.println( "    --force" );
+        err.println( "    --glyph-test-font=<file path> | none" );
         exit( status ); }
 
 
@@ -95,15 +97,12 @@ public final class BrecciaWebImageCommand { // [AFN]
     /** @return True on success, false on failure.
       */
     private boolean run() {
-        if( !exists( boundaryPath )) {
-            err.println( "breccia-web-image: No such file or directory: " + boundaryPath );
-            return false; }
-        final Path out;
-        try { out = emptyDirectory( createDirectories( outDirectory.resolve( Path.of( "mould" )))); }
-        catch( IOException x ) { throw new Unhandled( x ); } // Unexpected for `outDirectory`.
         try( final BrecciaXCursor sourceTranslator = new BrecciaXCursor() ) {
-            final var t = new BrecciaHTMLTransformer<>( new BrecciaCursor(), sourceTranslator, opt );
-            return Imaging.image( "breccia-web-image", boundaryPath, t, out ); }}
+            final TransformerMaker tMaker = new TransformerMaker() {
+                public FileTransformer<BrecciaCursor> apply( ImageMould<BrecciaCursor> mould ) {
+                    return new BrecciaHTMLTransformer<>(
+                      new BrecciaCursor(), sourceTranslator, mould ); }};
+            return Imaging.image( "breccia-web-image", boundaryPath, opt, tMaker, outDirectory ); }}
 
 
 
@@ -111,7 +110,15 @@ public final class BrecciaWebImageCommand { // [AFN]
       * @param prefix The leading name and equals sign, e.g. "foo=".
       */
     private static String value( final String arg, final String prefix ) {
-        return arg.substring( prefix.length() ); }}
+        return arg.substring( prefix.length() ); }
+
+
+
+   // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+
+    private static interface TransformerMaker extends
+      Function<ImageMould<BrecciaCursor>,FileTransformer<BrecciaCursor>> {}}
 
 
 

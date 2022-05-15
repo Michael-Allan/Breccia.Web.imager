@@ -7,8 +7,13 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import Java.Unhandled;
 import Java.UserError;
+import java.util.function.Function;
 
+import static Java.Files.emptyDirectory;
 import static Java.Files.verifyDirectoryArgument;
+import static java.lang.System.err;
+import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.exists;
 import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -21,37 +26,39 @@ public final class Imaging {
 
 
 
-    /** Executes an imaging shell command.
+    /** Makes a Web image in response to a shell command.
       *
       *     @param <C> The type of source cursor used by the image mould.
       *     @param name The name of the shell command.
       *     @see ImageMould#boundaryPath
-      *     @see ImageMould#transformer
-      *     @see ImageMould#outDirectory
+      *     @param outProject The project output directory of the command.
       *     @return True on success; false on failure.
-      *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
-      *       The `breccia-web-image` command of the Breccia Web imager</a>
-      *     @see <a href='http://reluk.ca/project/wayic/Web/imager/bin/breccia-web-image.brec'>
-      *       The `image` command of the waycast Web imager</a>
       */
     public static <C extends ReusableCursor> boolean image( final String name,  final Path boundaryPath,
-          final FileTransformer<C> transformer, final Path outDirectory ) {
+          final ImagingOptions opt, final Function<ImageMould<C>,FileTransformer<C>> transformerMaker,
+          final Path outProject ) {
+        if( !exists( boundaryPath )) {
+            err.println( name + ": No such file or directory: " + boundaryPath );
+            return false; }
+        final Path out;
+        try { out = emptyDirectory( createDirectories( outProject.resolve( Path.of( "mould" )))); }
+        catch( IOException x ) { throw new Unhandled( x ); } // Unexpected for `outDirectory`.
         boolean hasFailed;
         final StringWriter errHolder = new StringWriter();
         final ImageMould<C> mould;
-        try( final PrintWriter err = new PrintWriter( errHolder )) {
-            mould = new ImageMould<>( boundaryPath, transformer, outDirectory, err );
+        try( final PrintWriter errWriter = new PrintWriter( errHolder )) {
+            mould = new ImageMould<>( boundaryPath, opt, out, errWriter );
+            mould.initialize( transformerMaker.apply( mould ));
             try { hasFailed = mould.formImage(); }
             catch( final UserError x ) {
-                System.err.println( name + ": " + x.getMessage() );
+                err.println( name + ": " + x.getMessage() );
                 hasFailed = true; }
-            err.flush(); }
-        try { placeImageFiles( /*from*/mould.outDirectory, /*to*/mould.boundaryPathDirectory ); }
+            errWriter.flush(); }
+        try { placeImageFiles( /*from*/out, /*to*/mould.boundaryPathDirectory ); }
         catch( IOException x ) { throw new Unhandled( x ); } /* Failure might occur owing to an
           unwritable directory, but this is unlikely; the mould images only writeable directories. */
-        System.err.print( errHolder.toString() );
-        System.err.flush();
+        err.print( errHolder.toString() );
+        err.flush();
         return !hasFailed; }
 
 
@@ -122,4 +129,4 @@ public final class Imaging {
 
 
 
-                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.

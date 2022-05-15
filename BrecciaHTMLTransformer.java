@@ -2,9 +2,9 @@ package Breccia.Web.imager;
 
 import Breccia.parser.*;
 import Breccia.XML.translator.BrecciaXCursor;
-import java.io.OutputStream;
-import java.io.IOException;
-import java.io.Reader;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.io.*;
 import java.nio.file.Path;
 import Java.Unhandled;
 import javax.xml.stream.XMLStreamException;
@@ -13,16 +13,19 @@ import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import org.w3c.dom.*;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
 import static Breccia.parser.Typestamp.empty;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Imaging.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
+import static Breccia.Web.imager.TransformError.wrnHead;
 import static Breccia.XML.translator.XStreamConstants.EMPTY;
+import static java.awt.Font.createFont;
+import static java.awt.Font.TRUETYPE_FONT;
+import static java.lang.Character.charCount;
+import static java.lang.Integer.toHexString;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.newOutputStream;
@@ -32,6 +35,7 @@ import static Java.Nodes.successorAfter;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static javax.xml.transform.OutputKeys.*;
+import static org.w3c.dom.Node.TEXT_NODE;
 
 
 /** @param <C> The type of source cursor used by this transformer.
@@ -41,13 +45,19 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
     /** @see #sourceCursor()
       * @see #sourceTranslator
-      * @see #imagingOptions()
       */
     public BrecciaHTMLTransformer( C sourceCursor, BrecciaXCursor sourceTranslator,
-          ImagingOptions opt ) {
+          final ImageMould<C> mould ) {
         this.sourceCursor = sourceCursor;
         this.sourceTranslator = sourceTranslator;
-        this.opt = opt; }
+        this.mould = mould;
+        opt = mould.opt;
+        final String f = opt.glyphTestFont();
+        if( !f.equals( "none" )) {
+            try( final var in = new FileInputStream( f )) {
+                glyphTestFont = createFont( TRUETYPE_FONT/*includes all of OpenType*/,
+                  /*buffered by callee in JDK 17*/in); }
+            catch( FontFormatException|IOException x ) { throw new Unhandled( x ); }}}
 
 
 
@@ -90,10 +100,6 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    public final @Override ImagingOptions imagingOptions() { return opt; }
-
-
-
     public final @Override C sourceCursor() { return sourceCursor; }
 
 
@@ -124,6 +130,26 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                           of `ParseError` is available for the exception, in case the caller wants it. */
                     throw xT; }}
             final Document d = (Document)(toDOM.getNode());
+
+          // Glyph testing
+          // ─────────────
+            if( glyphTestFont != null ) {
+                Node n = d.getFirstChild();
+                do {
+                    if( n.getNodeType() != TEXT_NODE ) continue;
+                    final Text nText = (Text)n;
+                    assert !nText.isElementContentWhitespace(); /* The `sourceTranslator` has produced
+                      ‘X-Breccia with no ignorable whitespace’. */
+                    final String text = nText.getData();
+                    for( int ch, c = 0, cN = text.length(); c < cN; c += charCount(ch) ) {
+                        ch = text.codePointAt( c );
+                        if( glyphTestFont.canDisplay( ch )) continue;
+                        final StringBuilder b = clear( stringBuilder );
+                        b.append( glyphTestFont.getFontName() );
+                        b.append( " has no glyph for code point " );
+                        b.append( toHexString( ch ));
+                        mould.wrn().println( wrnHead(sourceFile) + b ); }}
+                   while( (n = successor(n)) != null ); }
 
           // XHTML DOM ← X-Breccia DOM
           // ─────────
@@ -180,6 +206,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
+    private Font glyphTestFont;
+
+
+
     private final Transformer identityTransformer; {
         Transformer t;
         try { t = TransformerFactory.newInstance().newTransformer(); }
@@ -189,6 +219,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         t.setOutputProperty( METHOD, "XML" );
         t.setOutputProperty( OMIT_XML_DECLARATION, "yes" );
         identityTransformer = t; }
+
+
+
+    final ImageMould<C> mould;
 
 
 

@@ -37,15 +37,33 @@
             - Under this directory (here CS) the following files must be stored.
                 • `<CS>/Breccia/Web/imager/image.css`
                     : see image.css
-                • `<CS>/font/FairfaxHD.ttf`
-                    : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
+                • `<CS>/<font>`
+                    : re `<font>` see `^^--font`
             - The default value is `http://reluk.ca/_/Web_service/`.
                 / Better not rely on it, however.  The files there may be incompatible
                   with your installation, or become so at any time, or be slow to serve.
                   Rather you should give the name of a directory under your own control.
+        --font: --font=<relative file path>
+            - The path of the font file relative to the co-service directory.
+                : re `co-service directory` see `^^--co-service-directory`
+            - Any path other than the default requires a custom style sheet.
+                : re `custom` see image.css : * F o n t s *
+                : re `style sheet` see `<CS>/Breccia/Web/imager/image.css` @ `^^--co-service-directory`
+            - The default is `font/FairfaxHD.ttf`.
+                : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
         --force
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.
+        --glyph-test-font: --glyph-test-font=<file path> | none
+            - The font file for glyph tests.
+            - If the value is `none`, then no glyph tests are performed.
+            - Otherwise the file must contain an OpenType font
+                - A test is performed on each character of the image source and a warning emitted
+                  for any whose glyph is missing from the font.
+            - The default value if CS is a local file path is `<CS>/<font>`, otherwise it is `none`.
+                : re `CS` see `^^--co-service-directory`
+                : re `<(font)>` see `^^--font`
+                : re `URI` see https://tools.ietf.org/html/rfc3986#section-3
 
 
     ━━━━━━━━━━

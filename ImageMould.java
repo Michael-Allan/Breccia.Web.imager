@@ -36,16 +36,17 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 public final class ImageMould<C extends ReusableCursor> {
 
 
-    /** @see #boundaryPath
-      * @see #transformer
-      * @see #outDirectory
-      * @param errorStream Where to report any warnings or survivable errors that occur
-      *   during image formation.
-      * @throws IllegalArgumentException If `boundaryPath` is relative or non-existent.
-      * @throws IllegalArgumentException If `outDirectory` is not an empty directory.
+    /** Partly makes a mould for `initialize` to finish.
+      *
+      *     @see #boundaryPath
+      *     @see #outDirectory
+      *     @param errorWriter Where to report any warnings or survivable errors that occur
+      *       during image formation.
+      *     @throws IllegalArgumentException If `boundaryPath` is relative or non-existent.
+      *     @throws IllegalArgumentException If `outDirectory` is not an empty directory.
       */
-    public ImageMould( final Path boundaryPath, final FileTransformer<C> transformer,
-          final Path outDirectory, final PrintWriter errorStream ) {
+    public ImageMould( final Path boundaryPath, ImagingOptions opt, final Path outDirectory,
+          final PrintWriter errorWriter ) {
         /* Sanity tests */ {
             Path p = boundaryPath;
             if( !exists( p )) throw new IllegalArgumentException( "No such file or directory: " + p );
@@ -56,10 +57,14 @@ public final class ImageMould<C extends ReusableCursor> {
             catch( IOException x ) { throw new Unhandled( x ); }}
         boundaryPathDirectory = isDirectory(boundaryPath)?  boundaryPath : boundaryPath.getParent();
         this.boundaryPath = boundaryPath;
-        this.transformer = transformer;
+        this.opt = opt;
         this.outDirectory = outDirectory;
-        this.errorStream = errorStream;
-        opt = transformer.imagingOptions(); }
+        this.errorWriter = errorWriter; }
+
+
+
+    public final void initialize( final FileTransformer<C> transformer ) {
+        this.transformer = transformer; }
 
 
 
@@ -78,14 +83,14 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Where to report any survivable errors in the process of image formation.
-      * Calling this method will result in a false return value from `formImage`.
+    /** Tells where to report any survivable errors in the process of image formation,
+      * while ensuring the return value of `formImage` will be false.
       *
       *     @see #wrn()
       */
     public PrintWriter err() {
         hasFailed = true;
-        return errorStream; }
+        return errorWriter; }
 
 
 
@@ -228,15 +233,13 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    public final ImagingOptions opt;
+
+
+
     /** The directory in which to write any newly formed image files.
       */
     public final Path outDirectory;
-
-
-
-    /** The file transformer to use for image formation.
-      */
-    public final FileTransformer<C> transformer;
 
 
 
@@ -244,14 +247,14 @@ public final class ImageMould<C extends ReusableCursor> {
       *
       *     @see #err()
       */
-    public PrintWriter wrn() { return errorStream; }
+    public PrintWriter wrn() { return errorWriter; }
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    private final PrintWriter errorStream; /* Do not write to the stream through this field.
+    private final PrintWriter errorWriter; /* Do not write to it directly through this field.
       Instead write to it through the wrapper methods `err` and `wrn`. */
 
 
@@ -317,10 +320,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    private final ImagingOptions opt;
-
-
-
     private static final boolean isHTTP( final String scheme ) {
         if( scheme.startsWith( "http" )) {
             final int sN = scheme.length();
@@ -373,6 +372,10 @@ public final class ImageMould<C extends ReusableCursor> {
                 else wrn().println( wrnHead(p) + "Skipping this unwritable directory" ); }
             else pullFile( p ); }
         else if( wouldRead( p )) wrn().println( wrnHead(p) + "Skipping this unreadable path" ); }
+
+
+
+    private FileTransformer<C> transformer; // Do not modify after `initialize`.
 
 
 

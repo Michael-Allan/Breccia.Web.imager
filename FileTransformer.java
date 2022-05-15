@@ -23,12 +23,6 @@ public interface FileTransformer<C extends ReusableCursor> {
 
 
 
-    /** The imaging options used by this transformer.
-      */
-    public ImagingOptions imagingOptions();
-
-
-
     /** A source cursor of the type used by this transformer.
       * Between calls to the transformer, it may be used for other purposes.
       */
