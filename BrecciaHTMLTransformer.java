@@ -113,8 +113,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                     createFile( imageFile ); // Special case, no content to transform.
                     return; }
                 sourceTranslator.markupSource( sourceCursor );
-                domOutput.setNode( null/*make a new document*/ );
-                try { identityTransformer.transform( new StAXSource(sourceTranslator), domOutput ); }
+                toDOM.setNode( null/*make a new document*/ );
+                try { identityTransformer.transform( new StAXSource(sourceTranslator), toDOM ); }
                   // `StAXSource` is ‘not reusable’ according to its API.  How that could be is puzzling
                   // given that it’s a pure wrapper, but let’s humour it.
                 catch( final TransformerException xT ) {
@@ -126,29 +126,21 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
           // X-Breccia DOM → XHTML DOM
           // ─────────────────────────
-            final Document d = (Document)(domOutput.getNode());
+            final Document d = (Document)(toDOM.getNode());
             transform( d );
 
           // XHTML DOM → XHTML text file
           // ───────────────────────────
-            domInput.setNode( d );
+            fromDOM.setNode( d );
             try( final OutputStream imageWriter = newOutputStream​( imageFile, CREATE_NEW )) {
-                imageFileOutput.setOutputStream( imageWriter );
-                identityTransformer.transform( domInput, imageFileOutput ); }}
+                toImageFile.setOutputStream( imageWriter );
+                identityTransformer.transform( fromDOM, toImageFile ); }}
         catch( IOException|TransformerException x ) {
             throw new TransformError( imageFile, "Unable to make image file", x ); }}
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
-
-
-    private final DOMSource domInput = new DOMSource();
-
-
-
-    private final DOMResult domOutput = new DOMResult();
-
 
 
     /** @param head A `Head` element representing a fractal head.
@@ -184,6 +176,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
+    private final DOMSource fromDOM = new DOMSource();
+
+
+
     private final Transformer identityTransformer; {
         Transformer t;
         try { t = TransformerFactory.newInstance().newTransformer(); }
@@ -193,10 +189,6 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         t.setOutputProperty( METHOD, "XML" );
         t.setOutputProperty( OMIT_XML_DECLARATION, "yes" );
         identityTransformer = t; }
-
-
-
-    private final StreamResult imageFileOutput = new StreamResult();
 
 
 
@@ -214,6 +206,14 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
     private final C sourceCursor;
+
+
+
+    private final DOMResult toDOM = new DOMResult();
+
+
+
+    private final StreamResult toImageFile = new StreamResult();
 
 
 
