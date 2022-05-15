@@ -103,15 +103,15 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         final Path imageFile = imageDirectory.resolve( imageSimpleName( sourceFile ));
         try {
             createDirectories( imageFile.getParent() ); // Ensure the parent exists.
-
-          // Breccia text file → X-Breccia parse events → X-Breccia DOM
-          // ──────────────────────────────────────────────────────────
             try( final Reader sourceReader = newSourceReader​( sourceFile )) {
                 sourceCursor.markupSource( sourceReader );
                 if( sourceCursor.state().typestamp() == empty ) {
                     logger.fine( () -> "Imaging empty source file: " + sourceFile );
                     createFile( imageFile ); // Special case, no content to transform.
                     return; }
+
+              // X-Breccia DOM ← X-Breccia parse events ← Breccia source file
+              // ─────────────
                 sourceTranslator.markupSource( sourceCursor );
                 toDOM.setNode( null/*make a new document*/ );
                 try { identityTransformer.transform( new StAXSource(sourceTranslator), toDOM ); }
@@ -123,14 +123,14 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                         throw (ParseError)(xS.getCause()); } /* So advertising that the location data
                           of `ParseError` is available for the exception, in case the caller wants it. */
                     throw xT; }}
-
-          // X-Breccia DOM → XHTML DOM
-          // ─────────────────────────
             final Document d = (Document)(toDOM.getNode());
+
+          // XHTML DOM ← X-Breccia DOM
+          // ─────────
             transform( d );
 
-          // XHTML DOM → XHTML text file
-          // ───────────────────────────
+          // XHTML image file ← XHTML DOM
+          // ────────────────
             fromDOM.setNode( d );
             try( final OutputStream imageWriter = newOutputStream​( imageFile, CREATE_NEW )) {
                 toImageFile.setOutputStream( imageWriter );
