@@ -8,9 +8,7 @@ import Breccia.XML.translator.BrecciaXCursor;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.function.Function;
 import java.util.List;
-import Java.Unhandled;
 
 import static Breccia.Web.imager.Project.outDirectory;
 import static java.lang.System.err;
@@ -23,7 +21,7 @@ import static Java.Path.enslash;
   *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
   *       The `breccia-web-image` command</a>
   */
-public final class BrecciaWebImageCommand { // [AFN]
+public final class BrecciaWebImageCommand implements AutoCloseable { // [AFN]
 
 
     /** @param argsO Nominal arguments, aka options.
@@ -60,8 +58,15 @@ public final class BrecciaWebImageCommand { // [AFN]
             final String arg = arguments[a];
             exitOnDemand( arg );
             (arg.startsWith("--") ? argsO : argsP).add( arg ); }
-        final var command = new BrecciaWebImageCommand( argsO, argsP );
-        if( !command.run() ) exit( 1 ); }
+        try( final var command = new BrecciaWebImageCommand( argsO, argsP )) {
+            if( !command.run() ) exit( 1 ); }}
+
+
+
+   // ━━━  A u t o   C l o s e a b l e  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+    public @Override void close() { sourceTranslator.close(); }
 
 
 
@@ -97,12 +102,12 @@ public final class BrecciaWebImageCommand { // [AFN]
     /** @return True on success, false on failure.
       */
     private boolean run() {
-        try( final BrecciaXCursor sourceTranslator = new BrecciaXCursor() ) {
-            final TransformerMaker tMaker = new TransformerMaker() {
-                public FileTransformer<BrecciaCursor> apply( ImageMould<BrecciaCursor> mould ) {
-                    return new BrecciaHTMLTransformer<>(
-                      new BrecciaCursor(), sourceTranslator, mould ); }};
-            return Imaging.image( "breccia-web-image", boundaryPath, opt, tMaker, outDirectory ); }}
+        return Imaging.image( "breccia-web-image", boundaryPath, opt, new TransformerMaker(),
+          outDirectory ); }
+
+
+
+    private final BrecciaXCursor sourceTranslator = new BrecciaXCursor();
 
 
 
@@ -117,8 +122,12 @@ public final class BrecciaWebImageCommand { // [AFN]
    // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-    private static interface TransformerMaker extends
-      Function<ImageMould<BrecciaCursor>,FileTransformer<BrecciaCursor>> {}}
+    private final class TransformerMaker implements FileTransformer.Maker<BrecciaCursor> {
+
+
+        public @Override FileTransformer<BrecciaCursor> newTransformer(
+              ImageMould<BrecciaCursor> mould ) {
+            return new BrecciaHTMLTransformer<>( new BrecciaCursor(), sourceTranslator, mould ); }}}
 
 
 

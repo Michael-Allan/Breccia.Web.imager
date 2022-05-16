@@ -36,8 +36,20 @@ public interface FileTransformer<C extends ReusableCursor> {
       *     @param imageDirectory The directory in which to write the image file.
       *       If no such directory exists, then one is formed.
       */
-    public void transform( Path sourceFile, Path imageDirectory ) throws ParseError, TransformError; }
+    public void transform( Path sourceFile, Path imageDirectory ) throws ParseError, TransformError;
 
 
 
-                                                   // Copyright © 2020-2021  Michael Allan.  Licence MIT.
+   // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+
+    /** @param <C> The type of source cursor used by each newly made transformer.
+      */
+    public static interface Maker<C extends ReusableCursor> {
+
+
+        public FileTransformer<C> newTransformer( ImageMould<C> mould ); }}
+
+
+
+                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.

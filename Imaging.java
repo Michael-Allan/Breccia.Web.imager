@@ -7,7 +7,6 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import Java.Unhandled;
 import Java.UserError;
-import java.util.function.Function;
 
 import static Java.Files.emptyDirectory;
 import static Java.Files.verifyDirectoryArgument;
@@ -26,17 +25,16 @@ public final class Imaging {
 
 
 
-    /** Makes a Web image in response to a shell command.
+    /** Makes a Web image on behalf of a shell command.
       *
-      *     @param <C> The type of source cursor used by the image mould.
+      *     @param <C> The type of source cursor to use.
       *     @param name The name of the shell command.
       *     @see ImageMould#boundaryPath
-      *     @param outProject The project output directory of the command.
+      *     @param outProject The output directory of the project that owns the shell command.
       *     @return True on success; false on failure.
       */
     public static <C extends ReusableCursor> boolean image( final String name,  final Path boundaryPath,
-          final ImagingOptions opt, final Function<ImageMould<C>,FileTransformer<C>> transformerMaker,
-          final Path outProject ) {
+          final ImagingOptions opt, final FileTransformer.Maker<C> tMaker, final Path outProject ) {
         if( !exists( boundaryPath )) {
             err.println( name + ": No such file or directory: " + boundaryPath );
             return false; }
@@ -48,7 +46,7 @@ public final class Imaging {
         final ImageMould<C> mould;
         try( final PrintWriter errWriter = new PrintWriter( errHolder )) {
             mould = new ImageMould<>( boundaryPath, opt, out, errWriter );
-            mould.initialize( transformerMaker.apply( mould ));
+            mould.initialize( tMaker.newTransformer( mould ));
             try { hasFailed = mould.formImage(); }
             catch( final UserError x ) {
                 err.println( name + ": " + x.getMessage() );
