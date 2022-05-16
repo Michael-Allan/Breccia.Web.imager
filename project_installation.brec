@@ -19,9 +19,11 @@ Installation instructions for the Breccia Web imager
             : join @ http://reluk.ca/project/Java/project_installation.brec
             >+ build Breccia/Web/imager class-files
         4+ Test your access to the `breccia-web-image` command.
-            >+ Breccia/Web/imager/bin/breccia-web-image -?
+            >+ Breccia/Web/imager/bin/breccia-web-image --help
             /
-            ⇒  Usage: breccia-web-image <path>...
+            ⇒  Usage: waycast-web-image [<options>] <boundary path>
+           
+                        ⋮
 
         5+ Test your access to the runtime event log.
             >+ test-logging Breccia.Web.imager
@@ -61,4 +63,4 @@ Installation instructions for the Breccia Web imager
 
 
 
-                                                    \ Copyright © 2020-2021  Michael Allan.  Licence MIT.
+                                                    \ Copyright © 2020-2022  Michael Allan.  Licence MIT.
