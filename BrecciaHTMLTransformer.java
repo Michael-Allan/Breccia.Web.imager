@@ -146,7 +146,9 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                         if( glyphTestFont.canDisplay( ch )) continue;
                         final StringBuilder b = clear( stringBuilder );
                         b.append( glyphTestFont.getFontName() );
-                        b.append( " has no glyph for code point " );
+                        b.append( " has no glyph for ‘" );
+                        b.appendCodePoint( ch );
+                        b.append( "’, code point " );
                         b.append( toHexString( ch ));
                         mould.wrn().println( wrnHead(sourceFile) + b ); }}
                    while( (n = successor(n)) != null ); }

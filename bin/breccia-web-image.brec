@@ -34,7 +34,7 @@
             - The directory containing the auxiliary files of the Web image.
                 - It may be given with or without a trailing ‘/’.
                 - It must be accessible to Web clients.
-            - Under this directory (here CS) the following files must be stored.
+            - Under this directory (here ‘<CS>’) the following files must be stored.
                 • `<CS>/Breccia/Web/imager/image.css`
                     : see image.css
                 • `<CS>/<font>`
