@@ -48,7 +48,7 @@ public interface FileTransformer<C extends ReusableCursor> {
     public static interface Maker<C extends ReusableCursor> {
 
 
-        public FileTransformer<C> newTransformer( ImageMould<C> mould ); }}
+        public FileTransformer<C> newTransformer( ImageMould<?> mould ); }}
 
 
 

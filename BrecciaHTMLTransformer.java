@@ -47,7 +47,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
       * @see #sourceTranslator
       */
     public BrecciaHTMLTransformer( C sourceCursor, BrecciaXCursor sourceTranslator,
-          final ImageMould<C> mould ) {
+          final ImageMould<?> mould ) {
         this.sourceCursor = sourceCursor;
         this.sourceTranslator = sourceTranslator;
         this.mould = mould;
@@ -224,7 +224,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    final ImageMould<C> mould;
+    final ImageMould<?> mould;
 
 
 

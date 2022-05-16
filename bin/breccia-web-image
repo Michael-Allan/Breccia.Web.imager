@@ -125,8 +125,7 @@ public final class BrecciaWebImageCommand implements AutoCloseable { // [AFN]
     private final class TransformerMaker implements FileTransformer.Maker<BrecciaCursor> {
 
 
-        public @Override FileTransformer<BrecciaCursor> newTransformer(
-              ImageMould<BrecciaCursor> mould ) {
+        public @Override FileTransformer<BrecciaCursor> newTransformer( ImageMould<?> mould ) {
             return new BrecciaHTMLTransformer<>( new BrecciaCursor(), sourceTranslator, mould ); }}}
 
 
