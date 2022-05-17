@@ -351,7 +351,7 @@ public final class ImageMould<C extends ReusableCursor> {
         if( !looksBreccian( f )) return;
         imageabilityDetermination.computeIfAbsent( f, f_ -> {
             final Imageability i;
-            if( opt.toForce ) i = imageable;
+            if( opt.toForce() ) i = imageable;
             else {
                 final Path fI = Imaging.imageFile( f );
                 try {

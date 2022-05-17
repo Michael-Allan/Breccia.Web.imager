@@ -259,7 +259,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
         final Element html = d.createElementNS( nsHTML, "html" );
         d.appendChild( html );
-        html.setAttribute( "style", "--centre-column:" + opt.centreColumn + "ch" );
+        html.setAttribute( "style", "--centre-column:" + opt.centreColumn() + "ch" );
 
       // head
       // ┈┈┈┈
@@ -275,7 +275,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 break; }}
         documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
         e.setAttribute( "rel", "stylesheet" );
-        e.setAttribute( "href", opt.coServiceDirectory + "Breccia/Web/imager/image.css" );
+        e.setAttribute( "href", opt.coServiceDirectory() + "Breccia/Web/imager/image.css" );
 
       // body
       // ┈┈┈┈
