@@ -4,7 +4,7 @@ import java.util.List;
 
 import static java.lang.System.err;
 import static java.lang.System.exit;
-import static Java.Path.enslash;
+import static Java.Paths.enslash;
 import static Java.URI_References.isRemote;
 
 
