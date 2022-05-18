@@ -7,6 +7,8 @@ import java.awt.FontFormatException;
 import java.io.*;
 import java.nio.file.Path;
 import Java.Unhandled;
+import java.util.HashMap;
+import java.util.Map;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.*;
 import javax.xml.transform.stax.StAXSource;
@@ -25,7 +27,6 @@ import static Breccia.XML.translator.XStreamConstants.EMPTY;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
-import static java.lang.Integer.toHexString;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.newOutputStream;
@@ -134,6 +135,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
           // Glyph testing
           // ─────────────
             if( glyphTestFont != null ) {
+                unglyphedCharacters.clear();
                 Node n = d.getFirstChild();
                 do {
                     if( n.getNodeType() != TEXT_NODE ) continue;
@@ -143,15 +145,13 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                     final String text = nText.getData();
                     for( int ch, c = 0, cN = text.length(); c < cN; c += charCount(ch) ) {
                         ch = text.codePointAt( c );
-                        if( glyphTestFont.canDisplay( ch )) continue;
-                        final StringBuilder b = clear( stringBuilder );
-                        b.append( glyphTestFont.getFontName() );
-                        b.append( " has no glyph for ‘" );
-                        b.appendCodePoint( ch );
-                        b.append( "’, code point " );
-                        b.append( toHexString( ch ));
-                        mould.wrn().println( wrnHead(sourceFile) + b ); }}
-                   while( (n = successor(n)) != null ); }
+                        if( !glyphTestFont.canDisplay(ch) && !unglyphedCharacters.containsKey(ch) ) {
+                            unglyphedCharacters.put( ch,
+                              new UnglyphedCharacter( glyphTestFont.getFontName(), ch )); }}}
+                    while( (n = successor(n)) != null );
+                if( !unglyphedCharacters.isEmpty() ) {
+                    unglyphedCharacters.values().forEach( unglyphed ->
+                        mould.wrn().println( wrnHead(sourceFile) + unglyphed )); }}
 
           // XHTML DOM ← X-Breccia DOM
           // ─────────
@@ -281,7 +281,12 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
       // ┈┈┈┈
         final Element documentBody = d.createElementNS( nsHTML, "body" );
         html.appendChild( documentBody );
-        documentBody.appendChild( fileFractum ); }}
+        documentBody.appendChild( fileFractum ); }
+
+
+
+        private final Map<Integer,UnglyphedCharacter> unglyphedCharacters = new HashMap<>(); }
+          // Code points (keys) each mapped to an unglyphed-character record (value).
 
 
 
