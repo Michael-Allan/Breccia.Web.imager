@@ -6,9 +6,11 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.*;
 import java.nio.file.Path;
-import Java.Unhandled;
+import Java.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.StringTokenizer;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.*;
 import javax.xml.transform.stax.StAXSource;
@@ -27,15 +29,19 @@ import static Breccia.XML.translator.XStreamConstants.EMPTY;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
+import static java.lang.Integer.parseUnsignedInt;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
+import static Java.Unicode.graphemeClusterPattern;
 import static javax.xml.transform.OutputKeys.*;
+import static org.w3c.dom.Node.ELEMENT_NODE;
 import static org.w3c.dom.Node.TEXT_NODE;
 
 
@@ -135,7 +141,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
           // Glyph testing
           // ─────────────
             if( glyphTestFont != null ) {
-                unglyphedCharacters.clear();
+                final var uns = unglyphedCharacters;
+                uns.clear();
                 Node n = d.getFirstChild();
                 do {
                     if( n.getNodeType() != TEXT_NODE ) continue;
@@ -145,13 +152,12 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                     final String text = nText.getData();
                     for( int ch, c = 0, cN = text.length(); c < cN; c += charCount(ch) ) {
                         ch = text.codePointAt( c );
-                        if( !glyphTestFont.canDisplay(ch) && !unglyphedCharacters.containsKey(ch) ) {
-                            unglyphedCharacters.put( ch,
-                              new UnglyphedCharacter( glyphTestFont.getFontName(), ch )); }}}
+                        if( glyphTestFont.canDisplay(ch) || uns.containsKey(ch) ) continue;
+                        uns.put( ch, new UnglyphedCharacter(
+                          glyphTestFont.getFontName(), ch, characterPointer(nText,c) )); }}
                     while( (n = successor(n)) != null );
-                if( !unglyphedCharacters.isEmpty() ) {
-                    unglyphedCharacters.values().forEach( unglyphed ->
-                        mould.wrn().println( wrnHead(sourceFile) + unglyphed )); }}
+                if( !uns.isEmpty() ) {
+                    uns.values().forEach( un -> mould.wrn().println( wrnHead(sourceFile) + un )); }}
 
           // XHTML DOM ← X-Breccia DOM
           // ─────────
@@ -169,6 +175,68 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    /** @param markup An element of Breccian markup.
+      * @param c The offset in `markup` context of the character to point to.
+      */
+    private CharacterPointer characterPointer( final Element markup, final int c ) {
+        final String textRegional;
+        final IntArrayExtensor endsRegional = lineLocator.endsRegional;
+        final int offsetRegional;
+        final int numberRegional;
+        for( Element h = markup;; ) {
+            if( "Head".equals( h.getLocalName() )) {
+                textRegional = sourceText( h );
+                endsRegional.clear();
+                final StringTokenizer tt = new StringTokenizer( h.getAttribute( "xuncLineEnds" ));
+                while( tt.hasMoreTokens() ) endsRegional.add( parseUnsignedInt( tt.nextToken() ));
+                offsetRegional = parseUnsignedInt( h.getAttribute( "xunc" ));
+                numberRegional = parseUnsignedInt( h.getAttribute( "lineNumber" ));
+                break; }
+            h = parentElement( h );
+            if( h == null ) throw new IllegalArgumentException( markup.toString() ); }
+
+      // Locate the line
+      // ───────────────
+        int offset = c + parseUnsignedInt( markup.getAttribute( "xunc" )); // `markup` → whole text
+        lineLocator.locateLine( offset, offsetRegional, numberRegional );
+
+      // Resolve its content
+      // ───────────────────
+        final int lineStart = lineLocator.start() - offsetRegional; // whole text → `textRegional`
+        final String line = textRegional.substring( lineStart,
+          endsRegional.array[lineLocator.index()] - offsetRegional ); // whole text → `textRegional`
+
+      // Form the pointer
+      // ────────────────
+        offset -= offsetRegional; // whole text → `textRegional`
+        final int column = columnarSpan( textRegional, lineStart, offset );
+        return new CharacterPointer( line, lineLocator.number(), column ); }
+
+
+
+    /** @param markup The text of an element of Breccian markup.
+      * @param c The offset in `markup` context of the character to point to.
+      */
+    private CharacterPointer characterPointer( final Text markup, int c ) {
+        final Node p = markup.getParentNode();
+        if( p.getNodeType() != ELEMENT_NODE ) throw new IllegalArgumentException( markup.toString() );
+        return characterPointer( (Element)p, c ); }
+
+
+
+    /** Returns the number of grapheme clusters between `text` positions `start` and `end`.
+      *
+      *     @see <a href='https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries'>
+      *       Grapheme cluster boundaries in Unicode text segmentation</a>
+      */
+    private int columnarSpan( final String text, final int start, final int end ) {
+        graphemeClusterMatcher.reset( /*input sequence*/text );
+        int count = 0;
+        while( graphemeClusterMatcher.find() ) ++count;
+        return count; }
+
 
 
     /** @param head A `Head` element representing a fractal head.
@@ -212,6 +280,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
+    private final Matcher graphemeClusterMatcher = graphemeClusterPattern.matcher( "" );
+
+
+
     private final Transformer identityTransformer; {
         Transformer t;
         try { t = TransformerFactory.newInstance().newTransformer(); }
@@ -224,7 +296,12 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    final ImageMould<?> mould;
+    private final TextLineLocator lineLocator = new TextLineLocator(
+      new IntArrayExtensor( new int[0x100] )); // = 256
+
+
+
+    private final ImageMould<?> mould;
 
 
 
@@ -233,6 +310,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
     private final ImagingOptions opt;
+
+
+
+    private String sourceText( final Element markup ) { return markup.getTextContent(); } // TEST
 
 
 
@@ -285,8 +366,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-        private final Map<Integer,UnglyphedCharacter> unglyphedCharacters = new HashMap<>(); }
-          // Code points (keys) each mapped to an unglyphed-character record (value).
+    private final Map<Integer,UnglyphedCharacter> unglyphedCharacters = new HashMap<>(); }
+      // Code points (keys) each mapped to an unglyphed-character record (value).
 
 
 

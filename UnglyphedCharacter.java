@@ -1,5 +1,7 @@
 package Breccia.Web.imager;
 
+import Java.CharacterPointer;
+
 import static java.lang.Integer.toHexString;
 
 
@@ -14,9 +16,10 @@ public class UnglyphedCharacter {
     /** @see #codePoint()
       * @see #fontName()
       */
-    public UnglyphedCharacter( String fontName, int codePoint ) {
+    public UnglyphedCharacter( String fontName, final int codePoint, final CharacterPointer pointer ) {
         this.fontName = fontName;
-        this.codePoint = codePoint; }
+        this.codePoint = codePoint;
+        this.pointer = pointer; }
 
 
 
@@ -29,6 +32,12 @@ public class UnglyphedCharacter {
     /** The name of the font that has no glyph for the character.
       */
     public final String fontName;
+
+
+
+    /** Indicant of where precisely the character occurs in the source file.
+      */
+    public final CharacterPointer pointer;
 
 
 
