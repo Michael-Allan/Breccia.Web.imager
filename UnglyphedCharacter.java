@@ -29,13 +29,19 @@ class UnglyphedCharacter {
 
 
 
+    /** The number of occurences of the character in the source file, initially zero.
+      */
+    public int count;
+
+
+
     /** The name of the font that has no glyph for the character.
       */
     final String fontName;
 
 
 
-    /** Indicant of where precisely the character occurs in the source file.
+    /** A pointer to the first occurence of the character in the source file.
       */
     final CharacterPointer pointer;
 
@@ -53,6 +59,11 @@ class UnglyphedCharacter {
         b.append( toHexString( codePoint ));
         b.append( '\n' );
         b.append( pointer.markedLine() );
+        final int c = count - 1;
+        if( c > 0 ) {
+            b.append( "    (+" );
+            b.append( c );
+            b.append( " more)" ); }
         return b.toString(); }}
 
 

@@ -152,9 +152,13 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                     final String text = nText.getData();
                     for( int ch, c = 0, cN = text.length(); c < cN; c += charCount(ch) ) {
                         ch = text.codePointAt( c );
-                        if( glyphTestFont.canDisplay(ch) || uns.containsKey(ch) ) continue;
-                        uns.put( ch, new UnglyphedCharacter(
-                          glyphTestFont.getFontName(), ch, characterPointer(nText,c) )); }}
+                        if( glyphTestFont.canDisplay( ch )) continue;
+                        UnglyphedCharacter un = uns.get( ch );
+                        if( un == null ) {
+                            un = new UnglyphedCharacter( glyphTestFont.getFontName(), ch,
+                              characterPointer( nText, c ));
+                            uns.put( ch, un ); }
+                        ++un.count; }}
                     while( (n = successor(n)) != null );
                 if( !uns.isEmpty() ) uns.values().forEach( un -> {
                     mould.wrn().println( wrnHead(sourceFile,un.pointer.lineNumber) + un ); }); }
