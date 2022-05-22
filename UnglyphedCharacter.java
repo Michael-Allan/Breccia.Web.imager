@@ -51,6 +51,8 @@ public class UnglyphedCharacter {
         b.appendCodePoint( codePoint );
         b.append( "’, code point " );
         b.append( toHexString( codePoint ));
+        b.append( '\n' );
+        b.append( pointer.markedLine() );
         return b.toString(); }}
 
 

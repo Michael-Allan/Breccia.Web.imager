@@ -39,7 +39,7 @@ import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
-import static Java.Unicode.graphemeClusterPattern;
+import static Java.Unicode.graphemePattern;
 import static javax.xml.transform.OutputKeys.*;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 import static org.w3c.dom.Node.TEXT_NODE;
@@ -156,8 +156,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                         uns.put( ch, new UnglyphedCharacter(
                           glyphTestFont.getFontName(), ch, characterPointer(nText,c) )); }}
                     while( (n = successor(n)) != null );
-                if( !uns.isEmpty() ) {
-                    uns.values().forEach( un -> mould.wrn().println( wrnHead(sourceFile) + un )); }}
+                if( !uns.isEmpty() ) uns.values().forEach( un -> {
+                    mould.wrn().println( wrnHead(sourceFile,un.pointer.lineNumber) + un ); }); }
 
           // XHTML DOM ← X-Breccia DOM
           // ─────────
@@ -226,15 +226,15 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    /** Returns the number of grapheme clusters between `text` positions `start` and `end`.
+    /** Returns the number of grapheme clusters within `text` between positions `start` and `end`.
       *
       *     @see <a href='https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries'>
       *       Grapheme cluster boundaries in Unicode text segmentation</a>
       */
     private int columnarSpan( final String text, final int start, final int end ) {
-        graphemeClusterMatcher.reset( /*input sequence*/text );
+        graphemeMatcher.reset( text ).region( start, end );
         int count = 0;
-        while( graphemeClusterMatcher.find() ) ++count;
+        while( graphemeMatcher.find() ) ++count;
         return count; }
 
 
@@ -280,7 +280,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    private final Matcher graphemeClusterMatcher = graphemeClusterPattern.matcher( "" );
+    private final Matcher graphemeMatcher = graphemePattern.matcher( "" );
 
 
 
