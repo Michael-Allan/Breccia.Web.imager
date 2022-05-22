@@ -10,13 +10,13 @@ import static java.lang.Integer.toHexString;
   *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
   *         Command option `--glyph-test-font`</a>
   */
-public class UnglyphedCharacter {
+class UnglyphedCharacter {
 
 
     /** @see #codePoint()
       * @see #fontName()
       */
-    public UnglyphedCharacter( String fontName, final int codePoint, final CharacterPointer pointer ) {
+    UnglyphedCharacter( String fontName, int codePoint, CharacterPointer pointer ) {
         this.fontName = fontName;
         this.codePoint = codePoint;
         this.pointer = pointer; }
@@ -25,19 +25,19 @@ public class UnglyphedCharacter {
 
     /** The code point of the character.
       */
-    public final int codePoint;
+    final int codePoint;
 
 
 
     /** The name of the font that has no glyph for the character.
       */
-    public final String fontName;
+    final String fontName;
 
 
 
     /** Indicant of where precisely the character occurs in the source file.
       */
-    public final CharacterPointer pointer;
+    final CharacterPointer pointer;
 
 
 
