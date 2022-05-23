@@ -20,9 +20,15 @@ public class ImagingOptions {
 
 
 
-    /** @param args Nominal arguments, aka options, from the command line.
+    /** Finishes making this instance.  If instead a fatal error is detected, then this method
+      * prints an error message and exits the runtime with a non-zero status code.
+      *
+      *     @param args Nominal arguments, aka options, from the command line.
       */
-    public final void initialize( List<String> args ) { for( String a: args ) initialize( a ); }
+    public final void initialize( List<String> args ) {
+        boolean isGo = true;
+        for( String a: args ) isGo &= initialize( a );
+        if( !isGo ) exit( 1 ); }
 
 
 
@@ -100,7 +106,13 @@ public class ImagingOptions {
 
 
 
-    protected void initialize( final String arg ) {
+    /** Parses and incorporates the given argument, or prints an error message and returns false.
+      *
+      *     @param arg A nominal argument from the command line.
+      *     @return True if the argument was incorporated, false otherwise.
+      */
+    protected boolean initialize( final String arg ) {
+        boolean isGo = true;
         String s;
         if( arg.startsWith( s = "--centre-column=" )) centreColumn = value( arg, s );
         else if( arg.startsWith( s = "--co-service-directory=" )) {
@@ -109,12 +121,13 @@ public class ImagingOptions {
             font = value( arg, s );
             if( Path.of(font).isAbsolute() ) {
                 err.println( commandName + ": Not a relative path: " + arg );
-                exit( 1 ); }}
+                isGo = false; }}
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
         else {
             err.println( commandName + ": Unrecognized argument: " + arg );
-            exit( 1 ); }}
+            isGo = false; }
+        return isGo; }
 
 
 
