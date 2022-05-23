@@ -1,5 +1,6 @@
 package Breccia.Web.imager;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import static java.lang.System.err;
@@ -101,12 +102,12 @@ public class ImagingOptions {
 
     protected void initialize( final String arg ) {
         String s;
-        if( arg.startsWith( s = "--centre-column" )) centreColumn = value( arg, s );
+        if( arg.startsWith( s = "--centre-column=" )) centreColumn = value( arg, s );
         else if( arg.startsWith( s = "--co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
-        else if( arg.startsWith( s = "--font" )) font = value( arg, s );
-        else if( arg.startsWith( "--force" )) toForce = true;
-        else if( arg.startsWith( s = "--glyph-test-font" )) glyphTestFont = value( arg, s );
+        else if( arg.startsWith( s = "--font=" )) font = value( arg, s );
+        else if( arg.equals( "--force" )) toForce = true;
+        else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
         else {
             err.println( commandName + ": Unrecognized argument: " + arg );
             exit( 1 ); }}
