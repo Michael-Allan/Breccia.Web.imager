@@ -105,7 +105,11 @@ public class ImagingOptions {
         if( arg.startsWith( s = "--centre-column=" )) centreColumn = value( arg, s );
         else if( arg.startsWith( s = "--co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
-        else if( arg.startsWith( s = "--font=" )) font = value( arg, s );
+        else if( arg.startsWith( s = "--font=" )) {
+            font = value( arg, s );
+            if( Path.of(font).isAbsolute() ) {
+                err.println( commandName + ": Not a relative path: " + arg );
+                exit( 1 ); }}
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
         else {
