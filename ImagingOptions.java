@@ -68,7 +68,7 @@ public class ImagingOptions {
     public final String glyphTestFont() {
         if( glyphTestFont != null ) return glyphTestFont;
         if( isRemote( coServiceDirectory )) return "none";
-        return coServiceDirectory + font; }
+        return coServiceDirectory + "Breccia/Web/imager/" + font; }
 
 
 
@@ -98,7 +98,7 @@ public class ImagingOptions {
 
 
 
-    private String font = "font/FairfaxHD.ttf";
+    private String font = "FairfaxHD.ttf";
 
 
 

@@ -38,19 +38,20 @@
             - The auxiliary files must include, at a minimum, the following.
                 • `<CS>/Breccia/Web/imager/image.css`
                     : see image.css
-                • `<CS>/<font>`
+                • `<CS>/Breccia/Web/imager/<font>`
                     : re `<font>` see `^^--font`
             - The default value is `http://reluk.ca/_/Web_service/`.
                 / Better not rely on it, however.  The files there may be incompatible
                   with your installation, or become so at any time, or be slow to serve.
                   Rather you should supply a directory under your own control.
         --font: --font=<relative file path>
-            - The path of the font file relative to the co-service directory.
-                : re `co-service directory` see `^^--co-service-directory`
+            - The path of the font file relative to `<CS>/Breccia/Web/imager/`.
+                : re `CS` see `^^--co-service-directory`
+                / Typically the path is a simple file name.
             - Any path other than the default requires a custom style sheet.
                 : re `custom` see image.css : * F o n t s *
                 : re `style sheet` see `<CS>/Breccia/Web/imager/image.css` @ `^^--co-service-directory`
-            - The default is `font/FairfaxHD.ttf`.
+            - The default path is `FairfaxHD.ttf`.
                 : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
         --force
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
@@ -61,10 +62,10 @@
             - Otherwise the file must contain an OpenType font
                 - A test is performed on each character of the image source and a warning emitted
                   for any whose glyph is missing from the font.
-            - The default value if CS is a local file path is `<CS>/<font>`, otherwise it is `none`.
+            - The default value if CS is a local file path is `<CS>/Breccia/Web/imager/<font>`,
+              otherwise it is `none`.
                 : re `CS` see `^^--co-service-directory`
                 : re `<(font)>` see `^^--font`
-                : re `URI` see https://tools.ietf.org/html/rfc3986#section-3
 
 
     ━━━━━━━━━━
