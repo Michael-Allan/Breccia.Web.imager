@@ -28,29 +28,31 @@
                 : re `columnar offset` see http://reluk.ca/project/Breccia/parser/Markup.java :
                   Columnar offsets are zero based.
                 - In wide viewports, this column of the source file will appear at centre.
-            - The default value is 52.5.
+            - The default is 52.5.
         --co-service-directory: --co-service-directory=<URI reference>
                 : re `URI reference` see https://tools.ietf.org/html/rfc3986#section-4.1
             - The location of the co-service directory.
                 - It may be given with or without a trailing ‘/’.
                 - It must be accessible to Web clients.
-            - The co-service directory (here ‘<CS>’) contains the auxiliary files of the Web image.
+                - The default location is `http://reluk.ca/_/Web_service/`.
+                    / Better not rely on it, however.  The files there may be incompatible
+                      with your installation, or become so at any time, or be slow to serve.
+                      Rather you should supply a directory under your own control.
+            - This directory (here ‘<CS>’) contains the auxiliary files of the Web image.
             - The auxiliary files must include, at a minimum, the following.
-                • `<CS>/Breccia/Web/imager/image.css`
-                    : see image.css
-                • `<CS>/Breccia/Web/imager/<font>`
+                style sheet: `<CS>/Breccia/Web/imager/image.css`
+                    - Typically this is a copy of the bundled sheet, or a custom sheet
+                      that imports from a copy of the bundled sheet.
+                        : re `bundled sheet` see image.css
+                font: `<CS>/Breccia/Web/imager/<font>`
                     : re `<font>` see `^^--font`
-            - The default value is `http://reluk.ca/_/Web_service/`.
-                / Better not rely on it, however.  The files there may be incompatible
-                  with your installation, or become so at any time, or be slow to serve.
-                  Rather you should supply a directory under your own control.
         --font: --font=<relative file path>
             - The path of the font file relative to `<CS>/Breccia/Web/imager/`.
                 : re `CS` see `^^--co-service-directory`
                 / Typically the path is a simple file name.
             - Any path other than the default requires a custom style sheet.
                 : re `custom` see image.css : * F o n t s *
-                : re `style sheet` see `<CS>/Breccia/Web/imager/image.css` @ `^^--co-service-directory`
+                : re `style sheet` see `^^style sheet` @ `^^--co-service-directory`
             - The default path is `FairfaxHD.ttf`.
                 : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
         --force
