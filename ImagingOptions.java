@@ -34,7 +34,7 @@ public class ImagingOptions {
 
     /** The columnar offset on which to centre the text.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
       *         Command option `--centre-column`</a>
       */
     public final String centreColumn() { return centreColumn; }
@@ -43,7 +43,7 @@ public class ImagingOptions {
 
     /** The enslashed name of the directory containing the auxiliary files of the Web image.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
       *         Command option `--co-service-directory`</a>
       *     @see Java.Path.#enslash(String)
       */
@@ -53,7 +53,7 @@ public class ImagingOptions {
 
     /** The path of the font file relative to the co-service directory.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
       *         Command option `--font`</a>
       */
     public final String font() { return font; }
@@ -62,7 +62,7 @@ public class ImagingOptions {
 
     /** The font file for glyph tests.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
       *         Command option `--glyph-test-font`</a>
       */
     public final String glyphTestFont() {
@@ -74,7 +74,7 @@ public class ImagingOptions {
 
     /** Whether to forcefully remake the Web image.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
       *         Command option `--force`</a>
       */
     public final boolean toForce() { return toForce; }

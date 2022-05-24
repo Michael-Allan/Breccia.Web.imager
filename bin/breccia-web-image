@@ -18,7 +18,7 @@ import static java.lang.System.exit;
 
 /** A shell command to make a Web image.
   *
-  *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec'>
+  *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
   *       The `breccia-web-image` command</a>
   */
 public final class BrecciaWebImageCommand implements AutoCloseable { // [AFN]
