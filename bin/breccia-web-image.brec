@@ -31,10 +31,11 @@
             - The default value is 52.5.
         --co-service-directory: --co-service-directory=<URI reference>
                 : re `URI reference` see https://tools.ietf.org/html/rfc3986#section-4.1
-            - The directory containing the auxiliary files of the Web image.
+            - The location of the co-service directory.
                 - It may be given with or without a trailing ‘/’.
                 - It must be accessible to Web clients.
-            - Under this directory (here ‘<CS>’) the following files must be stored.
+            - The co-service directory (here ‘<CS>’) contains the auxiliary files of the Web image.
+            - The auxiliary files must include, at a minimum, the following.
                 • `<CS>/Breccia/Web/imager/image.css`
                     : see image.css
                 • `<CS>/<font>`
@@ -42,7 +43,7 @@
             - The default value is `http://reluk.ca/_/Web_service/`.
                 / Better not rely on it, however.  The files there may be incompatible
                   with your installation, or become so at any time, or be slow to serve.
-                  Rather you should give the name of a directory under your own control.
+                  Rather you should supply a directory under your own control.
         --font: --font=<relative file path>
             - The path of the font file relative to the co-service directory.
                 : re `co-service directory` see `^^--co-service-directory`
