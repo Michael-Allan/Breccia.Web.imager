@@ -65,6 +65,18 @@
                 : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
                 - See the bundled style sheet for a description and example of this mark.
                     : re `bundled style sheet` see image.css
+        --quiet
+            - Sets the verbosity to level 0.
+                : re `verbosity` see `^^--verbosity`
+        --verbose
+            - Sets the verbosity to level 2.
+                : re `verbosity` see `^^--verbosity`
+        --verbosity: --verbosity=0|1|2
+            - The amount of user feedback to give on the standard output stream:
+              0 no feedback, 1 some, and 2 more.
+                : see also `^^--quiet$`
+                : see also `^^--verbose$`
+            - The default is 1.
 
 
     ━━━━━━━━━━

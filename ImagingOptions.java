@@ -81,6 +81,15 @@ public class ImagingOptions {
 
 
 
+    /** The allowed amount of user feedback on the standard output stream.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *         Command option `--verbosity`</a>
+      */
+    public final int verbosity() { return verbosity; }
+
+
+
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -171,6 +180,13 @@ public class ImagingOptions {
             coServiceDirectory = enslash( value( arg, s )); }
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
+        else if( arg.equals( "--quiet" )) verbosity = 0;
+        else if( arg.equals( "--verbose" )) verbosity = 2;
+        else if( arg.startsWith( s = "--verbosity=" )) {
+            verbosity = Integer.parseUnsignedInt( value( arg, s ));
+            if( verbosity < 0 || verbosity > 2 ) {
+                err.println( commandName + ": Unrecognized verbosity level: " + verbosity );
+                isGo = false; }}
         else {
             err.println( commandName + ": Unrecognized argument: " + arg );
             isGo = false; }
@@ -186,7 +202,11 @@ public class ImagingOptions {
       * @param prefix The leading name and equals sign, e.g. "foo=".
       */
     protected static String value( final String arg, final String prefix ) {
-        return arg.substring( prefix.length() ); }}
+        return arg.substring( prefix.length() ); }
+
+
+
+    private int verbosity = 1; }
 
 
 

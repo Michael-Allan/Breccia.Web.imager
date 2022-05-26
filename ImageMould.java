@@ -4,6 +4,7 @@ import Breccia.parser.*;
 import Java.*;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import java.util.stream.Stream;
 
 import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
+import static Breccia.Web.imager.Imaging.imageFile;
 import static Breccia.Web.imager.Imaging.looksReachable;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
@@ -23,6 +25,7 @@ import static Breccia.Web.imager.TransformError.errMsg;
 import static Breccia.Web.imager.TransformError.wrnHead;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
+import static java.io.OutputStream.nullOutputStream;
 import static java.nio.file.Files.*;
 import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
@@ -86,6 +89,7 @@ public final class ImageMould<C extends ReusableCursor> {
     /** Tells where to report any survivable errors in the process of image formation,
       * while ensuring the return value of `formImage` will be false.
       *
+      *     @see #out()
       *     @see #wrn()
       */
     public PrintWriter err() {
@@ -170,7 +174,7 @@ public final class ImageMould<C extends ReusableCursor> {
                   earlier pass of this probe, or (however unlikely) one of the slow remote probes. */
                 boolean toReformImage = true;
                 if( resTime != null ) { // So letting the null case be forcefully reimaged, as per above.
-                    final Path depImage = Imaging.imageFile( dep );
+                    final Path depImage = imageFile( dep );
                     try { toReformImage = resTime.compareTo(getLastModifiedTime(depImage)) >= 0; }
                       // Viz. iff the formal resource has changed since the image was formed.
                     catch( final IOException x ) {
@@ -200,8 +204,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 final Path imageDirectory = outDirectory.resolve(
                   boundaryPathDirectory.relativize( sourceFile.getParent() ));
                 boolean wasTransformed = false;
-                System.out./*TEST*/println( "i   "
-                  + Imaging.imageFile( boundaryPathDirectory.relativize( sourceFile )));
+                out(1).println( "i   " + imageFile( boundaryPathDirectory.relativize( sourceFile )));
                 try {
                     transformer.transform( sourceFile, imageDirectory );
                     wasTransformed = true; }
@@ -237,6 +240,33 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    /** The output stream for user feedback during the process of image formation.
+      *
+      *     @see #err()
+      *     @see #wrn()
+      */
+    public PrintStream out() { return System.out; }
+
+
+
+    /** The output stream for user feedback of verbosity level `v`.  If `v` is greater than the level
+      * allowed by command option `--verbosity`, then this method returns a do-nothing dummy stream.
+      *
+      * <p>If the feedback message is too expensive to construct needlessly, then you might avoid
+      * needless construction with code such as this:</p><pre>
+      *
+      *     out(v).println( new Object() { public String toString() { . . . }});</pre>
+      *
+      *     @param v Either 1 or 2.
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *         Command option `--verbosity`</a>
+      */
+    public PrintStream out( final int v ) {
+        if( v != 1 && v != 2 ) throw new IllegalArgumentException();
+        return v > opt.verbosity() ? outNull : System.out; }
+
+
+
     /** The directory in which to write any newly formed image files.
       */
     public final Path outDirectory;
@@ -246,6 +276,7 @@ public final class ImageMould<C extends ReusableCursor> {
     /** Where to report any warnings in the process of image formation.
       *
       *     @see #err()
+      *     @see #out()
       */
     public PrintWriter wrn() { return errorWriter; }
 
@@ -336,6 +367,11 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    private static final PrintStream outNull = new PrintStream( nullOutputStream() );
+      // Re `static`: source code (JDK 17) suggests `PrintStream` is thread safe.
+
+
+
     /** @param d The path of a source directory to pull into the mould.
       */
     private void pullDirectory( final Path d ) {
@@ -353,7 +389,7 @@ public final class ImageMould<C extends ReusableCursor> {
             final Imageability i;
             if( opt.toForce() ) i = imageable;
             else {
-                final Path fI = Imaging.imageFile( f );
+                final Path fI = imageFile( f );
                 try {
                     if( !exists(fI) || getLastModifiedTime(f).compareTo(getLastModifiedTime(fI)) >= 0 ) {
                         i = imageable; }
