@@ -44,17 +44,10 @@
                     - Typically this is a copy of the bundled sheet, or a custom sheet
                       that imports from a copy of the bundled sheet.
                         : re `bundled sheet` see image.css
-                font: `<CS>/Breccia/Web/imager/<font>`
-                    : re `<font>` see `^^--font`
-        --font: --font=<relative file path>
-            - The path of the font file relative to `<CS>/Breccia/Web/imager/`.
-                : re `CS` see `^^--co-service-directory`
-                / Typically the path is a simple file name.
-            - Any path other than the default requires a custom style sheet.
-                : re `custom` see image.css : * F o n t s *
-                : re `style sheet` see `^^style sheet` @ `^^--co-service-directory`
-            - The default path is `FairfaxHD.ttf`.
-                : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
+            - Any resource file referred to by the style sheet must also be included.
+              The bundled sheet requires the following.
+                font file: `<CS>/Breccia/Web/imager/FairfaxHD.ttf`
+                    : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
         --force
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.
@@ -64,10 +57,14 @@
             - Otherwise the file must contain an OpenType font
                 - A test is performed on each character of the image source and a warning emitted
                   for any whose glyph is missing from the font.
-            - The default value if CS is a local file path is `<CS>/Breccia/Web/imager/<font>`,
-              otherwise it is `none`.
+            - The default value is either read from the style sheet, or it is `none`.
+                : re `style sheet` see @ `^^--co-service-directory`
+            - For the value to be read from the style sheet, CS must be a local directory and the style
+              sheet (or one of its local imports) must contain a font reference with a ‘[GTF]’ mark.
                 : re `CS` see `^^--co-service-directory`
-                : re `<(font)>` see `^^--font`
+                : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
+                - See the bundled style sheet for a description and example of this mark.
+                    : re `bundled style sheet` see image.css
 
 
     ━━━━━━━━━━

@@ -56,8 +56,7 @@
 
     @font-face {
         font-family: 'Fairfax HD';
-        src: url('FairfaxHD.ttf')  format('opentype'); }
-
+        src: url('FairfaxHD.ttf'/*[GTF]*/)  format('opentype'); }
 
 
     :root {
@@ -117,8 +116,11 @@
 
 
 /* NOTES
- *
+ * ─────
  *   BWI  http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht
+ *
+ *   GTF  A font file marked for glyph testing.  See imager option `--glyph-test-font`.  [BWI]
+ *        The name of the file is directly followed by a CSS comment that begins with ‘[GTF]’.
  *
  *   T ·· Text properties are applicable within fractal heads alone, where all Breccian text is confined.
  */

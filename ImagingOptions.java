@@ -1,10 +1,15 @@
 package Breccia.Web.imager;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import Java.Unhandled;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static java.lang.System.err;
 import static java.lang.System.exit;
+import static java.nio.file.Files.readString;
 import static Java.Paths.enslash;
 import static Java.URI_References.isRemote;
 
@@ -51,24 +56,19 @@ public class ImagingOptions {
 
 
 
-    /** The path of the font file relative to the co-service directory.
-      *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
-      *         Command option `--font`</a>
-      */
-    public final String font() { return font; }
-
-
-
     /** The font file for glyph tests.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
       *         Command option `--glyph-test-font`</a>
       */
     public final String glyphTestFont() {
-        if( glyphTestFont != null ) return glyphTestFont;
-        if( isRemote( coServiceDirectory )) return "none";
-        return coServiceDirectory + "Breccia/Web/imager/" + font; }
+        if( glyphTestFont == null ) {
+            final String styleSheet = coServiceDirectory + "Breccia/Web/imager/image.css";
+            if( !isRemote( styleSheet )) {
+                glyphTestFont = glyphTestFont( Path.of( styleSheet ));
+                if( glyphTestFont == null ) glyphTestFont = "none"; }
+            else glyphTestFont = "none"; }
+        return glyphTestFont; }
 
 
 
@@ -106,6 +106,58 @@ public class ImagingOptions {
 
 
 
+    /** @return The path of the designated glyph-test font, or null if none was found.
+      */
+    private static String glyphTestFont( final Path styleSheet ) {
+        final Path directory = styleSheet.getParent();
+        final String content; {
+            try { content = readString( styleSheet ); }
+            catch( IOException x ) { throw new Unhandled( x ); }}
+        Matcher m;
+
+      // Imported sheets, recursively searching these first
+      // ───────────────
+        m = importedStyleSheetPattern.matcher( content );
+        while( m.find() ) {
+            final String importedSheet = m.group( 2 );
+            if( !isRemote( importedSheet )) {
+                final String f = glyphTestFont( directory.resolve( importedSheet ));
+                if( f != null ) return f; }}
+
+      // Present sheet
+      // ─────────────
+        m = glyphTestFontSrcPattern.matcher( content );
+        if( m.find() ) {
+            final String src = m.group( 2 );
+            if( !isRemote( src )) return directory.resolve(src).toString(); }
+        return null; }
+
+
+
+    /** A pattern to `find` in a style sheet the designated glyph-test font.  It captures as group (2)
+      * the font reference, formally a URI reference.
+      *
+      *     @see java.util.regex.Matcher#find()
+      *     @see <a href='https://www.w3.org/TR/css-fonts/#src-desc'>Font reference</a>
+      *     @see <a href='https://datatracker.ietf.org/doc/html/rfc3986#section-4.1'>URI reference</a>
+      */
+    private static final Pattern glyphTestFontSrcPattern = Pattern.compile(
+      "src: +(?:(?:url|src)\\()?(['\"])(.+?)\\1 */\\* *\\[GTF\\]" );
+
+
+
+    /** A pattern to `find` in a style sheet the import of another style sheet.  It captures as group (2)
+      * the ‘URL of the style sheet to be imported’, formally a URI reference.
+      *
+      *     @see java.util.regex.Matcher#find()
+      *     @see <a href='https://www.w3.org/TR/css-cascade/#at-import'>Importing style sheets</a>
+      *     @see <a href='https://datatracker.ietf.org/doc/html/rfc3986#section-4.1'>URI reference</a>
+      */
+    private static final Pattern importedStyleSheetPattern = Pattern.compile(
+      "@import +(?:(?:url|src)\\()?(['\"])(.+?)\\1" );
+
+
+
     /** Parses and incorporates the given argument, or prints an error message and returns false.
       *
       *     @param arg A nominal argument from the command line.
@@ -117,11 +169,6 @@ public class ImagingOptions {
         if( arg.startsWith( s = "--centre-column=" )) centreColumn = value( arg, s );
         else if( arg.startsWith( s = "--co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
-        else if( arg.startsWith( s = "--font=" )) {
-            font = value( arg, s );
-            if( Path.of(font).isAbsolute() ) {
-                err.println( commandName + ": Not a relative path: " + arg );
-                isGo = false; }}
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
         else {
