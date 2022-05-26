@@ -59,12 +59,15 @@
                   for any whose glyph is missing from the font.
             - The default value is either read from the style sheet, or it is `none`.
                 : re `style sheet` see @ `^^--co-service-directory`
-            - For the value to be read from the style sheet, CS must be a local directory and the style
-              sheet (or one of its local imports) must contain a font reference with a ‘[GTF]’ mark.
-                : re `CS` see `^^--co-service-directory`
-                : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
-                - See the bundled style sheet for a description and example of this mark.
+                - For the value to be read from the style sheet, CS must be a local directory
+                  and the style sheet (or one of its local imports) must contain a font reference
+                  with a ‘[GTF]’ mark.
+                    : re `CS` see `^^--co-service-directory`
+                    : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
+                - The bundled style sheet gives a description and example of this mark.
                     : re `bundled style sheet` see image.css
+            - Use `--verbose` to report the actual font in use.
+                : re `--verbose` see
         --quiet
             - Sets the verbosity to level 0.
                 : re `verbosity` see `^^--verbosity`
@@ -72,7 +75,7 @@
             - Sets the verbosity to level 2.
                 : re `verbosity` see `^^--verbosity`
         --verbosity: --verbosity=0|1|2
-            - The amount of user feedback to give on the standard output stream:
+            - The allowed amount of user feedback on the standard output stream:
               0 no feedback, 1 some, and 2 more.
                 : see also `^^--quiet$`
                 : see also `^^--verbose$`
