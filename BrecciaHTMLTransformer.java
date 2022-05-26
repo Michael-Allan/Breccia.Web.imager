@@ -7,10 +7,8 @@ import java.awt.FontFormatException;
 import java.io.*;
 import java.nio.file.Path;
 import Java.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
-import java.util.StringTokenizer;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.*;
 import javax.xml.transform.stax.StAXSource;
@@ -40,6 +38,7 @@ import static Java.Nodes.successorAfter;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static Java.Unicode.graphemePattern;
+import static java.util.Arrays.sort;
 import static javax.xml.transform.OutputKeys.*;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 import static org.w3c.dom.Node.TEXT_NODE;
@@ -141,8 +140,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
           // Glyph testing
           // ─────────────
             if( glyphTestFont != null ) {
-                final var uns = unglyphedCharacters;
-                uns.clear();
+                unsMap.clear(); // Map of unglyphed characters.
                 Node n = d.getFirstChild();
                 do {
                     if( n.getNodeType() != TEXT_NODE ) continue;
@@ -153,15 +151,18 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                     for( int ch, c = 0, cN = text.length(); c < cN; c += charCount(ch) ) {
                         ch = text.codePointAt( c );
                         if( glyphTestFont.canDisplay( ch )) continue;
-                        UnglyphedCharacter un = uns.get( ch );
+                        UnglyphedCharacter un = unsMap.get( ch );
                         if( un == null ) {
                             un = new UnglyphedCharacter( glyphTestFont.getFontName(), ch,
                               characterPointer( nText, c ));
-                            uns.put( ch, un ); }
+                            unsMap.put( ch, un ); }
                         ++un.count; }}
                     while( (n = successor(n)) != null );
-                if( !uns.isEmpty() ) uns.values().forEach( un -> {
-                    mould.wrn().println( wrnHead(sourceFile,un.pointer.lineNumber) + un ); }); }
+                if( !unsMap.isEmpty() ) {
+                    final var uns = unsMap.values().toArray( unArrayType );
+                    sort( uns, unsComparator );
+                    for( var un: uns ) {
+                        mould.wrn().println( wrnHead(sourceFile,un.pointer.lineNumber) + un ); }}}
 
           // XHTML DOM ← X-Breccia DOM
           // ─────────
@@ -370,7 +371,24 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    private final Map<Integer,UnglyphedCharacter> unglyphedCharacters = new HashMap<>(); }
+    private static final UnglyphedCharacter[] unArrayType = new UnglyphedCharacter[0];
+
+
+
+    /** A comparator based on linear order of occurence in the Breccian source file.
+      */
+    public static final Comparator<UnglyphedCharacter> unsComparator = new Comparator<>() {
+        public @Override int compare( final UnglyphedCharacter c, final UnglyphedCharacter d ) {
+            final CharacterPointer p = c.pointer;
+            final CharacterPointer q = d.pointer;
+            int result = Integer.compare( p.lineNumber, q.lineNumber );
+            if( result == 0 ) result = Integer.compare( p.column, q.column );
+            if( result == 0 ) result = Integer.compareUnsigned( c.codePoint, d.codePoint );
+            return result; }};
+
+
+
+    private final Map<Integer,UnglyphedCharacter> unsMap = new HashMap<>(); }
       // Code points (keys) each mapped to an unglyphed-character record (value).
 
 
