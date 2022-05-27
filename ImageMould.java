@@ -89,7 +89,7 @@ public final class ImageMould<C extends ReusableCursor> {
     /** Tells where to report any survivable errors in the process of image formation,
       * while ensuring the return value of `formImage` will be false.
       *
-      *     @see #out()
+      *     @see #out(int)
       *     @see #wrn()
       */
     public PrintWriter err() {
@@ -240,26 +240,15 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** The output stream for user feedback during the process of image formation.
-      *
-      *     @see #err()
-      *     @see #wrn()
-      */
-    public PrintStream out() { return System.out; }
-
-
-
     /** The output stream for user feedback of verbosity level `v`.  If `v` is greater than the level
       * allowed by command option `--verbosity`, then this method returns a do-nothing dummy stream.
-      *
-      * <p>If the feedback message is too expensive to construct needlessly, then you might avoid
-      * needless construction with code such as this:</p><pre>
-      *
-      *     out(v).println( new Object() { public String toString() { . . . }});</pre>
+      * Otherwise it returns `System.{@linkplain java.lang.System#out out}`.
       *
       *     @param v Either 1 or 2.
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
       *         Command option `--verbosity`</a>
+      *     @see #err()
+      *     @see #wrn()
       */
     public PrintStream out( final int v ) {
         if( v != 1 && v != 2 ) throw new IllegalArgumentException();
@@ -276,7 +265,7 @@ public final class ImageMould<C extends ReusableCursor> {
     /** Where to report any warnings in the process of image formation.
       *
       *     @see #err()
-      *     @see #out()
+      *     @see #out(int)
       */
     public PrintWriter wrn() { return errorWriter; }
 
