@@ -1,12 +1,14 @@
 package Breccia.Web.imager;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import Java.Unhandled;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.io.OutputStream.nullOutputStream;
 import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.lang.System.err;
@@ -69,7 +71,8 @@ public class ImagingOptions {
             if( !isRemote( styleSheet )) {
                 glyphTestFont = glyphTestFont( Path.of( styleSheet ));
                 if( glyphTestFont == null ) glyphTestFont = "none"; }
-            else glyphTestFont = "none"; }
+            else glyphTestFont = "none";
+            out(2).println( "Glyph-test font: " + glyphTestFont ); }
         return glyphTestFont; }
 
 
@@ -193,6 +196,19 @@ public class ImagingOptions {
             err.println( commandName + ": Unrecognized argument: " + arg );
             isGo = false; }
         return isGo; }
+
+
+
+    /** @see ImageMould#out(int)
+      */
+    protected PrintStream out( final int v ) {
+        if( v != 1 && v != 2 ) throw new IllegalArgumentException();
+        return v > verbosity ? outNull : System.out; }
+
+
+
+    private static final PrintStream outNull = new PrintStream( nullOutputStream() );
+      // Re `static`: source code (JDK 17) suggests `PrintStream` is thread safe.
 
 
 

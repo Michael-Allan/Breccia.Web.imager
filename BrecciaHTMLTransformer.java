@@ -63,8 +63,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
             try( final var in = new FileInputStream( f )) {
                 glyphTestFont = createFont( TRUETYPE_FONT/*includes all of OpenType*/,
                   /*buffered by callee in JDK 17*/in); }
-            catch( FontFormatException|IOException x ) { throw new Unhandled( x ); }}
-        mould.out(2).println( "Glyph-test font: " + f + ", " + String.valueOf(glyphTestFont) ); }
+            catch( FontFormatException|IOException x ) { throw new Unhandled( x ); }}}
 
 
 

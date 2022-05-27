@@ -25,7 +25,6 @@ import static Breccia.Web.imager.TransformError.errMsg;
 import static Breccia.Web.imager.TransformError.wrnHead;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
-import static java.io.OutputStream.nullOutputStream;
 import static java.nio.file.Files.*;
 import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
@@ -250,9 +249,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @see #err()
       *     @see #wrn()
       */
-    public PrintStream out( final int v ) {
-        if( v != 1 && v != 2 ) throw new IllegalArgumentException();
-        return v > opt.verbosity() ? outNull : System.out; }
+    public PrintStream out( final int v ) { return opt.out( v ); }
 
 
 
@@ -353,11 +350,6 @@ public final class ImageMould<C extends ReusableCursor> {
       */
     private static boolean looksBreccian( final Path f ) {
         return f.getFileName().toString().endsWith( ".brec" ); }
-
-
-
-    private static final PrintStream outNull = new PrintStream( nullOutputStream() );
-      // Re `static`: source code (JDK 17) suggests `PrintStream` is thread safe.
 
 
 
