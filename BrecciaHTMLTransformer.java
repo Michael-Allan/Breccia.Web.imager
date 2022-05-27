@@ -346,7 +346,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
         final Element html = d.createElementNS( nsHTML, "html" );
         d.appendChild( html );
-        html.setAttribute( "style", "--centre-column:" + opt.centreColumn() + "ch" );
+        html.setAttribute( "style", "--centre-column:" + Float.toString(opt.centreColumn()) + "ch" );
 
       // head
       // ┈┈┈┈

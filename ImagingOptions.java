@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static java.lang.Float.parseFloat;
+import static java.lang.Integer.parseUnsignedInt;
 import static java.lang.System.err;
 import static java.lang.System.exit;
 import static java.nio.file.Files.readString;
@@ -42,7 +44,7 @@ public class ImagingOptions {
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
       *         Command option `--centre-column`</a>
       */
-    public final String centreColumn() { return centreColumn; }
+    public final float centreColumn() { return centreColumn; }
 
 
 
@@ -93,7 +95,7 @@ public class ImagingOptions {
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    private String centreColumn = "52.5";
+    private float centreColumn = 52.5f;
 
 
 
@@ -175,7 +177,7 @@ public class ImagingOptions {
     protected boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
-        if( arg.startsWith( s = "--centre-column=" )) centreColumn = value( arg, s );
+        if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
         else if( arg.startsWith( s = "--co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
         else if( arg.equals( "--force" )) toForce = true;
@@ -183,7 +185,7 @@ public class ImagingOptions {
         else if( arg.equals( "--quiet" )) verbosity = 0;
         else if( arg.equals( "--verbose" )) verbosity = 2;
         else if( arg.startsWith( s = "--verbosity=" )) {
-            verbosity = Integer.parseUnsignedInt( value( arg, s ));
+            verbosity = parseUnsignedInt( value( arg, s ));
             if( verbosity < 0 || verbosity > 2 ) {
                 err.println( commandName + ": Unrecognized verbosity level: " + verbosity );
                 isGo = false; }}
