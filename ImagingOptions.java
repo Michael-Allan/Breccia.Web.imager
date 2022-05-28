@@ -67,9 +67,9 @@ public class ImagingOptions {
       */
     public final String glyphTestFont() {
         if( glyphTestFont == null ) {
-            final String styleSheet = coServiceDirectory + "Breccia/Web/imager/image.css";
-            if( !isRemote( styleSheet )) {
-                glyphTestFont = glyphTestFont( Path.of( styleSheet ));
+            if( !isRemote( coServiceDirectory )) {
+                glyphTestFont = glyphTestFont( Path.of(
+                  coServiceDirectory + "Breccia/Web/imager/image.css" ));
                 if( glyphTestFont == null ) glyphTestFont = "none"; }
             else glyphTestFont = "none";
             out(2).println( "Glyph-test font: " + glyphTestFont ); }
