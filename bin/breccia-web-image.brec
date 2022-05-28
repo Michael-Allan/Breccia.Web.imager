@@ -5,7 +5,7 @@
 
     - The `breccia-web-image` command makes a Web image delimited by the given boundary path.
         - It ensures that each Breccian source file (`.brec`) stored at or under the boundary path
-          is accompanied by its image file, a sibling namesake with a `.brec.xht` extension.
+          is accompanied by its HTML image file, a sibling namesake with a `.brec.xht` extension.
         - Any image file that is missing is formed anew, any that is outdated is reformed.
             - An image file is outdated unless it postdates both its source file
               and all formal resources of the source file.
@@ -33,21 +33,27 @@
                 : re `URI reference` see https://datatracker.ietf.org/doc/html/rfc3986#section-4.1
             - The location of the co-service directory.
                 - It may be given with or without a trailing ‘/’.
-                - It must be accessible to Web clients.
-                - The default location is `http://reluk.ca/_/Web_service/`.
-                    / Better not rely on it, however.  The files there may be incompatible
-                      with your installation, or become so at any time, or be slow to serve.
-                      Rather you should supply a directory under your own control.
-            - This directory (here ‘<CS>’) contains the auxiliary files of the Web image.
-            - The auxiliary files must include, at a minimum, the following.
-                style sheet: `<CS>/Breccia/Web/imager/image.css`
-                    - Typically this is a copy of the bundled sheet, or a custom sheet
-                      that imports from a copy of the bundled sheet.
-                        : re `bundled sheet` see image.css
-            - Any resource file referred to by the style sheet must also be included.
-              The bundled sheet requires the following.
-                font file: `<CS>/Breccia/Web/imager/FairfaxHD.ttf`
-                    : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
+            - The co-service directory contains the auxiliary files of the Web image.
+                - Its location is written verbatim into the HTML files of the Web image
+                  and must therefore be accessible to Web clients.
+            - The co-service directory must contain the following auxiliary files at a minimum.
+
+                    style sheet: `<CS>/Breccia/Web/imager/image.css`
+                        / Here ‘<CS>’ stands for the given location of co-service directory.
+                        - Typically this is a copy of the bundled sheet, or a custom sheet
+                          that imports from a copy of the bundled sheet.
+                            : re `bundled sheet` see image.css
+
+                - Any resource files referred to by the style sheet must also be included.
+                  For the bundled sheet, these are:
+
+                    font file: `<CS>/Breccia/Web/imager/FairfaxHD.ttf`
+                        : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
+
+            - The default location for the co-service directory is `http://reluk.ca/_/Web_service/`.
+                / Better not rely on it, however.  The files there may be incompatible
+                  with your installation, or become so at any time, or be slow to serve.
+                  Rather you should supply a directory under your own control.
         --force
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.
