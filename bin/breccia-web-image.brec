@@ -34,8 +34,20 @@
             - The location of the co-service directory.
                 - It may be given with or without a trailing ‘/’.
             - The co-service directory contains the auxiliary files of the Web image.
-                - Its location is written verbatim into the HTML files of the Web image
+                - Its given location (CS) is written verbatim into the HTML files of the Web image
                   and must therefore be accessible to Web clients.
+                - If CS has the form of a file path (as opposed to a URI, for instance)
+                  then it might be made accessible both to Web clients and the local computer.
+                  This can be useful when it comes to debugging the Web image.
+                        : re `form of a file path` e.g. `--co-service-directory=/_/Web_service/` @
+                          non-fractal http://reluk.ca/.bashrc
+                    a) Image files loaded directly into a Web browser from the local file system
+                      (under a `file:` scheme) may be viewed without CORS errors.
+                        : re `.file:. scheme` see https://datatracker.ietf.org/doc/html/rfc8089
+                        - An actual copy of the co-service directory must exist locally at CS
+                          in order for this to work.
+                    b) Glyph testing may work by default.
+                        : see `^^--glyph-test-font`
             - The co-service directory must contain the following auxiliary files at a minimum.
                     / In what follows, ‘<CS>’ stands for the given location of the co-service directory.
 
@@ -68,8 +80,8 @@
                 - Use `--verbose` to report the actual default value in use.
                     : re `--verbose` see
                 - For the value to be read from the style sheet, CS must be a local directory
-                  and the style sheet (or one of its local imports) must contain a font reference
-                  with a ‘[GTF]’ mark.
+                  and the style sheet there (or one of its local imports) must contain
+                  a font reference with a ‘[GTF]’ mark.
                     : re `CS` see `CS.+stands for` @ `^^--co-service-directory`
                     : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
                 - The bundled style sheet gives a description and example of this mark.
