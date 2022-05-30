@@ -156,7 +156,7 @@ public class ImagingOptions {
       *     @see <a href='https://datatracker.ietf.org/doc/html/rfc3986#section-4.1'>URI reference</a>
       */
     private static final Pattern glyphTestFontSrcPattern = Pattern.compile(
-      "src: +(?:(?:url|src)\\()?(['\"])(.+?)\\1 */\\* *\\[GTF\\]" );
+      "(['\"])(\\S+?)\\1 */\\* *\\[GTF\\]" ); // As per note GTF in `image.css`.
 
 
 
