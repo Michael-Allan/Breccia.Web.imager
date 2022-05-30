@@ -56,8 +56,9 @@
 
     @font-face {
         font-family: 'Fairfax HD';
-        src: url('FairfaxHD.woff2')       format('woff2'),
-            url('FairfaxHD.ttf'/*[GTF]*/)  format('opentype'); }
+        src: local('Fairfax HD'),
+            url('FairfaxHD.woff2')       format('woff2'),
+           url('FairfaxHD.ttf'/*[GTF]*/)  format('opentype'); }
 
 
     :root {
