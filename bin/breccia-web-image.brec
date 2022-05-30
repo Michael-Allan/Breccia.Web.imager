@@ -59,7 +59,8 @@
                 - Any resource files referred to by the style sheet must also be included.
                   For the bundled sheet, these are:
 
-                    font file: `<CS>/Breccia/Web/imager/FairfaxHD.ttf`
+                    font files: `<CS>/Breccia/Web/imager/FairfaxHD.ttf`,
+                               `<CS>/Breccia/Web/imager/FairfaxHD.woff2`
                         : see https://www.kreativekorp.com/software/fonts/fairfaxhd.shtml
 
             - The default location for the co-service directory is `http://reluk.ca/_/Web_service/`.
