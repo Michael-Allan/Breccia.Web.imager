@@ -61,6 +61,7 @@
            url('FairfaxHD.ttf'/*[GTF]*/)  format('opentype'); }
 
 
+
     :root {
         font-family:
           'Fairfax HD', /* Gives near-seamless jointing of semigraphics and good alignment of lines
@@ -70,7 +71,6 @@
           'monospace';
         line-height: 1.1; } /* For consistency across clients.
           E.g. the default value is 1 for Chrome 98, yet 1.2 for Firefox 91. */
-
 
 
     @media screen {
