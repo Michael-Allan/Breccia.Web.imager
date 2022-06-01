@@ -29,7 +29,7 @@ class UnglyphedCharacter {
 
 
 
-    /** The number of occurences of the character in the source file, initially zero.
+    /** The number of occurrences of the character in the source file, initially zero.
       */
     public int count;
 
@@ -41,7 +41,7 @@ class UnglyphedCharacter {
 
 
 
-    /** A pointer to the first occurence of the character in the source file.
+    /** A pointer to the first occurrence of the character in the source file.
       */
     final CharacterPointer pointer;
 

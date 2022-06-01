@@ -375,7 +375,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    /** A comparator based on linear order of occurence in the Breccian source file.
+    /** A comparator based on linear order of occurrence in the Breccian source file.
       */
     public static final Comparator<UnglyphedCharacter> unsComparator = new Comparator<>() {
         public @Override int compare( final UnglyphedCharacter c, final UnglyphedCharacter d ) {
