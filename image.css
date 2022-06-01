@@ -116,6 +116,10 @@
         font-weight: bold; }
 
 
+    brec|AlarmPoint > Head > Bullet {
+        color: hsl( 0/*red*/, 100%, 63% ); }
+
+
     brec|PlainPoint > Head > Bullet {
         color: hsl( 0, 0%, 100% ); }
 
