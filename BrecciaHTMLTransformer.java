@@ -340,6 +340,9 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
     protected void transform( final Document d ) {
+
+      // HTML form
+      // ─────────
         final Node fileFractum = d.removeChild( d.getFirstChild() ); // To be reintroduced
         assert "FileFractum".equals( fileFractum.getLocalName() );  // further below.
         if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
@@ -347,8 +350,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         d.appendChild( html );
         html.setAttribute( "style", "--centre-column:" + Float.toString(opt.centreColumn()) + "ch" );
 
-      // head
-      // ┈┈┈┈
+      // `head`
+      // ┈┈┈┈┈┈
         final Element documentHead = d.createElementNS( nsHTML, "head" );
         html.appendChild( documentHead );
         Element e;
@@ -363,8 +366,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         e.setAttribute( "rel", "stylesheet" );
         e.setAttribute( "href", opt.coServiceDirectory() + "Breccia/Web/imager/image.css" );
 
-      // body
-      // ┈┈┈┈
+      // `body`
+      // ┈┈┈┈┈┈
         final Element documentBody = d.createElementNS( nsHTML, "body" );
         html.appendChild( documentBody );
         documentBody.appendChild( fileFractum ); }
