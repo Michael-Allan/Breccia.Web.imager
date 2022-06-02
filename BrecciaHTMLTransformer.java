@@ -27,6 +27,9 @@ import static Breccia.XML.translator.XStreamConstants.EMPTY;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
+import static java.lang.Character.isAlphabetic;
+import static java.lang.Character.isDigit;
+import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createFile;
@@ -35,6 +38,7 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
+import static Java.Nodes.successorElement;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static Java.Unicode.graphemePattern;
@@ -182,6 +186,29 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
+    /** Removes to the bullet `b` any content of `bP`, forming it as a punctuation element.
+      */
+    private void appendAnyP( final Element b, final StringBuilder bP ) {
+        final int cN = bP.length();
+        if( cN > 0 ) {
+            final Document d = b.getOwnerDocument();
+            final Element punctuation = d.createElementNS( nsImager, "img:punctuation" );
+            b.appendChild( punctuation );
+            punctuation.appendChild( d.createTextNode( bP.toString() ));
+            clear( bP ); }}
+
+
+
+    /** Removes to the bullet `b` any content of `bQ`, forming it as flat text.
+      */
+    private void appendAnyQ( final Element b, final StringBuilder bQ ) {
+        final int cN = bQ.length();
+        if( cN > 0 ) {
+            b.appendChild( b.getOwnerDocument().createTextNode( bQ.toString() ));
+            clear( bQ ); }}
+
+
+
     /** @param markup An element of Breccian markup.
       * @param c The offset in `markup` context of the character to point to.
       */
@@ -314,6 +341,14 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
+    private static final String nsImager = "data:,Breccia/Web/imager";
+
+
+
+    private static final String nsXMLNS = "http://www.w3.org/2000/xmlns/";
+
+
+
     private final ImagingOptions opt;
 
 
@@ -323,6 +358,11 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
     private final StringBuilder stringBuilder = new StringBuilder(
+      /*initial capacity*/0x2000/*or 8192*/ );
+
+
+
+    private final StringBuilder stringBuilder2 = new StringBuilder(
       /*initial capacity*/0x2000/*or 8192*/ );
 
 
@@ -348,6 +388,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
         final Element html = d.createElementNS( nsHTML, "html" );
         d.appendChild( html );
+        html.setAttributeNS( nsXMLNS, "xmlns:img", nsImager );
         html.setAttribute( "style", "--centre-column:" + Float.toString(opt.centreColumn()) + "ch" );
 
       // `head`
@@ -370,7 +411,48 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
       // ┈┈┈┈┈┈
         final Element documentBody = d.createElementNS( nsHTML, "body" );
         html.appendChild( documentBody );
-        documentBody.appendChild( fileFractum ); }
+        documentBody.appendChild( fileFractum );
+
+      // Free-form bullets
+      // ─────────────────
+        for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
+            if( !"Bullet".equals( b.getLocalName() )) continue;
+            final int pointType = parseInt( parentElement(parentElement(b)).getAttribute( "typestamp" ));
+            final String typeMark; switch( pointType ) {
+                case Typestamp.alarmPoint  -> typeMark = "!!";
+                case Typestamp.plainPoint  -> typeMark =  ""; // None.
+                case Typestamp.taskPoint   -> typeMark =  "+";
+                default -> { continue; }}; // No free-form content in bullets of this type.
+            final String text;
+            final int freeEnd; { // End boundary of free-form part, start of type-mark terminator.
+                final Text t = (Text)b.getFirstChild();
+                text = t.getData();
+                assert text.endsWith( typeMark );
+                freeEnd = text.length() - typeMark.length();
+                if( freeEnd <= 0 ) continue; // No free-form content in bullet `b`.
+                b.removeChild( t ); }
+
+          // free-form part
+          // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
+            final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
+            for( int ch, c = 0; c < freeEnd; c += charCount(ch) ) {
+                ch = text.codePointAt( c );
+                if( isAlphabetic(ch) || isDigit(ch) || ch == ' ' || ch == '\u00A0'/*no-break space*/ ) {
+                    appendAnyP( b, bP );
+                    bQ.appendCodePoint( ch ); }
+                else { // `ch` is punctuation
+                    appendAnyQ( b, bQ );
+                    bP.appendCodePoint( ch ); }}
+            appendAnyP( b, bP );
+            appendAnyQ( b, bQ );
+
+          // terminator, if any
+          // ┈┈┈┈┈┈┈┈┈┈
+            if( typeMark.length() == 0 ) continue;
+            final Element terminator = d.createElementNS( nsImager, "img:terminator" );
+            b.appendChild( terminator );
+            terminator.appendChild( d.createTextNode( typeMark )); }}
 
 
 

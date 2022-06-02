@@ -2,6 +2,7 @@
  */
 @namespace brec 'data:,Breccia/XML';
 @namespace html 'http://www.w3.org/1999/xhtml';
+@namespace img 'data:,Breccia/Web/imager';
 
 
     :root { /*
@@ -115,9 +116,15 @@
     brec|Bullet {
         font-weight: bold; }
 
+    brec|Bullet img|punctuation {
+        font-weight: normal; }
+
 
     brec|AlarmPoint > Head > Bullet {
         color: hsl( 0/*red*/, 100%, 63% ); }
+
+    brec|AlarmPoint > Head > Bullet img|terminator {
+        font-weight: normal; }
 
 
     brec|PlainPoint > Head > Bullet {
@@ -126,6 +133,9 @@
 
     brec|TaskPoint > Head > Bullet {
         color: hsl( 27/*orange*/, 70%, 60% ); }
+
+    brec|TaskPoint > Head > Bullet img|terminator {
+        color: hsl( 0, 0%, 39% ); }
 
 
 
