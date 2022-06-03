@@ -104,15 +104,6 @@
  */
 
 
-    /* Aside points
-     */
-    brec|AsidePoint > Head {
-        color: hsl( 0, 0%, 50% ); }
-
-
-
-    /* Bullets
-     */
     brec|Bullet {
         font-weight: bold; }
 
@@ -120,6 +111,16 @@
         font-weight: normal; }
 
 
+
+    /* Aside points
+     */
+    brec|AsidePoint > Head {
+        color: hsl( 0, 0%, 50% ); }
+
+
+
+    /* Alarm points
+     */
     brec|AlarmPoint > Head > Bullet {
         color: hsl( 0/*red*/, 100%, 63% ); }
 
@@ -127,10 +128,16 @@
         font-weight: normal; }
 
 
+
+    /* Plain points
+     */
     brec|PlainPoint > Head > Bullet {
         color: hsl( 0, 0%, 100% ); }
 
 
+
+    /* Task points
+     */
     brec|TaskPoint > Head > Bullet {
         color: hsl( 27/*orange*/, 70%, 60% ); }
 
