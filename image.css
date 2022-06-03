@@ -103,7 +103,6 @@
 /* ━━━  P o i n t s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
-
     brec|Bullet {
         font-weight: bold; }
 
@@ -143,6 +142,63 @@
 
     brec|TaskPoint > Head > Bullet img|terminator {
         color: hsl( 0, 0%, 39% ); }
+
+
+
+/* ┈┈┈  c o m m a n d   p o i n t s   ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+ */
+
+    :root {
+        --command-point-head-colour:   hsl( 0, 0%, 39% );
+        --command-point-bullet-colour: hsl( 0, 0%, 56% );
+        --command-operator-colour:     hsl( 0, 0%, 50% );
+        --command-point-bullet-weight: normal; }
+
+
+
+    brec|AppendageClause > Delimiter {
+        color: var(--command-operator-colour); }
+
+    brec|Appendage {
+        color: hsl( 0, 0%, 45% ); }
+
+
+
+    brec|Command {
+        color: hsl( 0, 0%, 50% ); }
+
+
+
+    /* Associative references
+     */
+    brec|AssociativeReference > Head {
+        color: var(--command-point-head-colour); }
+
+    brec|AssociativeReference > Head > Bullet {
+        color:       var(--command-point-bullet-colour);
+        font-weight: var(--command-point-bullet-weight); }
+
+
+
+    /* Plain command points
+     */
+    brec|PlainCommandPoint > Head {
+        color: var(--command-point-head-colour); }
+
+    brec|PlainCommandPoint > Head > Bullet {
+        color:       var(--command-point-bullet-colour);
+        font-weight: var(--command-point-bullet-weight); }
+
+
+
+    /* Privatizers
+     */
+    brec|Privatizer > Head {
+        color: var(--command-point-head-colour); }
+
+    brec|Privatizer > Head > Bullet {
+        color:       var(--command-point-bullet-colour);
+        font-weight: var(--command-point-bullet-weight); }
 
 
 
