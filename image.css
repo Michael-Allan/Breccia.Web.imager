@@ -100,6 +100,29 @@
 
 
 
+/* ━━━  P a t t e r n   m a t c h e r s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+    brec|PatternDelimiter,
+    brec|Pattern {
+        color: hsl( 0, 0%, 39% ); }
+
+
+
+    brec|BackslashedSpecial,
+    brec|GroupDelimiter,
+    brec|Literalizer,
+    brec|Metacharacter,
+    brec|PerfectIndent {
+        color: hsl( 0/*red*/, 33%, 38% ); }
+
+
+
+    brec|MatchModifiers {
+        color: hsl( 0/*red*/, 33%, 38% ); }
+
+
+
 /* ━━━  P o i n t s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
