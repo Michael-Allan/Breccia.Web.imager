@@ -353,7 +353,15 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    private String sourceText( final Element markup ) { return markup.getTextContent(); } // TEST
+    /** The original text content of the given node and its descendants prior to any transformation.
+      */
+    private String sourceText( final Node node ) { return node.getTextContent(); }
+      // Should the transform ever introduce text of its own, then it must be marked as non-original,
+      // e.g. by some attribute defined for that purpose.  The present method would then be modified
+      // to remove all such text from the return value, e.g. by cloning `node`, filtering the clone,
+      // then calling `getTextContent` on it.
+      //     Non-original elements that merely wrap original content would neither be marked
+      // nor removed, as their presence would have no effect on the return value.
 
 
 
