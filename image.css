@@ -52,6 +52,20 @@
 
 
 
+/* ━━━  C o m m e n t   c a r r i e r s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+    brec|CommentAppender,
+    brec|CommentBlock {
+        color: hsl( 0, 0%, 39% ); }
+
+
+
+    brec|CommentBlock > Line > Label {
+        color: hsl( 0, 0%, 50% ); }
+
+
+
 /* ━━━  D i v i s i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
