@@ -19,6 +19,7 @@ import org.w3c.dom.*;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
 import static Breccia.parser.Typestamp.empty;
+import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Imaging.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
@@ -35,6 +36,7 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static Java.Nodes.asText;
 import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
@@ -44,8 +46,6 @@ import static Java.StringBuilding.collapseWhitespace;
 import static Java.Unicode.graphemePattern;
 import static java.util.Arrays.sort;
 import static javax.xml.transform.OutputKeys.*;
-import static org.w3c.dom.Node.ELEMENT_NODE;
-import static org.w3c.dom.Node.TEXT_NODE;
 
 
 /** @param <C> The type of source cursor used by this transformer.
@@ -147,8 +147,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 unsMap.clear(); // Map of unglyphed characters.
                 Node n = d.getFirstChild();
                 do {
-                    if( n.getNodeType() != TEXT_NODE ) continue;
-                    final Text nText = (Text)n;
+                    final Text nText = asText( n );
+                    if( nText == null ) continue;
                     assert !nText.isElementContentWhitespace(); /* The `sourceTranslator` has produced
                       ‘X-Breccia with no ignorable whitespace’. */
                     final String text = nText.getData();
@@ -252,9 +252,9 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
       * @param c The offset in `markup` context of the character to point to.
       */
     private CharacterPointer characterPointer( final Text markup, int c ) {
-        final Node p = markup.getParentNode();
-        if( p.getNodeType() != ELEMENT_NODE ) throw new IllegalArgumentException( markup.toString() );
-        return characterPointer( (Element)p, c ); }
+        final Element p = parentElement( markup );
+        if( p == null ) throw new IllegalArgumentException( markup.toString() );
+        return characterPointer( p, c ); }
 
 
 
@@ -421,8 +421,24 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         html.appendChild( documentBody );
         documentBody.appendChild( fileFractum );
 
+
+      // ════════════════
+      // Division titling
+      // ════════════════
+        for( Element dL = successorElement(fileFractum);  dL != null;  dL = successorElement(dL) ) {
+            if( !"DivisionLabel".equals( dL.getLocalName() )) continue;
+            final String p = asText(dL.getPreviousSibling().getFirstChild()).getData();
+              // All `dL` have a `Markup` predecessor comprising flat text.
+            int c = p.length();
+            do --c; while( p.charAt(c) == ' ' );    // Scan leftward past any plain space characters,
+            if( completesNewline( p.charAt( c ))) { // and there test for the presence of a newline.
+                assert "".equals( dL.getAttribute( "class" ));
+                dL.setAttribute( "class", "titling" ); }}
+
+
+      // ═════════════════
       // Free-form bullets
-      // ─────────────────
+      // ═════════════════
         for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
             if( !"Bullet".equals( b.getLocalName() )) continue;
             final int pointType = parseInt( parentElement(parentElement(b)).getAttribute( "typestamp" ));
@@ -440,8 +456,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 if( freeEnd <= 0 ) continue; // No free-form content in bullet `b`.
                 b.removeChild( t ); }
 
-          // free-form part
-          // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+          // Free-form part
+          // ──────────────
             final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
             final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
             for( int ch, c = 0; c < freeEnd; c += charCount(ch) ) {
@@ -455,8 +471,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
             appendAnyP( b, bP );
             appendAnyQ( b, bQ );
 
-          // terminator, if any
-          // ┈┈┈┈┈┈┈┈┈┈
+          // Terminator, if any
+          // ──────────
             if( typeMark.length() == 0 ) continue;
             final Element terminator = d.createElementNS( nsImager, "img:terminator" );
             b.appendChild( terminator );

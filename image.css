@@ -52,6 +52,24 @@
 
 
 
+/* ━━━  D i v i s i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+    brec|Division > Head/*aka ‘divider’*/ {
+        color: hsl( 0, 0%, 39% );
+        line-height: 1.0; } /* For seamless vertical jointing of semigraphics. */
+
+
+
+    brec|Division > Head/*aka ‘divider’*/ brec|DivisionLabel {
+        color: hsl( 0, 0%, 50% ); }
+
+    brec|Division > Head/*aka ‘divider’*/ brec|DivisionLabel[class~='titling'] { /* [CSF] */
+        color: hsl( 0, 0%, 63% );
+        font-weight: bold; }
+
+
+
 /* ━━━  F o n t s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
@@ -82,7 +100,7 @@
 
 
     brec|IndentBlind {
-        line-height: 1.0; } /* Required for seamless vertical jointing of semigraphics. */
+        line-height: 1.0; } /* For seamless vertical jointing of semigraphics. */
 
 
 
@@ -236,6 +254,9 @@
 /* NOTES
  * ─────
  *   BWI  http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht
+ *
+ *   CSF  Class-selector fallback.  Class selectors fail on non-HTML elements under Chrome 98.0.
+ *        Here the general attribute selector `[class~='CLASS']` is used as a fallback.
  *
  *   GTF  A font file marked for glyph testing.  See imager option `--glyph-test-font`.  [BWI]
  *        The quoted file name (in single or double quotes) is directly followed by zero or more spaces,
