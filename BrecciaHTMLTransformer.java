@@ -280,7 +280,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
             for( Node n = successor(head);;  n = successor(n) ) {
                 if( n == null ) return null;
                 if( "DivisionLabel".equals( n.getLocalName() )) {
-                    titlingExtract = n.getTextContent();
+                    titlingExtract = sourceText( n );
                     break; }}}
         else { // Presumeably `head` is a file head or point head.
             head = head.cloneNode( /*deeply*/true ); /* So both preserving the original,
@@ -297,7 +297,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                     final Node c = n;
                     c.getParentNode().removeChild( c );
                     n = p; }} // Resuming from the predecessor of comment carrier `n`, now removed.
-            titlingExtract = head.getTextContent(); }
+            titlingExtract = sourceText( head ); }
         final StringBuilder b = clear(stringBuilder).append( titlingExtract );
         collapseWhitespace( b );
         return b.isEmpty() ? null : b.toString(); }
