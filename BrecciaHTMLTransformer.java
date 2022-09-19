@@ -37,6 +37,7 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static Java.Nodes.asElement;
 import static Java.Nodes.asText;
 import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
@@ -357,7 +358,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
     private final Map<String,Integer> idMap = new HashMap<>();
-      // Fractum identifiers (keys) each mapped to the count of occurences (value).
+      // Fractum base identifiers (keys) each mapped to the count of occurences (value).
+      // Base identifiers omit any ordinal suffix.
 
 
 
@@ -469,28 +471,31 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 dL.setAttribute( "class", "titling" ); }}
 
 
-      // ══════════════════════
-      // Fractum identification, `id` attributes on body fracta
-      // ══════════════════════
+      // ═══════════
+      // Body fracta
+      // ═══════════
         idMap.clear();
         for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
             if( !bF.hasAttribute( "typestamp" )) continue; // Not a (body) fractum.
 
-          // Gather the keywords from the fractal head
-          // ───────────────────
+          // Identification by `id` attribution
+          // ──────────────────────────────────
             final int kMax = 3; // Maximum number of keywords to include in the identifier.
             final ArrayList<String> keywords = new ArrayList<>( /*initial capacity*/kMax );
+
+          // gather the longest keywords from the fractal head
+          // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            final Element head = asElement( bF.getFirstChild() );
             skim: {
-                final StringTokenizer tt = new StringTokenizer( // Parsing into tokens
-                  sourceText( bF.getFirstChild() ),            // the text of the fractal head
-                  " \n\r\u00A0" );                            // broken on Breccian whitespace.
-                do { // Fill `keywords` with the leading tokens of the fractal head.
+                final StringTokenizer tt = new StringTokenizer( sourceText(head), " \n\r\u00A0" );
+                  // Parsing into tokens the text of the fractal head broken on Breccian whitespace.
+                do { // Fill `keywords` with the first tokens in linear order.
                     if( !tt.hasMoreTokens() ) break skim;
                     keywords.add( keyword( tt.nextToken() )); }
                     while( keywords.size() < kMax );
                 boolean keywordsHaveChanged = true;
                 int shortest = -1, shortestLength = -1; // Index and length of the shortest keyword.
-                while( tt.hasMoreTokens() ) {
+                while( tt.hasMoreTokens() ) { // Parse the remainder, ensuring the longest are chosen.
                     if( keywordsHaveChanged ) { // Then find the `shortest`.
                         int k = kMax - 1;
                         shortest = k;
@@ -508,22 +513,23 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                         keywords.add( keyword );
                         keywordsHaveChanged = true; }}}
 
-          // Compose the identifier from the keywords
-          // ──────────────────────
-            final StringBuilder id = clear( stringBuilder );
-            for( int k = 0;; ) {
-                final StringBuilder b = clear(stringBuilder2).append( keywords.get( k ));
-                if( b.length() > 12 ) b.setLength( 12 ); // Truncating each keyword to 12 characters.
-                id.append( b.toString() );
-                if( ++k == keywords.size() ) break;
-                id.append( /*keyword separator*/',' ); }
-            idMap.compute( id.toString(), (id_, count) -> {
-                if( count != null ) {
-                    ++count;
-                    id.append( ':' ).append( count ); }
-                else count = 1;
-                return count; });
-            bF.setAttribute( "id", id.toString() ); }
+          // compose the identifier from the keywords
+          // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+            final String id; {
+                final StringBuilder ib = clear( stringBuilder );
+                for( int k = 0;; ) {
+                    final StringBuilder kb = clear(stringBuilder2).append( keywords.get( k ));
+                    if( kb.length() > 12 ) kb.setLength( 12 ); // Putting a limit on keyword length.
+                    ib.append( kb.toString() );
+                    if( ++k == keywords.size() ) break;
+                    ib.append( /*keyword separator*/',' ); }
+                idMap.compute( /*base identifier*/ib.toString(), (ib_, count) -> {
+                    if( count != null ) {
+                        ++count;
+                        ib.append( ':' ).append( count ); } // Appending to the base an ordinal suffix.
+                    else count = 1;
+                    return count; });
+                bF.setAttribute( "id", id = ib.toString() ); }}
 
 
       // ═════════════════
