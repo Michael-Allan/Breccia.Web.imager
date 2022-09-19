@@ -30,6 +30,7 @@ import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
 import static java.lang.Character.isAlphabetic;
 import static java.lang.Character.isDigit;
+import static java.lang.Character.toLowerCase;
 import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.nio.file.Files.createDirectories;
@@ -316,6 +317,33 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
+    /** @param token A word or other sequence of characters extracted from a fractal head.
+      * @return The token transformed as necessary to serve as a keyword in a fractum `id` attribute.
+      */
+    private String keyword( final String token ) {
+        final StringBuilder b = clear( stringBuilder );
+        boolean wasLastMasked = false;
+        int c = 0;
+        for( final int cN = token.length(); c < cN; ++c ) {
+            final char ch = token.charAt( c );
+            if( 'a' <= ch && ch <= 'z'  ||  'A' <= ch && ch <= 'Z'  ||  '0' <= ch && ch <= '9' ) {
+                b.append( ch );
+                wasLastMasked = false; }
+            else if( wasLastMasked ) continue; // Omit, so collapsing to a single mask character.
+            else {
+                b.append( '-' ); // Masking it for sake of pretty URLs, uncomplicated by encoding.
+                wasLastMasked = true; }}
+        c = 0; // Trim any mask characters at the leading or trailing edges. [MT]
+        if( b.length() > 1  &&  b.charAt(c) == '-' ) b.deleteCharAt( c );
+        c = b.length() - 1;
+        if( b.length() > 1  &&  b.charAt(c) == '-' ) b.deleteCharAt( c );
+        final char ch = b.charAt( 0 );
+        if( 'A' <= ch && ch <= 'Z' ) b.setCharAt( 0, toLowerCase(ch) ); /* Lower-casing the first letter
+          for sake of ID stability, as the keyword might lead a sentence now, then move under editing. */
+        return b.toString(); }
+
+
+
     private final Transformer identityTransformer; {
         Transformer t;
         try { t = TransformerFactory.newInstance().newTransformer(); }
@@ -325,6 +353,11 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         t.setOutputProperty( METHOD, "XML" );
         t.setOutputProperty( OMIT_XML_DECLARATION, "yes" );
         identityTransformer = t; }
+
+
+
+    private final Map<String,Integer> idMap = new HashMap<>();
+      // Fractum identifiers (keys) each mapped to the count of occurences (value).
 
 
 
@@ -436,6 +469,63 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 dL.setAttribute( "class", "titling" ); }}
 
 
+      // ══════════════════════
+      // Fractum identification, `id` attributes on body fracta
+      // ══════════════════════
+        idMap.clear();
+        for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
+            if( !bF.hasAttribute( "typestamp" )) continue; // Not a (body) fractum.
+
+          // Gather the keywords from the fractal head
+          // ───────────────────
+            final int kMax = 3; // Maximum number of keywords to include in the identifier.
+            final ArrayList<String> keywords = new ArrayList<>( /*initial capacity*/kMax );
+            skim: {
+                final StringTokenizer tt = new StringTokenizer( // Parsing into tokens
+                  sourceText( bF.getFirstChild() ),            // the text of the fractal head
+                  " \n\r\u00A0" );                            // broken on Breccian whitespace.
+                do { // Fill `keywords` with the leading tokens of the fractal head.
+                    if( !tt.hasMoreTokens() ) break skim;
+                    keywords.add( keyword( tt.nextToken() )); }
+                    while( keywords.size() < kMax );
+                boolean keywordsHaveChanged = true;
+                int shortest = -1, shortestLength = -1; // Index and length of the shortest keyword.
+                while( tt.hasMoreTokens() ) {
+                    if( keywordsHaveChanged ) { // Then find the `shortest`.
+                        int k = kMax - 1;
+                        shortest = k;
+                        shortestLength = keywords.get(k).length();
+                        do {
+                            --k;
+                            final int kLength = keywords.get(k).length();
+                            if( kLength < shortestLength ) {
+                                shortestLength = kLength;
+                                shortest = k; }}
+                            while( k > 0 ); }
+                    final String keyword = keyword( tt.nextToken() );
+                    if( keyword.length() > shortestLength ) {
+                        keywords.remove( shortest );
+                        keywords.add( keyword );
+                        keywordsHaveChanged = true; }}}
+
+          // Compose the identifier from the keywords
+          // ──────────────────────
+            final StringBuilder id = clear( stringBuilder );
+            for( int k = 0;; ) {
+                final StringBuilder b = clear(stringBuilder2).append( keywords.get( k ));
+                if( b.length() > 12 ) b.setLength( 12 ); // Truncating each keyword to 12 characters.
+                id.append( b.toString() );
+                if( ++k == keywords.size() ) break;
+                id.append( /*keyword separator*/',' ); }
+            idMap.compute( id.toString(), (id_, count) -> {
+                if( count != null ) {
+                    ++count;
+                    id.append( ':' ).append( count ); }
+                else count = 1;
+                return count; });
+            bF.setAttribute( "id", id.toString() ); }
+
+
       // ═════════════════
       // Free-form bullets
       // ═════════════════
@@ -508,6 +598,9 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 //       `d.appendChild( d.getImplementation().createDocumentType( "html", null, "about:legacy-compat" ))`
 //        in order to give the initial DOM document (here `d`) a `DOCTYPE` turns out not to suffice
 //        because it has no effect on the output.
+//
+//   MT · Mask trimming for ID stability.  The purpose is to omit any punctuation marks such as quote
+//        characters, commas or periods that might destabilize the ID as the source text is edited.
 
 
 
