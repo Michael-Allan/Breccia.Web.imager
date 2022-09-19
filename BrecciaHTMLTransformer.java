@@ -471,8 +471,52 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 dL.setAttribute( "class", "titling" ); }}
 
 
+      // ═════════════════
+      // Free-form bullets  [BF↓]
+      // ═════════════════
+        for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
+            if( !"Bullet".equals( b.getLocalName() )) continue;
+            final int pointType = parseInt( parentElement(parentElement(b)).getAttribute( "typestamp" ));
+            final String typeMark; switch( pointType ) {
+                case Typestamp.alarmPoint  -> typeMark = "!!";
+                case Typestamp.plainPoint  -> typeMark =  ""; // None.
+                case Typestamp.taskPoint   -> typeMark =  "+";
+                default -> { continue; }}; // No free-form content in bullets of this type.
+            final String text;
+            final int freeEnd; { // End boundary of free-form part, start of type-mark terminator.
+                final Text t = (Text)b.getFirstChild(); /* This must run before the *Body fracta* code,
+                  which might here insert an `a` element and split the text.  [BF↓] */
+                text = t.getData();
+                assert text.endsWith( typeMark );
+                freeEnd = text.length() - typeMark.length();
+                if( freeEnd <= 0 ) continue; // No free-form content in bullet `b`.
+                b.removeChild( t ); }
+
+          // Free-form part
+          // ──────────────
+            final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
+            final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
+            for( int ch, c = 0; c < freeEnd; c += charCount(ch) ) {
+                ch = text.codePointAt( c );
+                if( isAlphabetic(ch) || isDigit(ch) || ch == ' ' || ch == '\u00A0'/*no-break space*/ ) {
+                    appendAnyP( b, bP );
+                    bQ.appendCodePoint( ch ); }
+                else { // `ch` is punctuation
+                    appendAnyQ( b, bQ );
+                    bP.appendCodePoint( ch ); }}
+            appendAnyP( b, bP );
+            appendAnyQ( b, bQ );
+
+          // Terminator, if any
+          // ──────────
+            if( typeMark.length() == 0 ) continue;
+            final Element terminator = d.createElementNS( nsImager, "img:terminator" );
+            b.appendChild( terminator );
+            terminator.appendChild( d.createTextNode( typeMark )); }
+
+
       // ═══════════
-      // Body fracta
+      // Body fracta  [BF]
       // ═══════════
         idMap.clear();
         for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
@@ -529,50 +573,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                         ib.append( ':' ).append( count ); } // Appending to the base an ordinal suffix.
                     else count = 1;
                     return count; });
-                bF.setAttribute( "id", id = ib.toString() ); }}
-
-
-      // ═════════════════
-      // Free-form bullets
-      // ═════════════════
-        for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
-            if( !"Bullet".equals( b.getLocalName() )) continue;
-            final int pointType = parseInt( parentElement(parentElement(b)).getAttribute( "typestamp" ));
-            final String typeMark; switch( pointType ) {
-                case Typestamp.alarmPoint  -> typeMark = "!!";
-                case Typestamp.plainPoint  -> typeMark =  ""; // None.
-                case Typestamp.taskPoint   -> typeMark =  "+";
-                default -> { continue; }}; // No free-form content in bullets of this type.
-            final String text;
-            final int freeEnd; { // End boundary of free-form part, start of type-mark terminator.
-                final Text t = (Text)b.getFirstChild();
-                text = t.getData();
-                assert text.endsWith( typeMark );
-                freeEnd = text.length() - typeMark.length();
-                if( freeEnd <= 0 ) continue; // No free-form content in bullet `b`.
-                b.removeChild( t ); }
-
-          // Free-form part
-          // ──────────────
-            final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
-            final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
-            for( int ch, c = 0; c < freeEnd; c += charCount(ch) ) {
-                ch = text.codePointAt( c );
-                if( isAlphabetic(ch) || isDigit(ch) || ch == ' ' || ch == '\u00A0'/*no-break space*/ ) {
-                    appendAnyP( b, bP );
-                    bQ.appendCodePoint( ch ); }
-                else { // `ch` is punctuation
-                    appendAnyQ( b, bQ );
-                    bP.appendCodePoint( ch ); }}
-            appendAnyP( b, bP );
-            appendAnyQ( b, bQ );
-
-          // Terminator, if any
-          // ──────────
-            if( typeMark.length() == 0 ) continue;
-            final Element terminator = d.createElementNS( nsImager, "img:terminator" );
-            b.appendChild( terminator );
-            terminator.appendChild( d.createTextNode( typeMark )); }}
+                bF.setAttribute( "id", id = ib.toString() ); }}}
 
 
 
@@ -600,6 +601,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 // NOTE
 // ────
+//   BF↓  Code that must execute before section *Body fracta*`.
+//
+//   BF · Section *Body fracta* itself, or code that must execute in unison with it.
+//
 //   DI  `DOCTYPE` inclusion.  The would-be alternative of using, at an earlier stage, the likes of
 //       `d.appendChild( d.getImplementation().createDocumentType( "html", null, "about:legacy-compat" ))`
 //        in order to give the initial DOM document (here `d`) a `DOCTYPE` turns out not to suffice
