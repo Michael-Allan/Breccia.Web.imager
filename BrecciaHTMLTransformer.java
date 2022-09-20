@@ -573,7 +573,20 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                         ib.append( ':' ).append( count ); } // Appending to the base an ordinal suffix.
                     else count = 1;
                     return count; });
-                bF.setAttribute( "id", id = ib.toString() ); }}}
+                bF.setAttribute( "id", id = ib.toString() ); }
+
+          // Hyperlink self-reference
+          // ────────────────────────
+            for( Node n = successor(head);  n != null;  n = successor(n) ) {
+                final Text nText = asText( n );
+                if( nText == null || nText.getData().length() == 0 ) continue;
+                final Text nTextRemainder = nText.splitText( 1 );
+                final Element a = d.createElementNS( nsHTML, "a" );
+                nText.getParentNode().insertBefore( a, nTextRemainder );
+                a.setAttribute( "class", "self" );
+                a.setAttribute( "href", '#' + id );
+                a.appendChild( nText );
+                break; }}}
 
 
 
