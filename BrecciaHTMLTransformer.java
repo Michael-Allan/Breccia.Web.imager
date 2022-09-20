@@ -19,6 +19,7 @@ import org.w3c.dom.*;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
 import static Breccia.parser.Typestamp.empty;
+import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Imaging.imageSimpleName;
@@ -579,8 +580,13 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
           // ──────────────
             for( Node n = successor(head);  n != null;  n = successor(n) ) {
                 final Text nText = asText( n );
-                if( nText == null || nText.getData().length() == 0 ) continue;
-                final Text nTextRemainder = nText.splitText( 1 );
+                if( nText == null ) continue;
+                final String text = nText.getData();
+                final int textLength = text.length();
+                if( textLength == 0 ) continue;
+                final int hyperlinkLength = textLength > 1 && !impliesNewline(text.charAt(1)) ? 2 : 1;
+                  // Taking if possible two characters for the hyperlink in order to ease clicking.
+                final Text nTextRemainder = nText.splitText( hyperlinkLength );
                 final Element a = d.createElementNS( nsHTML, "a" );
                 nText.getParentNode().insertBefore( a, nTextRemainder );
                 a.setAttribute( "class", "self" );

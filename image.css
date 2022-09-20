@@ -56,10 +56,12 @@
 /* ━━━  B o d y   f r a c t a  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
-    /* A self hyperlink within a perfect indent.  Here the hyperlink element `a` wraps a space character.
+    /* A self hyperlink within a perfect indent.  Here the hyperlink element `a` wraps
+     * the two leading space characters.
      */
     brec|Head > brec|*:first-child html|a[class~='self'] {
         color: hsl( var(--hyperlink-colour-H), 30%, 50% );
+        position: relative; /* [ECB] */
         text-decoration: none; } /* Defeat any default such as the `underline` of Chrome.  It would
           be useless for such an isolated hyperlink, and would defeat deferred hinting (see below). */
 
@@ -67,12 +69,13 @@
      */
     brec|Head > brec|*:first-child:hover html|a[class~='self']:before {
         content: /*URI fragment delimiter*/'#';
+        left: 0.5ch; /* Centring this hint within the 2-character width of its parent `a` element. */
         position: absolute; }
 
 
 
     /* A self hyperlink outside of a perfect indent (edge case).
-     * Here the hyperlink element `a` wraps a non-space character.
+     * Here the hyperlink element `a` wraps one or two non-space characters.
      */
     brec|Head > brec|*:not(:first-child) html|a[class~='self'] {
         color: inherit; } /* Leaving the wrapped character, which is thereby the content
@@ -296,6 +299,9 @@
 /* NOTES
  * ─────
  *   BWI  http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht
+ *
+ *   CB · Here establishing the containing block for absolutely positioned descendants.
+ *        https://www.w3.org/TR/css-position/#def-cb
  *
  *   CSF  Class-selector fallback.  Class selectors fail on non-HTML elements under Chrome 98.0.
  *        Here the general attribute selector `[class~='CLASS']` is used as a fallback.
