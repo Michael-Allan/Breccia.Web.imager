@@ -575,8 +575,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                     return count; });
                 bF.setAttribute( "id", id = ib.toString() ); }
 
-          // Hyperlink self-reference
-          // ────────────────────────
+          // Self hyperlink
+          // ──────────────
             for( Node n = successor(head);  n != null;  n = successor(n) ) {
                 final Text nText = asText( n );
                 if( nText == null || nText.getData().length() == 0 ) continue;

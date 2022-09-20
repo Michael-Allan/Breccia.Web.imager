@@ -55,11 +55,12 @@
 /* ━━━  B o d y   f r a c t a  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
-    /* Hyperlink self-reference occuring after a zero-width perfect indent.
-     * In this edge case. the `a` element wraps a non-space character.
+    /* A self hyperlink outside of a perfect indent (edge case).
+     * In this case, the hyperlink element `a` wraps a non-space character.
      */
     brec|Head > brec|*:not(:first-child) html|a[class~='self'] {
-        color: inherit; } /* Leaving the text visibly unaffected by the presence of the hyperlink. */
+        color: inherit; } /* Leaving the wrapped character, which is thereby the content
+          of a hyperlink, visibly unaffected by that treatment. */
 
 
 
