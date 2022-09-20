@@ -7,6 +7,7 @@
 
     :root { /*
         --centre-column:   The value of the namesake imager option [BWI] is effectively written here. */
+        --hyperlink-colour-H: 190/*∼cyan*/;
         --viewport-width: calc( 100vw - /*maximum expected width of vertical scroll bar*/9mm ); /*
              An estimate of the true viewport width, such that content this wide will not of itself
              cause the horizontal scroll bar to appear.  This is a work around for a fault in CSS.
@@ -55,8 +56,23 @@
 /* ━━━  B o d y   f r a c t a  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
+    /* A self hyperlink within a perfect indent.  Here the hyperlink element `a` wraps a space character.
+     */
+    brec|Head > brec|*:first-child html|a[class~='self'] {
+        color: hsl( var(--hyperlink-colour-H), 30%, 50% );
+        text-decoration: none; } /* Defeat any default such as the `underline` of Chrome.  It would
+          be useless for such an isolated hyperlink, and would defeat deferred hinting (see below). */
+
+    /* Deferred hinting of the presence of the self-hyperlink.
+     */
+    brec|Head > brec|*:first-child:hover html|a[class~='self']:before {
+        content: /*URI fragment delimiter*/'#';
+        position: absolute; }
+
+
+
     /* A self hyperlink outside of a perfect indent (edge case).
-     * In this case, the hyperlink element `a` wraps a non-space character.
+     * Here the hyperlink element `a` wraps a non-space character.
      */
     brec|Head > brec|*:not(:first-child) html|a[class~='self'] {
         color: inherit; } /* Leaving the wrapped character, which is thereby the content
