@@ -132,9 +132,7 @@
              and triangles (ab)used as arrow heads.  So does JetBrains Mono, but its stubby ascenders
              and descenders harm readability.  Others worthy of mention are DejaVu Sans Mono and Mensch,
              variants  of Vera Sans Mono. */
-          'monospace';
-        line-height: 1.1; } /* For consistency across clients.
-          E.g. the default value is 1 for Chrome 98, yet 1.2 for Firefox 91. */
+          'monospace'; }
 
 
     @media screen {
@@ -143,6 +141,15 @@
               but never smaller than the reader prefers. */
 
 
+
+    /* Setting the line height for consistency across clients.
+     * E.g. the default value is 1 for Chrome 98, yet 1.2 for Firefox 91.
+     */
+    :root {
+        line-height: 1.1;
+        cursor: text; } /* Stopping the style change that occurs when the cursor enters the line gap,
+          itself the artifact of a line height greater than 1.  This keeps the style constant, as well,
+          when the cursor enters the left or right margin of the (horizontally centred) file fractum. */
 
     brec|IndentBlind {
         line-height: 1.0; } /* For seamless vertical jointing of semigraphics. */
