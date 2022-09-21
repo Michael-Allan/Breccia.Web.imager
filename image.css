@@ -63,9 +63,9 @@
         color: hsl( var(--hyperlink-colour-H), 30%, 50% );
         position: relative; /* [ECB] */
         text-decoration: none; } /* Defeat any default such as the `underline` of Chrome.  It would
-          be useless for such an isolated hyperlink, and would defeat deferred hinting (see below). */
+          be useless for such an isolated hyperlink, and would defeat cued hinting (see below). */
 
-    /* Deferred hinting of the presence of the self-hyperlink.
+    /* A hint to the presence of the self-hyperlink, cued by cursor entry to the perfect indent.
      */
     brec|Head > brec|*:first-child:hover html|a[class~='self']:before {
         content: /*URI fragment delimiter*/'#';
