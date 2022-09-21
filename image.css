@@ -65,12 +65,19 @@
         text-decoration: none; } /* Defeat any default such as the `underline` of Chrome.  It would
           be useless for such an isolated hyperlink, and would defeat cued hinting (see below). */
 
-    /* A hint to the presence of the self-hyperlink, cued by cursor entry to the fractal head.
+    /* A hint to the presence of the self-hyperlink, cued by sustained hovering of the cursor
+     * in the fractal head.
      */
-    brec|Head:hover > brec|*:first-child html|a[class~='self']:before {
+    brec|Head > brec|*:first-child html|a[class~='self']:before {
         content: /*URI fragment delimiter*/'#';
         left: 0.5ch; /* Centring this hint within the 2-character width of its parent `a` element. */
-        position: absolute; }
+        position: absolute;
+        transition: visibility 0.0s linear 1.5s; /*
+          Transition instead of `content` (`none` to '#') fails (Chrome 105, Firefox 91). */
+        visibility: hidden; }
+
+    brec|Head:hover > brec|*:first-child html|a[class~='self']:before {
+        visibility: visible; }
 
 
 
