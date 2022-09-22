@@ -81,6 +81,16 @@
 
 
 
+    /* Indicator of a targeted fractum.
+     */
+    *[typestamp]:target > brec|Head > brec|*:first-child html|a[class~='self']::before {
+        color: hsl( 0/*red*/, 50%, 70% );
+        content: '→';
+        transition-delay: 0s;
+        visibility: visible; }
+
+
+
     /* A self hyperlink outside of a perfect indent (edge case).
      * Here the hyperlink element `a` wraps one or two non-space characters.
      */
