@@ -438,18 +438,18 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
       // `head`
       // ┈┈┈┈┈┈
         final Element documentHead = d.createElementNS( nsHTML, "head" );
-        html.appendChild( documentHead );
-        Element e;
-        for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
-            if( !"Head".equals( n.getLocalName() )) continue;
-            final String tF = fileTitle( n );
-            if( tF != null ) {
-                documentHead.appendChild( e = d.createElementNS( nsHTML, "title" ));
-                e.appendChild( d.createTextNode( tF ));
-                break; }}
-        documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
-        e.setAttribute( "rel", "stylesheet" );
-        e.setAttribute( "href", opt.coServiceDirectory() + "Breccia/Web/imager/image.css" );
+        html.appendChild( documentHead ); {
+            Element e;
+            for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
+                if( !"Head".equals( n.getLocalName() )) continue;
+                final String tF = fileTitle( n );
+                if( tF != null ) {
+                    documentHead.appendChild( e = d.createElementNS( nsHTML, "title" ));
+                    e.appendChild( d.createTextNode( tF ));
+                    break; }}
+            documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
+            e.setAttribute( "rel", "stylesheet" );
+            e.setAttribute( "href", opt.coServiceDirectory() + "Breccia/Web/imager/image.css" ); }
 
       // `body`
       // ┈┈┈┈┈┈
@@ -584,8 +584,13 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 final String text = nText.getData();
                 final int textLength = text.length();
                 if( textLength == 0 ) continue;
-                final int hyperlinkLength = textLength > 1 && !impliesNewline(text.charAt(1)) ? 2 : 1;
-                  // Taking if possible two characters for the hyperlink in order to ease clicking.
+                final int hyperlinkLength; {
+                    final Node e = n.getParentNode(); // The element containing the text.
+                    if( e.getParentNode().equals(head) && e.getPreviousSibling() == null ) {
+                        assert textLength >= 4; // In this case, `e` is the perfect indent.
+                        hyperlinkLength = textLength - 1; }
+                    else hyperlinkLength = textLength > 1 && !impliesNewline(text.charAt(1)) ? 2 : 1; }
+                      // Taking if possible two characters for the hyperlink in order to ease clicking.
                 final Text nTextRemainder = nText.splitText( hyperlinkLength );
                 final Element a = d.createElementNS( nsHTML, "a" );
                 nText.getParentNode().insertBefore( a, nTextRemainder );

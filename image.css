@@ -57,7 +57,7 @@
  */
 
     /* A self hyperlink within a perfect indent.  Here the hyperlink element `a` wraps
-     * the two leading space characters.
+     * the whole of the indent (which comprises spaces) except the final character.
      */
     brec|Head > brec|*:first-child html|a[class~='self'] {
         color: hsl( var(--hyperlink-colour-H), 30%, 50% );
@@ -70,7 +70,7 @@
      */
     brec|Head > brec|*:first-child html|a[class~='self']:before {
         content: /*URI fragment delimiter*/'#';
-        left: 0.5ch; /* Centring this hint within the 2-character width of its parent `a` element. */
+        left: 0.5ch;
         position: absolute;
         transition: visibility 0.0s linear 1.5s; /*
           Transition instead of `content` (`none` to '#') fails (Chrome 105, Firefox 91). */
