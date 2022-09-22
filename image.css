@@ -72,8 +72,8 @@
         content: /*URI fragment delimiter*/'#';
         left: 0.5ch;
         position: absolute;
-        transition: visibility 0.0s linear 1.5s; /*
-          Transition instead of `content` (`none` to '#') fails (Chrome 105, Firefox 91). */
+        transition: visibility 0.0s linear 1.5s; /* Transit of `content` (`none` to '#') is preferred,
+          but fails (Chrome 105, Firefox 91).  Transit of `visibility` instead is a workaround. */
         visibility: hidden; }
 
     brec|Head:hover > brec|*:first-child html|a[class~='self']:before {
