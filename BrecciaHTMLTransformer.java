@@ -623,8 +623,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-// NOTE
-// ────
+// NOTES
+// ─────
 //   BF↓  Code that must execute before section *Body fracta*`.
 //
 //   BF · Section *Body fracta* itself, or code that must execute in unison with it.
