@@ -433,13 +433,13 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         final Element html = d.createElementNS( nsHTML, "html" );
         d.appendChild( html );
         html.setAttributeNS( nsXMLNS, "xmlns:img", nsImager );
-        html.setAttribute( "style", "--centre-column:" + Float.toString(opt.centreColumn()) + "ch" );
-
-      // `head`
-      // ┈┈┈┈┈┈
-        final Element documentHead = d.createElementNS( nsHTML, "head" );
-        html.appendChild( documentHead ); {
+        html.setAttribute( "style", "--centre-column:" + Float.toString(opt.centreColumn()) + "ch" ); {
             Element e;
+
+          // `head`
+          // ┈┈┈┈┈┈
+            final Element documentHead = d.createElementNS( nsHTML, "head" );
+            html.appendChild( documentHead );
             for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
                 if( !"Head".equals( n.getLocalName() )) continue;
                 final String tF = fileTitle( n );
@@ -449,13 +449,15 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                     break; }}
             documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
             e.setAttribute( "rel", "stylesheet" );
-            e.setAttribute( "href", opt.coServiceDirectory() + "Breccia/Web/imager/image.css" ); }
+            e.setAttribute( "href", opt.coServiceDirectory() + "Breccia/Web/imager/image.css" );
 
-      // `body`
-      // ┈┈┈┈┈┈
-        final Element documentBody = d.createElementNS( nsHTML, "body" );
-        html.appendChild( documentBody );
-        documentBody.appendChild( fileFractum );
+          // `body`
+          // ┈┈┈┈┈┈
+            final Element documentBody = d.createElementNS( nsHTML, "body" );
+            html.appendChild( documentBody );
+            documentBody.appendChild( fileFractum );
+            documentBody.appendChild( e = d.createElementNS( nsHTML, "script" ));
+            e.setAttribute( "src", opt.coServiceDirectory() + "Breccia/Web/imager/image.js" ); }
 
 
       // ════════════════
@@ -596,6 +598,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 nText.getParentNode().insertBefore( a, nTextRemainder );
                 a.setAttribute( "class", "self" );
                 a.setAttribute( "href", '#' + id );
+                a.setAttribute( "onclick",
+                  "Breccia_Web_imager.fractumSelfHyperlink_hearClick( event )" );
                 a.appendChild( nText );
                 break; }}}
 
