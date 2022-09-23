@@ -31,9 +31,13 @@ window.Breccia_Web_imager = ( function()
                 break steal; }
             if( fractum === document.getElementById(targetedID) ) {
              // location.hash = ''; // Defragment the window location …
-             /// leaves the fragment delimiter hanging there uselessly, with nothing to delimit
-                location = location.pathname + location.search; /* Defragment the window location [WDL],
-                  thus untargeting the body fractum. */
+             //// (leaves the fragment delimiter hanging there uselessly, with nothing to delimit)
+             // location = location.pathname + location.search; // Defragment the window location …
+             //// (scrolls to page top)
+                history.pushState( /*state*/null, ''/*[DP]*/, location.pathname + location.search );
+                  // Defragment the window location [WDL], thus untargeting the body fractum.
+                location.reload(); /* Sync the page styles with the new window location,
+                  which `pushState` alone fails to do. */
                 click.preventDefault(); }}}; // Steal the click.
 
 
@@ -47,6 +51,8 @@ window.Breccia_Web_imager = ( function()
 
 // NOTES
 // ─────
+//   DP · Defunct parameter.
+//
 //   SM · Strict mode.  https://262.ecma-international.org/6.0/#sec-strict-mode-code
 //        The subsequent test is from Noseratio.  https://stackoverflow.com/a/18916788/2402790
 //
