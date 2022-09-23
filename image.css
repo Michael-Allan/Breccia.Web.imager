@@ -56,7 +56,7 @@
 /* ━━━  B o d y   f r a c t a  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
-    /* A self hyperlink within a perfect indent (typical case).  Here the hyperlink element `a`
+    /* A self hyperlink within a perfect indent (the typical case).  Here the hyperlink element `a`
      * wraps the whole of the indent (which comprises spaces) except the final character.
      */
     brec|Head > brec|*:first-child html|a[class~='self'] {
@@ -91,7 +91,7 @@
 
 
 
-    /* A self hyperlink outside of a perfect indent (edge case).
+    /* A self hyperlink outside of a perfect indent.
      * Here the hyperlink element `a` wraps one or two non-space characters.
      */
     brec|Head > brec|*:not(:first-child) html|a[class~='self'] {
