@@ -59,16 +59,16 @@
     /* A self hyperlink within a perfect indent (the typical case).  Here the hyperlink element `a`
      * wraps the whole of the indent (which comprises spaces) except the final character.
      */
-    brec|Head       brec|PerfectIndent > html|a[class~='self'] {
+    brec|PerfectIndent > html|a[class~='self'] {
         color: hsl( var(--hyperlink-colour-H), 30%, 50% );
         position: relative; /* [ECB] */
         text-decoration: none; } /* Defeat any browser default such as the `underline` of Chrome.
           It would be useless for such an isolated hyperlink, and would defeat cued hinting (below). */
 
     /* A hint to the presence of the self-hyperlink, cued by sustained hovering of the cursor
-     * in the fractal head.
+     * in the perfect indent.
      */
-    brec|Head       brec|PerfectIndent > html|a[class~='self']::before {
+    brec|PerfectIndent > html|a[class~='self']::before {
         content: /*URI fragment delimiter*/'#';
         left: 0.5ch;
         position: absolute;
@@ -76,7 +76,7 @@
           but fails (Chrome 105, Firefox 91).  Transit of `visibility` instead is a workaround. */
         visibility: hidden; }
 
-    brec|Head:hover brec|PerfectIndent > html|a[class~='self']::before {
+    brec|PerfectIndent:hover > html|a[class~='self']::before {
         visibility: visible; }
 
 
