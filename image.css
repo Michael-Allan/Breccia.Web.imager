@@ -62,8 +62,8 @@
     brec|Head       brec|PerfectIndent > html|a[class~='self'] {
         color: hsl( var(--hyperlink-colour-H), 30%, 50% );
         position: relative; /* [ECB] */
-        text-decoration: none; } /* Defeat any default such as the `underline` of Chrome.  It would
-          be useless for such an isolated hyperlink, and would defeat cued hinting (see below). */
+        text-decoration: none; } /* Defeat any browser default such as the `underline` of Chrome.
+          It would be useless for such an isolated hyperlink, and would defeat cued hinting (below). */
 
     /* A hint to the presence of the self-hyperlink, cued by sustained hovering of the cursor
      * in the fractal head.
@@ -96,8 +96,12 @@
      * Here the hyperlink element `a` wraps one or two non-space characters.
      */
     brec|*:not(PerfectIndent) > html|a[class~='self'] {
-        color: inherit; } /* Leaving the wrapped character, which is thereby the content
+        color: inherit; /* Leaving the wrapped character, which is thereby the content
           of a hyperlink, visibly unaffected by that treatment. */
+        text-decoration: none; } /* Defeat any browser default such as the `underline` of Chrome.
+          It would likely be too distracting for such a specialized, infrequently used hyperlink.
+          Let the cued hinting from the (typically) more numerous intra-indent hyperlinks (above),
+          together with the cursor styling for the present hyperlink, suffice for hinting purposes. */
 
 
 
