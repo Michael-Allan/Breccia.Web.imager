@@ -587,12 +587,11 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 final int textLength = text.length();
                 if( textLength == 0 ) continue;
                 final int hyperlinkLength; {
-                    final Node e = n.getParentNode(); // The element containing the text.
-                    if( e.getParentNode().equals(head) && e.getPreviousSibling() == null ) {
-                        assert textLength >= 4; // In this case, `e` is the perfect indent.
-                        hyperlinkLength = textLength - 1; }
+                    if( "PerfectIndent".equals( nText.getParentNode().getLocalName() )) {
+                        assert textLength >= 4;
+                        hyperlinkLength = textLength - 1; } // All but the final character of the indent.
                     else hyperlinkLength = textLength > 1 && !impliesNewline(text.charAt(1)) ? 2 : 1; }
-                      // Taking if possible two characters for the hyperlink in order to ease clicking.
+                      // Taking if possible two characters in order to ease clicking.
                 final Text nTextRemainder = nText.splitText( hyperlinkLength );
                 final Element a = d.createElementNS( nsHTML, "a" );
                 nText.getParentNode().insertBefore( a, nTextRemainder );
