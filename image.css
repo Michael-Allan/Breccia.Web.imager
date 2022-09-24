@@ -86,7 +86,6 @@
     *[typestamp]/*Ptr*/:target > Head >                  PerfectIndent > html|a[class~='self']::before,
     *[typestamp]/*Div*/:target > Head > DividerSegment > PerfectIndent > html|a[class~='self']::before {
         color: hsl( 0/*red*/, 50%, 70% );
-        content: '→';
         transition-delay: 0s;
         visibility: visible; }
 
