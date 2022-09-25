@@ -84,6 +84,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
    // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
+    public @Override void finish( final Path imageFile ) {} // TODO
+
+
+
     public @Override Markup formalReferenceAt( final C in ) throws ParseError {
         final ResourceIndicant iR; {
             FractumIndicant iF; {

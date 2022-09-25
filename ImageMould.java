@@ -18,6 +18,7 @@ import java.util.stream.Stream;
 import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
 import static Breccia.Web.imager.Imaging.imageFile;
+import static Breccia.Web.imager.Imaging.imageSimpleName;
 import static Breccia.Web.imager.Imaging.looksReachable;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
@@ -70,7 +71,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** The topmost path of the Web image, which defines its extent.  This is an absolute path.
+    /** The topmost path of the Web image, which defines its bounds.  This is an absolute path.
       * It comprises or contains the Breccian source files of the image, each accompanied
       * by any previously formed image file, a sibling namesake with a `.xht` extension.
       */
@@ -123,9 +124,9 @@ public final class ImageMould<C extends ReusableCursor> {
               is no responsibility of the mould, skipping unwritable directories is, and the gaurd
               here similar enough to its predecessors to warrant inclusion. */
 
-      // ═══════════════════════
-      // 1. Pull in source files, sorting them as apodictically imageable or indeterminate
-      // ═══════════════════════
+      // ═══════════════════════════
+      // 1. Pull in the source files, sorting them as apodictically imageable or indeterminate
+      // ═══════════════════════════
         if( isDirectory( boundaryPath )) {   // A streamlined process versus that of `pullPath`
             pullDirectory( boundaryPath ); } // whose added testing and messaging would be redundant
         else pullFile( boundaryPath );       // for this topmost path.
@@ -183,7 +184,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
       // ═══════════════════════════
-      // 3. Transform the imageables as they are determined
+      // 3. Transform the imageables as they are determined, extending the image to its bounds
       // ═══════════════════════════
         boolean isFinalPass;
         if( probes.size() == 0 ) {
@@ -200,12 +201,12 @@ public final class ImageMould<C extends ReusableCursor> {
                 if( iR.get() != imageable ) continue;
                 ++count;
                 final Path sourceFile = det.getKey();
-                final Path imageDirectory = outDirectory.resolve(
-                  boundaryPathDirectory.relativize( sourceFile.getParent() ));
+                final Path sourceFileRelative = boundaryPathDirectory.relativize( sourceFile );
                 boolean wasTransformed = false;
-                out(1).println( "i   " + imageFile( boundaryPathDirectory.relativize( sourceFile )));
+                out(1).println( "i   " + sourceFileRelative );
                 try {
-                    transformer.transform( sourceFile, imageDirectory );
+                    transformer.transform( sourceFile,
+                      outDirectory.resolve(sourceFileRelative).getParent() );
                     wasTransformed = true; }
                 catch( final ParseError x ) { err().println( errMsg( sourceFile, x )); }
                 catch( final TransformError x ) { err().println( errMsg( x )); }
@@ -221,6 +222,18 @@ public final class ImageMould<C extends ReusableCursor> {
                 throw new UnsourcedInterrupt( x ); }
             catch( TimeoutException x ) { continue; } // Reduction is ongoing.
             isFinalPass = true; } // Reduction is complete, the next pass is final.
+
+
+      // ═════════════════════════
+      // 4. Finish the image files
+      // ═════════════════════════
+        for( final var det: imageabilityDetermination.entrySet() ) {
+            final ImageabilityReference iR = det.getValue();
+            if( iR.get() != imaged ) continue;
+            final Path sourceFile = det.getKey();
+            final Path imageFileRelative = imageFile( boundaryPathDirectory.relativize( sourceFile ));
+            out(1).println( "i′  " + imageFileRelative );
+            transformer.finish( outDirectory.resolve( imageFileRelative )); }
         return !hasFailed; }
 
 

@@ -11,6 +11,14 @@ import java.nio.file.Path;
 public interface FileTransformer<C extends ReusableCursor> {
 
 
+    /** Finishes an image file that was transformed from source.
+      *
+      *     @see #transform(Path,Path)
+      */
+    public void finish( Path imageFile );
+
+
+
     /** From the present position of the given source cursor, this method returns any nominal,
       * URI reference to an external imaging resource that would be formal were it obtained by
       * this transformer.  ‘Nominal’ here means that what is returned ought to be these things,
@@ -30,7 +38,7 @@ public interface FileTransformer<C extends ReusableCursor> {
 
 
 
-    /** Transforms a single Breccian source file into a namesake image file, forming or reforming
+    /** Transforms a Breccian source file into a namesake image file, forming or reforming
       * part of a Web image.  If the source file is empty, then an empty image file results.
       *
       *     @param imageDirectory The directory in which to write the image file.
