@@ -273,7 +273,7 @@
     :root {
         --command-point-head-colour:   hsl( 0, 0%, 39% );
         --command-point-bullet-colour: hsl( 0, 0%, 56% );
-        --command-operator-colour:     hsl( 0, 0%, 50% );
+        --command-operator-colour:     hsl( 0, 0%, 50% ); /* operator or other key descriptor element */
         --command-point-bullet-weight: normal; }
 
 
@@ -286,11 +286,6 @@
 
 
 
-    brec|Command {
-        color: hsl( 0, 0%, 50% ); }
-
-
-
     /* Associative references
      */
     brec|AssociativeReference > Head {
@@ -299,6 +294,10 @@
     brec|AssociativeReference > Head > Bullet {
         color:       var(--command-point-bullet-colour);
         font-weight: var(--command-point-bullet-weight); }
+
+    brec|AssociativeReference > Head > Descriptor > Command > ReferrerClause > Markup:first-child/*‘re’*/,
+    brec|AssociativeReference > Head > Descriptor > Command > ReferentialCommand {
+        color: var(--command-operator-colour); }
 
 
 
@@ -321,6 +320,9 @@
     brec|Privatizer > Head > Bullet {
         color:       var(--command-point-bullet-colour);
         font-weight: var(--command-point-bullet-weight); }
+
+    brec|Privatizer > Head > Descriptor > Command {
+        color: var(--command-operator-colour); }
 
 
 
