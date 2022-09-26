@@ -286,6 +286,11 @@
 
 
 
+    brec|ContainmentOperator {
+        color: var(--command-operator-colour); }
+
+
+
     /* Associative references
      */
     brec|AssociativeReference > Head {
