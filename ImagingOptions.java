@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import Java.Unhandled;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,32 +11,18 @@ import static java.io.OutputStream.nullOutputStream;
 import static java.lang.Float.parseFloat;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.lang.System.err;
-import static java.lang.System.exit;
 import static java.nio.file.Files.readString;
 import static Java.Paths.enslash;
 import static Java.URI_References.isRemote;
 
 
-public class ImagingOptions {
+/** @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#positional,argument,arguments'>
+  *   Options for the `breccia-web-image` command</a>
+  */
+public class ImagingOptions extends Options {
 
 
-    /** Partly makes an instance for `initialize` to finish.
-      *
-      *     @see #commandName
-      */
-    public ImagingOptions( String commandName ) { this.commandName = commandName; } // [SLA]
-
-
-
-    /** Finishes making this instance.  If instead a fatal error is detected, then this method
-      * prints an error message and exits the runtime with a non-zero status code.
-      *
-      *     @param args Nominal arguments, aka options, from the command line.
-      */
-    public final void initialize( List<String> args ) {
-        boolean isGo = true;
-        for( String a: args ) isGo &= initialize( a );
-        if( !isGo ) exit( 1 ); }
+    public ImagingOptions( String commandName ) { super( commandName ); } // [SLA]
 
 
 
@@ -99,12 +84,6 @@ public class ImagingOptions {
 
 
     private float centreColumn = 52.5f;
-
-
-
-    /** The name of the shell command that gave these options.
-      */
-    protected final String commandName;
 
 
 
@@ -192,9 +171,7 @@ public class ImagingOptions {
             if( verbosity < 0 || verbosity > 2 ) {
                 err.println( commandName + ": Unrecognized verbosity level: " + verbosity );
                 isGo = false; }}
-        else {
-            err.println( commandName + ": Unrecognized argument: " + arg );
-            isGo = false; }
+        else isGo = super.initialize( arg );
         return isGo; }
 
 
@@ -213,14 +190,6 @@ public class ImagingOptions {
 
 
     private boolean toForce;
-
-
-
-    /** @param arg A nominal argument, aka option.
-      * @param prefix The leading name and equals sign, e.g. "foo=".
-      */
-    protected static String value( final String arg, final String prefix ) {
-        return arg.substring( prefix.length() ); }
 
 
 

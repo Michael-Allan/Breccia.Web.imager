@@ -1,0 +1,11 @@
+Definition of terms for the Breccia Web imager
+
+    : see also http://reluk.ca/project/way/index.brec
+
+    orphan image file
+        ─ noun
+        - An HTML image file (`.brec.xht`) that is unaccompanied by its Breccian source file,
+          a sibling namesake with a `.brec` extension.
+
+
+                                                         \ Copyright © 2022  Michael Allan.  Licence MIT.

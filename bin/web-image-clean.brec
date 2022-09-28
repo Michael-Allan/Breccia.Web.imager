@@ -1,0 +1,26 @@
+`web-image-clean` - Clean a Web image of orphan image files
+
+        web-image-clean  [<options>]  <boundary path>
+        web-image-clean  --help | -?
+
+    - The `web-image-clean` command cleans a Web image delimited by the given boundary path.
+        - It deletes any orphan image file stored at or under the boundary path.
+            : re `orphan image file` see @ http://reluk.ca/project/Breccia/Web/imager/lexicon.brec
+        - The working directory must be the command directory.
+            : see `^^working directory$` @ `^^shell commands$` @
+              http://reluk.ca/project/Java/editorial_guidelines.brec
+    - One positional argument is required:
+
+        <boundary path>
+            / The path of a file or directory.
+            - Sets the bounds of the Web image: any orphan image file stored at or under this path
+              is eligble for deletion.
+
+    - The positional argument may be preceded by one or more nominal arguments, aka options:
+
+        --force
+            - Cleans the Web image without prompting for permission at each file deletion (the default).
+
+
+
+                                                         \ Copyright © 2022  Michael Allan.  Licence MIT.

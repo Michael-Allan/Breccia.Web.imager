@@ -1,0 +1,96 @@
+#!/usr/bin/env --split-string=${JDK_HOME}/bin/java @Breccia/Web/imager/java_arguments \c [SS]
+package Breccia.Web.imager; // [AFN]
+
+// This command runs directly from the present source file, it needs no compiling.
+
+import java.io.PrintStream;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.lang.System.err;
+import static java.lang.System.exit;
+
+
+/** A shell command to clean a Web image.
+  *
+  *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/web-image-clean.brec.xht'>
+  *       The `web-image-clean` command</a>
+  */
+public final class WebImageCleanCommand { // [AFN]
+
+
+    /** @param argsN Nominal arguments, aka options.
+      * @param argsP Positional arguments.
+      */
+    private WebImageCleanCommand( final  List<String> argsN, final List<String> argsP ) {
+        opt.initialize( argsN );
+        final int n = argsP.size();
+        if( n != 1 ) {
+            err.println( commandName + ": Expecting 1 argument, found " + n );
+            exitWithUsage( err, 1 ); }
+        boundaryPath = Path.of(argsP.get(0)).toAbsolutePath(); }
+
+
+
+    /** Takes a `web-image-clean` command from the shell and executes it.
+      */
+    public static void main( final String[] arguments ) {
+        final var argsN = new ArrayList<String>();
+        final var argsP = new ArrayList<String>();
+        for( final String arg: arguments ) {
+            exitOnDemand( arg );
+            (arg.startsWith("--") ? argsN : argsP).add( arg ); }
+        new WebImageCleanCommand(argsN,argsP).run(); }
+
+
+
+////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    private final Path boundaryPath;
+
+
+
+    private static final String commandName = "web-image-clean";
+
+
+
+    private static void exitOnDemand( final String arg ) {
+        if( arg.equals("-?") || arg.equals("--help") ) exitWithUsage( System.out, 0 ); }
+
+
+
+    private static void exitWithUsage( final PrintStream out, final int status ) {
+        out.println( "Usage: " + commandName + " [<options>] <boundary path>" );
+        out.println( "       " + commandName + " --help | -?" );
+        out.println( "Options, one or more of:" );
+        out.println( "    --force" );
+        exit( status ); }
+
+
+
+    private final CleaningOptions opt = new CleaningOptions( commandName );
+
+
+
+    private void run() {
+        System.err.println( commandName + ": cleaning...  TODO" ); }} // TEST
+
+
+
+// NOTES
+// ─────
+//   AFN  Atypical file naming is allowed here.  ‘The compiler does not enforce the optional restriction
+//        defined at the end of JLS §7.6, that a type in a named package should exist in a file whose
+//        name is composed from the type name followed by the .java extension.’
+//        http://openjdk.java.net/jeps/330
+//        https://docs.oracle.com/javase/specs/jls/se15/html/jls-7.html#jls-7.6
+//
+//   SS · Here the long form `--split-string` (as opposed to `-S`) enables Emacs to recognize this file
+//        as Java source code.  See the note apropos of ‘source-launch files encoded with a shebang’ at
+//        `http://reluk.ca/project/Java/Emacs/jmt-mode.el`.
+
+
+
+                                                        // Copyright © 2022  Michael Allan.  Licence MIT.
