@@ -28,7 +28,7 @@ public class ImagingOptions extends Options {
 
     /** The columnar offset on which to centre the text.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#centre-colum,centre-colum'>
       *         Command option `--centre-column`</a>
       */
     public final float centreColumn() { return centreColumn; }
@@ -37,7 +37,7 @@ public class ImagingOptions extends Options {
 
     /** The enslashed name of the directory containing the auxiliary files of the Web image.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#co-service-d,co-service-d,reference'>
       *         Command option `--co-service-directory`</a>
       *     @see Java.Path.#enslash(String)
       */
@@ -47,7 +47,7 @@ public class ImagingOptions extends Options {
 
     /** The font file for glyph tests.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#glyph-test-f,glyph-test-f,path'>
       *         Command option `--glyph-test-font`</a>
       */
     public final String glyphTestFont() {
@@ -64,7 +64,7 @@ public class ImagingOptions extends Options {
 
     /** Whether to forcefully remake the Web image.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#force'>
       *         Command option `--force`</a>
       */
     public final boolean toForce() { return toForce; }
@@ -73,8 +73,12 @@ public class ImagingOptions extends Options {
 
     /** The allowed amount of user feedback on the standard output stream.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbosity,verbosity-0-'>
       *         Command option `--verbosity`</a>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#quiet'>
+      *         Command option `--quiet`</a>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbose'>
+      *         Command option `--verbose`</a>
       */
     public final int verbosity() { return verbosity; }
 

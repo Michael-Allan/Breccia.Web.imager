@@ -1,6 +1,9 @@
 package Breccia.Web.imager;
 
 
+/** @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/web-image-clean.brec.xht#positional,argument,arguments'>
+  *   Options for the `web-image-clean` command</a>
+  */
 public final class CleaningOptions extends Options {
 
 
@@ -10,7 +13,7 @@ public final class CleaningOptions extends Options {
 
     /** Whether to forcefully clean the Web image.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/web-image-clean.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/web-image-clean.brec.xht#force'>
       *         Command option `--force`</a>
       */
     public final boolean toForce() { return toForce; }
