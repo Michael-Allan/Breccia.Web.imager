@@ -17,9 +17,9 @@ import java.util.stream.Stream;
 
 import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
-import static Breccia.Web.imager.Imaging.imageFile;
-import static Breccia.Web.imager.Imaging.imageSimpleName;
 import static Breccia.Web.imager.Imaging.looksReachable;
+import static Breccia.Web.imager.Project.imageFile;
+import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
 import static Breccia.Web.imager.TransformError.errMsg;
@@ -375,7 +375,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** @param f The path of a source file to pull into the mould.
+    /** @param f The path of a potential source file to pull into the mould.
       */
     private void pullFile( final Path f ) {
         if( !looksBreccian( f )) return;

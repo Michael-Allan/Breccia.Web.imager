@@ -61,18 +61,15 @@ public final class Imaging {
 
 
 
-    /** Returns the image file for the given source file: a sibling namesake with a `.xht` extension.
-      * The image file of `dir/foo.brec`, for example, is `dir/foo.brec.xht`.
-      */
-    public static Path imageFile( final Path sourceFile ) {
-        return sourceFile.resolveSibling( imageSimpleName( sourceFile )); }
+////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-
-    /** Returns the result of `sourceFile.{@linkplain Path#getFileName() getFileName}() + ".xht"`.
-      */
-    public static String imageSimpleName( final Path sourceFile ) {
-        return sourceFile.getFileName() + ".xht"; }
+    private static final boolean isHTTP( final String scheme ) {
+        if( scheme.startsWith( "http" )) {
+            final int sN = scheme.length();
+            if( sN == 4  ) return true;
+            if( sN == 5 && scheme.endsWith("s") ) return true; }
+        return false; }
 
 
 
@@ -104,26 +101,14 @@ public final class Imaging {
       *
       *     @throws IllegalArgumentException Unless `dFrom` and `dTo` are directories.
       */
-    public static void placeImageFiles​( final Path dFrom, final Path dTo ) throws IOException {
+    private static void placeImageFiles​( final Path dFrom, final Path dTo ) throws IOException {
         verifyDirectoryArgument( dFrom );
         verifyDirectoryArgument( dTo );
         walkFileTree( dFrom, new SimpleFileVisitor<Path>() {
             public @Override FileVisitResult visitFile( final Path f, BasicFileAttributes _a )
                   throws IOException {
                 Files.move( f, dTo.resolve(dFrom.relativize(f)), REPLACE_EXISTING );
-                return CONTINUE; }}); }
-
-
-
-////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
-
-
-    private static final boolean isHTTP( final String scheme ) {
-        if( scheme.startsWith( "http" )) {
-            final int sN = scheme.length();
-            if( sN == 4  ) return true;
-            if( sN == 5 && scheme.endsWith("s") ) return true; }
-        return false; }}
+                return CONTINUE; }}); }}
 
 
 

@@ -22,7 +22,7 @@ import static Breccia.parser.Typestamp.empty;
 import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
-import static Breccia.Web.imager.Imaging.imageSimpleName;
+import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.TransformError.wrnHead;
 import static Breccia.XML.translator.XStreamConstants.EMPTY;

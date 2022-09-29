@@ -3,13 +3,20 @@ package Breccia.Web.imager; // [AFN]
 
 // This command runs directly from the present source file, it needs no compiling.
 
+import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.file.Path;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
+import static Breccia.Web.imager.Project.sourceFile;
 import static java.lang.System.err;
 import static java.lang.System.exit;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.isDirectory;
+import static java.nio.file.Files.isRegularFile;
+import static java.nio.file.FileVisitResult.CONTINUE;
 
 
 /** A shell command to clean a Web image.
@@ -17,7 +24,7 @@ import static java.lang.System.exit;
   *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/web-image-clean.brec.xht'>
   *       The `web-image-clean` command</a>
   */
-public final class WebImageCleanCommand { // [AFN]
+public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AFN]
 
 
     /** @param argsN Nominal arguments, aka options.
@@ -35,13 +42,23 @@ public final class WebImageCleanCommand { // [AFN]
 
     /** Takes a `web-image-clean` command from the shell and executes it.
       */
-    public static void main( final String[] arguments ) {
+    public static void main( final String[] arguments ) throws IOException {
         final var argsN = new ArrayList<String>();
         final var argsP = new ArrayList<String>();
         for( final String arg: arguments ) {
             exitOnDemand( arg );
             (arg.startsWith("--") ? argsN : argsP).add( arg ); }
-        new WebImageCleanCommand(argsN,argsP).run(); }
+        if( !new WebImageCleanCommand(argsN,argsP).run() ) exit( 1 ); }
+
+
+
+   // ━━━  F i l e   V i s i t o r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+    public @Override FileVisitResult visitFile( final Path file, BasicFileAttributes _a )
+          throws IOException {
+        clean( file );
+        return CONTINUE; }
 
 
 
@@ -52,7 +69,21 @@ public final class WebImageCleanCommand { // [AFN]
 
 
 
+    /** @param f The path of a potential image file.
+      */
+    private void clean( final Path f ) throws IOException {
+        if( !f.getFileName().toString().endsWith( ".brec.xht" )) return; // Not an image file.
+        if( isRegularFile( sourceFile( f ))) return;                     // Not an orphan.
+        Files.delete( f );
+        ++count; }
+
+
+
     private static final String commandName = "web-image-clean";
+
+
+
+    private int count; // Of orphan image files deleted.
 
 
 
@@ -74,8 +105,17 @@ public final class WebImageCleanCommand { // [AFN]
 
 
 
-    private void run() {
-        System.err.println( commandName + ": cleaning...  TODO" ); }} // TEST
+    /** @return True on success, false on failure.
+      */
+    private boolean run() throws IOException {
+        if( isDirectory( boundaryPath )) Files.walkFileTree( boundaryPath, WebImageCleanCommand.this );
+        else {
+            if( !exists( boundaryPath )) {
+                err.println( commandName + ": No such file or directory: " + boundaryPath );
+                return false; }
+            clean( boundaryPath ); }
+        if( count != 0 ) System.out.println( count );
+        return true; }}
 
 
 
