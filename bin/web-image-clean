@@ -12,6 +12,7 @@ import java.util.List;
 
 import static Breccia.Web.imager.Project.sourceFile;
 import static java.lang.System.err;
+import static java.lang.System.out;
 import static java.lang.System.exit;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.isDirectory;
@@ -88,15 +89,15 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
 
 
     private static void exitOnDemand( final String arg ) {
-        if( arg.equals("-?") || arg.equals("--help") ) exitWithUsage( System.out, 0 ); }
+        if( arg.equals("-?") || arg.equals("--help") ) exitWithUsage( out, 0 ); }
 
 
 
-    private static void exitWithUsage( final PrintStream out, final int status ) {
-        out.println( "Usage: " + commandName + " [<options>] <boundary path>" );
-        out.println( "       " + commandName + " --help | -?" );
-        out.println( "Options, one or more of:" );
-        out.println( "    --force" );
+    private static void exitWithUsage( final PrintStream sP, final int status ) {
+        sP.println( "Usage: " + commandName + " [<options>] <boundary path>" );
+        sP.println( "       " + commandName + " --help | -?" );
+        sP.println( "Options, one or more of:" );
+        sP.println( "    --force" );
         exit( status ); }
 
 
@@ -114,7 +115,11 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
                 err.println( commandName + ": No such file or directory: " + boundaryPath );
                 return false; }
             clean( boundaryPath ); }
-        if( count != 0 ) System.out.println( count );
+        if( count > 0 ) {
+            out.print( count );
+            out.print( " orphan image file" );
+            if( count > 1 ) out.print( 's' );
+            out.println( " deleted" ); }
         return true; }}
 
 
