@@ -3,6 +3,7 @@ package Breccia.Web.imager; // [AFN]
 
 // This command runs directly from the present source file, it needs no compiling.
 
+import java.io.Console;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.*;
@@ -75,12 +76,27 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
     private void clean( final Path f ) throws IOException {
         if( !f.getFileName().toString().endsWith( ".brec.xht" )) return; // Not an image file.
         if( isRegularFile( sourceFile( f ))) return;                     // Not an orphan.
-        Files.delete( f );
-        ++count; }
+        boolean toDelete = true;
+        if( toAsk ) for( ;; ) {
+            out.print( "Delete orphan image file " + f + "? (y, n, !)  " );
+            final String answer = console.readLine(); /* The user must press the `Enter` key.
+              Unfortunately Java makes no provision for single character (e.g. ‘raw’) input. */
+            if( "n".equals( answer )) toDelete = false;
+            else if( "!".equals( answer )) toAsk = false;
+            else if( !"y".equals( answer )) continue;
+            break; }
+        if( toDelete ) {
+            Files.delete( f );
+            ++count; }}
 
 
 
     private static final String commandName = "web-image-clean";
+
+
+
+    private static final Console console = System.console(); /* It yields ‘the unique Console object’,
+      a single object as source code confirms (JDK 18), which allows for the `static` modifier here. */
 
 
 
@@ -120,7 +136,11 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
             out.print( " orphan image file" );
             if( count > 1 ) out.print( 's' );
             out.println( " deleted" ); }
-        return true; }}
+        return true; }
+
+
+
+    private boolean toAsk = !opt.toForce(); } // To ask before deleting, that is.
 
 
 
