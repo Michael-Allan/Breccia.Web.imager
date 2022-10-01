@@ -188,8 +188,8 @@ public class ImagingOptions extends Options {
 
 
 
-    private static final PrintStream outNull = new PrintStream( nullOutputStream() );
-      // Re `static`: source code (JDK 17) suggests `PrintStream` is thread safe.
+    private static final PrintStream outNull = new PrintStream( nullOutputStream(), /*autoFlush*/false,
+      System.out.charset() ); // Re `static`: source code (JDK 17) suggests `PrintStream` is thread safe.
 
 
 
