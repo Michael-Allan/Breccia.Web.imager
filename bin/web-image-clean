@@ -34,6 +34,7 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
       */
     private WebImageCleanCommand( final  List<String> argsN, final List<String> argsP ) {
         opt.initialize( argsN );
+        toAsk = !opt.toForce();
         final int n = argsP.size();
         if( n != 1 ) {
             err.println( commandName + ": Expecting 1 argument, found " + n );
@@ -140,7 +141,7 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
 
 
 
-    private boolean toAsk = !opt.toForce(); } // To ask before deleting, that is.
+    private boolean toAsk; } // To ask before deleting, that is.
 
 
 
