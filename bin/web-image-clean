@@ -115,6 +115,9 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
         sP.println( "       " + commandName + " --help | -?" );
         sP.println( "Options, one or more of:" );
         sP.println( "    --force" );
+        sP.println( "    --quiet" );
+        sP.println( "    --verbose" );
+        sP.println( "    --verbosity=0|1|2" );
         exit( status ); }
 
 
@@ -132,11 +135,12 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
                 err.println( commandName + ": No such file or directory: " + boundaryPath );
                 return false; }
             clean( boundaryPath ); }
-        if( count > 0 && !toAsk ) {
-            out.print( count );
-            out.print( " orphan image file" );
-            if( count > 1 ) out.print( 's' );
-            out.println( " deleted" ); }
+        if( count > 0 ) {
+            final PrintStream sP = opt.out( toAsk? 2:1 );
+            sP.print( count );
+            sP.print( " orphan image file" );
+            if( count > 1 ) sP.print( 's' );
+            sP.println( " deleted" ); }
         return true; }
 
 

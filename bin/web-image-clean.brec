@@ -20,6 +20,12 @@
 
         --force
             - Cleans the Web image without prompting for permission at each file deletion (the default).
+        --quiet
+            : see @ breccia-web-image.brec
+        --verbose
+            : see @ breccia-web-image.brec
+        --verbosity: --verbosity=0|1|2
+            : see @ breccia-web-image.brec
 
 
 

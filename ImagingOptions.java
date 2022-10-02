@@ -1,15 +1,12 @@
 package Breccia.Web.imager;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.nio.file.Path;
 import Java.Unhandled;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static java.io.OutputStream.nullOutputStream;
 import static java.lang.Float.parseFloat;
-import static java.lang.Integer.parseUnsignedInt;
 import static java.lang.System.err;
 import static java.nio.file.Files.readString;
 import static Java.Paths.enslash;
@@ -68,19 +65,6 @@ public class ImagingOptions extends Options {
       *         Command option `--force`</a>
       */
     public final boolean toForce() { return toForce; }
-
-
-
-    /** The allowed amount of user feedback on the standard output stream.
-      *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbosity,verbosity-0-'>
-      *         Command option `--verbosity`</a>
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#quiet'>
-      *         Command option `--quiet`</a>
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbose'>
-      *         Command option `--verbose`</a>
-      */
-    public final int verbosity() { return verbosity; }
 
 
 
@@ -168,43 +152,19 @@ public class ImagingOptions extends Options {
             coServiceDirectory = enslash( value( arg, s )); }
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
-        else if( arg.equals( "--quiet" )) verbosity = 0;
-        else if( arg.equals( "--verbose" )) verbosity = 2;
-        else if( arg.startsWith( s = "--verbosity=" )) {
-            verbosity = parseUnsignedInt( value( arg, s ));
-            if( verbosity < 0 || verbosity > 2 ) {
-                err.println( commandName + ": Unrecognized verbosity level: " + verbosity );
-                isGo = false; }}
         else isGo = super.initialize( arg );
         return isGo; }
 
 
 
-    /** @see ImageMould#out(int)
-      */
-    protected PrintStream out( final int v ) {
-        if( v != 1 && v != 2 ) throw new IllegalArgumentException();
-        return v > verbosity ? outNull : System.out; }
-
-
-
-    private static final PrintStream outNull = new PrintStream( nullOutputStream(), /*autoFlush*/false,
-      System.out.charset() ); // Re `static`: source code (JDK 17) suggests `PrintStream` is thread safe.
-
-
-
-    private boolean toForce;
-
-
-
-    private int verbosity = 1; }
+    private boolean toForce; }
 
 
 
 // NOTE
 // ────
-//   SLA  Source-launch access.  This member would have `protected` access if access were not needed by
-//        the `BrecciaWebImageCommand` class.  Source launched and loaded by a separate class loader,
+//   SLA  Source-launch access.  This member would have `protected` access were it not needed by
+//        class `BrecciaWebImageCommand`.  Source launched and loaded by a separate class loader,
 //        that class is treated at runtime as residing in a separate package.
 
 
