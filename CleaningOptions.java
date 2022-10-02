@@ -43,8 +43,8 @@ public final class CleaningOptions extends Options {
 
 // NOTE
 // ────
-//   SLA  Source-launch access.  This member would have `protected` access if access were not needed by
-//        the `BrecciaWebImageCommand` class.  Source launched and loaded by a separate class loader,
+//   SLA  Source-launch access.  This member would have `protected` access were it not needed by
+//        class `WebImageCleanCommand`.  Source launched and loaded by a separate class loader,
 //        that class is treated at runtime as residing in a separate package.
 
 
