@@ -87,6 +87,7 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
             else if( !"y".equals( answer )) continue;
             break; }
         if( toDelete ) {
+            opt.out(toAsk? 2:1).println( "Deleting orphan image file " + f );
             Files.delete( f );
             ++count; }}
 
