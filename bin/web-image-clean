@@ -132,7 +132,7 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
                 err.println( commandName + ": No such file or directory: " + boundaryPath );
                 return false; }
             clean( boundaryPath ); }
-        if( count > 0 ) {
+        if( count > 0 && !toAsk ) {
             out.print( count );
             out.print( " orphan image file" );
             if( count > 1 ) out.print( 's' );
