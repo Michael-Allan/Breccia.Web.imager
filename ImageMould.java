@@ -186,24 +186,26 @@ public final class ImageMould<C extends ReusableCursor> {
       // ═══════════════════════════
       // 3. Transform the imageables as they are determined, extending the image to its bounds
       // ═══════════════════════════
+        out(2).println( "Transforming source to image files" );
         boolean isFinalPass;
         if( probes.size() == 0 ) {
             isFinalPass = true; // Only one pass is required.
             barrier.forceTermination(); } // Just to be tidy.
         else isFinalPass = false; // At least two will be required.
+        int count = 0; // Count of imageables found.
         for( ;; ) {
-            int count = 0; // Of imageables found during the present pass.
+            int c = 0; // Count of imageables found during the present pass.
 
           // Transform any imageables now determined, so forming part of the image
           // ────────────────────────
             for( final var det: imageabilityDetermination.entrySet() ) {
                 final ImageabilityReference iR = det.getValue();
                 if( iR.get() != imageable ) continue;
-                ++count;
+                ++c; ++count;
                 final Path sourceFile = det.getKey();
                 final Path sourceFileRelative = boundaryPathDirectory.relativize( sourceFile );
                 boolean wasTransformed = false;
-                out(1).println( "i   " + sourceFileRelative );
+                out(1).println( "  ↶ " + sourceFileRelative );
                 try {
                     transformer.transform( sourceFile,
                       outDirectory.resolve(sourceFileRelative).getParent() );
@@ -212,7 +214,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 catch( final TransformError x ) { err().println( errMsg( x )); }
                 iR.set( wasTransformed? imaged: unimageable ); }
             if( isFinalPass ) break;
-            if( count > 0 ) continue; // One good turn deserves another by making it likelier.
+            if( c > 0 ) continue; // One good turn deserves another by making it likelier.
 
           // Await further reduction of indeterminates
           // ───────────────────────
@@ -222,18 +224,23 @@ public final class ImageMould<C extends ReusableCursor> {
                 throw new UnsourcedInterrupt( x ); }
             catch( TimeoutException x ) { continue; } // Reduction is ongoing.
             isFinalPass = true; } // Reduction is complete, the next pass is final.
+        if( count == 0 ) out(2).println( "    none" );
 
 
       // ═════════════════════════
       // 4. Finish the image files
       // ═════════════════════════
+        out(2).println( "Finishing the image files" );
+        count = 0; // Count of files that needed finishing.
         for( final var det: imageabilityDetermination.entrySet() ) {
             final ImageabilityReference iR = det.getValue();
             if( iR.get() != imaged ) continue;
+            ++count;
             final Path sourceFile = det.getKey();
             final Path imageFileRelative = imageFile( boundaryPathDirectory.relativize( sourceFile ));
-            out(1).println( "i′  " + imageFileRelative );
+            out(1).println( "  → " + imageFileRelative );
             transformer.finish( outDirectory.resolve( imageFileRelative )); }
+        if( count == 0 ) out(2).println( "    none" );
         return !hasFailed; }
 
 
