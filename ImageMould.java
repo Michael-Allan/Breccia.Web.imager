@@ -192,7 +192,7 @@ public final class ImageMould<C extends ReusableCursor> {
             isFinalPass = true; // Only one pass is required.
             barrier.forceTermination(); } // Just to be tidy.
         else isFinalPass = false; // At least two will be required.
-        int count = 0; // Count of imageables found.
+        int count = 0; // Count of transformed source files.
         for( ;; ) {
             int c = 0; // Count of imageables found during the present pass.
 
@@ -201,7 +201,7 @@ public final class ImageMould<C extends ReusableCursor> {
             for( final var det: imageabilityDetermination.entrySet() ) {
                 final ImageabilityReference iR = det.getValue();
                 if( iR.get() != imageable ) continue;
-                ++c; ++count;
+                ++c;
                 final Path sourceFile = det.getKey();
                 final Path sourceFileRelative = boundaryPathDirectory.relativize( sourceFile );
                 boolean wasTransformed = false;
@@ -209,6 +209,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 try {
                     transformer.transform( sourceFile,
                       outDirectory.resolve(sourceFileRelative).getParent() );
+                    ++count;
                     wasTransformed = true; }
                 catch( final ParseError x ) { err().println( errMsg( sourceFile, x )); }
                 catch( final TransformError x ) { err().println( errMsg( x )); }
@@ -224,23 +225,25 @@ public final class ImageMould<C extends ReusableCursor> {
                 throw new UnsourcedInterrupt( x ); }
             catch( TimeoutException x ) { continue; } // Reduction is ongoing.
             isFinalPass = true; } // Reduction is complete, the next pass is final.
-        if( count == 0 ) out(2).println( "    none" );
+        if( count == 0 ) out(2).println( "    none tranformed" );
 
 
       // ═════════════════════════
       // 4. Finish the image files
       // ═════════════════════════
         out(2).println( "Finishing the image files" );
-        count = 0; // Count of files that needed finishing.
+        count = 0; // Count of finished image files.
         for( final var det: imageabilityDetermination.entrySet() ) {
             final ImageabilityReference iR = det.getValue();
             if( iR.get() != imaged ) continue;
-            ++count;
             final Path sourceFile = det.getKey();
             final Path imageFileRelative = imageFile( boundaryPathDirectory.relativize( sourceFile ));
             out(1).println( "  → " + imageFileRelative );
-            transformer.finish( outDirectory.resolve( imageFileRelative )); }
-        if( count == 0 ) out(2).println( "    none" );
+            try {
+                transformer.finish( outDirectory.resolve( imageFileRelative ));
+                ++count; }
+            catch( final TransformError x ) { err().println( errMsg( x )); }}
+        if( count == 0 ) out(2).println( "    none finished" );
         return !hasFailed; }
 
 
