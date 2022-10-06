@@ -6,15 +6,19 @@ import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.*;
 import java.nio.file.Path;
+import java.nio.file.OpenOption;
 import Java.*;
 import java.util.*;
 import java.util.regex.Matcher;
+import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.*;
 import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import javax.xml.transform.stream.StreamSource;
 import org.w3c.dom.*;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
@@ -36,6 +40,7 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.createFile;
+import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static Java.Nodes.asElement;
@@ -84,7 +89,31 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
    // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override void finish( final Path imageFile ) {} // TODO
+    public @Override void finish( final Path imageFile ) throws TransformError {
+        try {
+
+          // XHTML DOM ← XHTML image file
+          // ─────────
+            toDOM.setNode( null/*make a new `Document`*/ );
+            try( final Reader imageReader = newBufferedReader​( imageFile )) {
+                fromStream.setReader( imageReader );
+             // identityTransformer.transform( fromStream, toDOM ); }
+             //// ↑ Transformation direct from an image file fails with ‘unknown protocol: about’. [UPA]
+             //// ↓ Transformation through an intermediate StAX parser does not.
+                final XMLStreamReader imageParser = xmlInputFactory.createXMLStreamReader( fromStream );
+                try { identityTransformer.transform( new StAXSource(imageParser), toDOM ); } // [SNR]
+                finally { imageParser.close(); }}
+            final Document d = (Document)(toDOM.getNode());
+
+          // XHTML DOM ← XHTML DOM
+          // ─────────
+            finish( d );
+
+          // XHTML image file ← XHTML DOM
+          // ────────────────
+            write( d, imageFile ); }
+        catch( IOException|TransformerException|XMLStreamException x ) {
+            throw new TransformError( imageFile, "Unable to finish image file", x ); }}
 
 
 
@@ -136,10 +165,9 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
               // X-Breccia DOM ← X-Breccia parse events ← Breccia source file
               // ─────────────
                 sourceTranslator.markupSource( sourceCursor );
-                toDOM.setNode( null/*make a new document*/ );
+                toDOM.setNode( null/*make a new `Document`*/ );
                 try { identityTransformer.transform( new StAXSource(sourceTranslator), toDOM ); }
-                  // `StAXSource` is ‘not reusable’ according to its API.  How that could be is puzzling
-                  // given that it’s a pure wrapper, but let’s humour it.
+                  // [SNR]
                 catch( final TransformerException xT ) {
                     if( xT.getCause() instanceof XMLStreamException ) {
                         final XMLStreamException xS = (XMLStreamException)(xT.getCause());
@@ -181,10 +209,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
           // XHTML image file ← XHTML DOM
           // ────────────────
-            fromDOM.setNode( d );
-            try( final OutputStream imageWriter = newOutputStream​( imageFile, CREATE_NEW )) {
-                toImageFile.setOutputStream( imageWriter );
-                identityTransformer.transform( fromDOM, toImageFile ); }}
+            write( d, imageFile, CREATE_NEW ); }
         catch( IOException|TransformerException x ) {
             throw new TransformError( imageFile, "Unable to make image file", x ); }}
 
@@ -311,7 +336,15 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
+    protected void finish( final Document d ) {}
+
+
+
     private final DOMSource fromDOM = new DOMSource();
+
+
+
+    private final StreamSource fromStream = new StreamSource();
 
 
 
@@ -354,7 +387,13 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
         Transformer t;
         try { t = TransformerFactory.newInstance().newTransformer(); }
         catch( TransformerConfigurationException x ) { throw new Unhandled( x ); }
-        t.setOutputProperty( DOCTYPE_SYSTEM, "about:legacy-compat" ); // [DI]
+        t.setOutputProperty( DOCTYPE_SYSTEM, systemID_HTML ); /* A DTD is mandatory. [DTR]
+          A system identifier for the DTD is not mandatory.  One is given here only as a workaround in
+          order to make `identityTransformer` generate the DTD.  It fails to do so unless an identifier
+          of some kind (system or public) is given.
+              The would-be alternative of inserting a DTD into the DOM before file output, as with
+          `Document.appendChild( Document.getImplementation().createDocumentType( "html", null, null ))`,
+          fails without effect. */
         t.setOutputProperty( ENCODING, "UTF-8" );
         t.setOutputProperty( METHOD, "XML" );
         t.setOutputProperty( OMIT_XML_DECLARATION, "yes" );
@@ -416,6 +455,11 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
     private final C sourceCursor;
+
+
+
+    private static final String systemID_HTML = "about:legacy-compat";
+      // https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
 
 
 
@@ -625,8 +669,28 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    private final Map<Integer,UnglyphedCharacter> unsMap = new HashMap<>(); }
+     private final Map<Integer,UnglyphedCharacter> unsMap = new HashMap<>();
       // Code points (keys) each mapped to an unglyphed-character record (value).
+
+
+
+    protected void write( final Document document, final Path imageFile,
+          final OpenOption... outputOptions ) throws IOException, TransformerException {
+        fromDOM.setNode( document );
+        try( final OutputStream imageWriter = newOutputStream​( imageFile, outputOptions )) {
+            toImageFile.setOutputStream( imageWriter );
+            identityTransformer.transform( fromDOM, toImageFile ); }}
+
+
+
+    private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+    static {  /* ↖ Re `static`: source code (`javax.xml.streamFactoryFinder`, JDK 18)
+          suggests that `XMLInputFactory` is thread safe. */
+        xmlInputFactory.setProperty( "javax.xml.stream.isCoalescing", true );
+          // Consistent with the other input sources here relied on, such as `BrecciaXCursor`.
+        xmlInputFactory.setProperty( "javax.xml.stream.isSupportingExternalEntities", false );
+        xmlInputFactory.setProperty( "javax.xml.stream.supportDTD", false ); }}
+          // While a DTD is present in each image file (a requirement of HTML) it is empty. [DTR]
 
 
 
@@ -636,13 +700,19 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 //
 //   BF · Section *Body fracta* itself, or code that must execute in unison with it.
 //
-//   DI  `DOCTYPE` inclusion.  The would-be alternative of using, at an earlier stage, the likes of
-//       `d.appendChild( d.getImplementation().createDocumentType( "html", null, "about:legacy-compat" ))`
-//        in order to give the initial DOM document (here `d`) a `DOCTYPE` turns out not to suffice
-//        because it has no effect on the output.
+//   DTR  ‘A `DOCTYPE` is a required preamble’ in HTML.
+//        https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
 //
 //   MT · Mask trimming for ID stability.  The purpose is to omit any punctuation marks such as quote
 //        characters, commas or periods that might destabilize the ID as the source text is edited.
+//
+//   SNR  `StAXSource` is ‘not reusable’ according to its API.  This is puzzling, however,
+//        given that it’s a pure wrapper.
+//
+//   UPA  `javax.xml.transform.TransformerException: MalformedURLException: unknown protocol: about`.
+//        Thrown by `identityTransformer` when it reads the workaround system identifier `systemID_HTML`
+//        present in the DTD of each image file. (JDK 18)
+//            Attempting to override that identifier via `StreamSource.setSystemId` fails without effect.
 
 
 

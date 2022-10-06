@@ -11,11 +11,12 @@ import java.nio.file.Path;
 public interface FileTransformer<C extends ReusableCursor> {
 
 
-    /** Finishes an image file that was transformed from source.
+    /** Finishes an image file that was newly transformed from source.  This method is to be called
+      * only after all image files have been transformed from source.
       *
       *     @see #transform(Path,Path)
       */
-    public void finish( Path imageFile );
+    public void finish( Path imageFile ) throws TransformError;
 
 
 
@@ -38,7 +39,7 @@ public interface FileTransformer<C extends ReusableCursor> {
 
 
 
-    /** Transforms a Breccian source file into a namesake image file, forming or reforming
+    /** Transforms a Breccian source file into its namesake image file, forming or reforming
       * part of a Web image.  If the source file is empty, then an empty image file results.
       *
       *     @param imageDirectory The directory in which to write the image file.
