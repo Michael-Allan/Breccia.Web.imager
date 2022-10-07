@@ -4,7 +4,7 @@ Installation instructions for the Breccia Web imager
         1+ Ensure the following projects are installed.
             • Makeshift
                 : see http://reluk.ca/project/building/Makeshift/
-            • Breccia X-Breccia Translator
+            • Breccia to X-Breccia
                 : see http://reluk.ca/project/Breccia/XML/translator/
             • The plain Breccia parser
                 : see http://reluk.ca/project/Breccia/parser/plain/
