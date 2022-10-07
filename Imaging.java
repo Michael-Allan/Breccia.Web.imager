@@ -34,7 +34,7 @@ public final class Imaging {
       *     @return True on success; false on failure.
       */
     public static <C extends ReusableCursor> boolean image( final String name,  final Path boundaryPath,
-          final ImagingOptions opt, final FileTransformer.Maker<C> tMaker, final Path outProject ) {
+          final ImagingOptions opt, final FileTranslator.Maker<C> tMaker, final Path outProject ) {
         if( !exists( boundaryPath )) {
             err.println( name + ": No such file or directory: " + boundaryPath );
             return false; }
@@ -46,7 +46,7 @@ public final class Imaging {
         final ImageMould<C> mould;
         try( final PrintWriter errWriter = new PrintWriter( errHolder )) {
             mould = new ImageMould<>( boundaryPath, opt, out, errWriter );
-            mould.initialize( tMaker.newTransformer( mould ));
+            mould.initialize( tMaker.newTranslator( mould ));
             try { hasFailed = mould.formImage(); }
             catch( final UserError x ) {
                 err.println( name + ": " + x.getMessage() );

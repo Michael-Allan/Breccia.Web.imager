@@ -53,7 +53,7 @@ public final class BrecciaWebImageCommand implements AutoCloseable { // [AFN]
    // ━━━  A u t o   C l o s e a b l e  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override void close() { sourceTranslator.close(); }
+    public @Override void close() { sourceXCursor.close(); }
 
 
 
@@ -95,22 +95,22 @@ public final class BrecciaWebImageCommand implements AutoCloseable { // [AFN]
     /** @return True on success, false on failure.
       */
     private boolean run() {
-        return Imaging.image( commandName, boundaryPath, opt, new TransformerMaker(), outDirectory ); }
+        return Imaging.image( commandName, boundaryPath, opt, new TranslatorMaker(), outDirectory ); }
 
 
 
-    private final BrecciaXCursor sourceTranslator = new BrecciaXCursor();
+    private final BrecciaXCursor sourceXCursor = new BrecciaXCursor();
 
 
 
    // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-    private final class TransformerMaker implements FileTransformer.Maker<BrecciaCursor> {
+    private final class TranslatorMaker implements FileTranslator.Maker<BrecciaCursor> {
 
 
-        public @Override FileTransformer<BrecciaCursor> newTransformer( ImageMould<?> mould ) {
-            return new BrecciaHTMLTransformer<>( new BrecciaCursor(), sourceTranslator, mould ); }}}
+        public @Override FileTranslator<BrecciaCursor> newTranslator( ImageMould<?> mould ) {
+            return new BreccianFileTranslator<>( new BrecciaCursor(), sourceXCursor, mould ); }}}
 
 
 

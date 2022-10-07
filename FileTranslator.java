@@ -4,25 +4,25 @@ import Breccia.parser.*;
 import java.nio.file.Path;
 
 
-/** A transformer of Breccian source files into namesake image files.
+/** A translator of Breccian source files into HTML image files.
   *
-  *     @param <C> The type of source cursor used by this transformer.
+  *     @param <C> The type of source cursor used by this translator.
   */
-public interface FileTransformer<C extends ReusableCursor> {
+public interface FileTranslator<C extends ReusableCursor> {
 
 
-    /** Finishes an image file that was newly transformed from source.  This method is to be called
-      * only after all image files have been transformed from source.
+    /** Finishes an image file that was newly translated from source.  This method is to be called
+      * only after all image files have been translated from source.
       *
-      *     @see #transform(Path,Path)
+      *     @see #translate(Path,Path)
       */
-    public void finish( Path imageFile ) throws TransformError;
+    public void finish( Path imageFile ) throws ErrorAtFile;
 
 
 
     /** From the present position of the given source cursor, this method returns any nominal,
       * URI reference to an external imaging resource that would be formal were it obtained by
-      * this transformer.  ‘Nominal’ here means that what is returned ought to be these things,
+      * this translator.  ‘Nominal’ here means that what is returned ought to be these things,
       * e.g. based on where it occurs in the markup, though actually it might not be.
       *
       *     @see ImageMould#formalResources
@@ -32,32 +32,32 @@ public interface FileTransformer<C extends ReusableCursor> {
 
 
 
-    /** A source cursor of the type used by this transformer.
-      * Between calls to the transformer, it may be used for other purposes.
+    /** A source cursor of the type used by this translator.
+      * Between calls to the translator, it may be used for other purposes.
       */
     public C sourceCursor();
 
 
 
-    /** Transforms a Breccian source file into its namesake image file, forming or reforming
+    /** Translates a Breccian source file into its namesake image file, forming or reforming
       * part of a Web image.  If the source file is empty, then an empty image file results.
       *
       *     @param imageDirectory The directory in which to write the image file.
       *       If no such directory exists, then one is formed.
       */
-    public void transform( Path sourceFile, Path imageDirectory ) throws ParseError, TransformError;
+    public void translate( Path sourceFile, Path imageDirectory ) throws ParseError, ErrorAtFile;
 
 
 
    // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-    /** @param <C> The type of source cursor used by each newly made transformer.
+    /** @param <C> The type of source cursor used by each newly made translator.
       */
     public static interface Maker<C extends ReusableCursor> {
 
 
-        public FileTransformer<C> newTransformer( ImageMould<?> mould ); }}
+        public FileTranslator<C> newTranslator( ImageMould<?> mould ); }}
 
 
 

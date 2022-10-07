@@ -22,8 +22,8 @@ import static Breccia.Web.imager.Project.imageFile;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
-import static Breccia.Web.imager.TransformError.errMsg;
-import static Breccia.Web.imager.TransformError.wrnHead;
+import static Breccia.Web.imager.ErrorAtFile.errMsg;
+import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
 import static java.nio.file.Files.*;
@@ -66,8 +66,8 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    public final void initialize( final FileTransformer<C> transformer ) {
-        this.transformer = transformer; }
+    public final void initialize( final FileTranslator<C> translator ) {
+        this.translator = translator; }
 
 
 
@@ -184,19 +184,19 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
       // ═══════════════════════════
-      // 3. Transform the imageables as they are determined, extending the image to its bounds
+      // 3. Translate the imageables as they are determined, extending the image to its bounds
       // ═══════════════════════════
-        out(2).println( "Transforming source to image files" );
+        out(2).println( "Translating source to image files" );
         boolean isFinalPass;
         if( probes.size() == 0 ) {
             isFinalPass = true; // Only one pass is required.
             barrier.forceTermination(); } // Just to be tidy.
         else isFinalPass = false; // At least two will be required.
-        int count = 0; // Count of transformed source files.
+        int count = 0; // Count of translated source files.
         for( ;; ) {
             int c = 0; // Count of imageables found during the present pass.
 
-          // Transform any imageables now determined, so forming part of the image
+          // Translate any imageables now determined, so forming part of the image
           // ────────────────────────
             for( final var det: imageabilityDetermination.entrySet() ) {
                 final ImageabilityReference iR = det.getValue();
@@ -204,16 +204,16 @@ public final class ImageMould<C extends ReusableCursor> {
                 ++c;
                 final Path sourceFile = det.getKey();
                 final Path sourceFileRelative = boundaryPathDirectory.relativize( sourceFile );
-                boolean wasTransformed = false;
+                boolean wasTranslated = false;
                 out(1).println( "  ↶ " + sourceFileRelative );
                 try {
-                    transformer.transform( sourceFile,
+                    translator.translate( sourceFile,
                       outDirectory.resolve(sourceFileRelative).getParent() );
                     ++count;
-                    wasTransformed = true; }
+                    wasTranslated = true; }
                 catch( final ParseError x ) { err().println( errMsg( sourceFile, x )); }
-                catch( final TransformError x ) { err().println( errMsg( x )); }
-                iR.set( wasTransformed? imaged: unimageable ); }
+                catch( final ErrorAtFile x ) { err().println( errMsg( x )); }
+                iR.set( wasTranslated? imaged: unimageable ); }
             if( isFinalPass ) break;
             if( c > 0 ) continue; // One good turn deserves another by making it likelier.
 
@@ -240,9 +240,9 @@ public final class ImageMould<C extends ReusableCursor> {
             final Path imageFileRelative = imageFile( boundaryPathDirectory.relativize( sourceFile ));
             out(1).println( "  → " + imageFileRelative );
             try {
-                transformer.finish( outDirectory.resolve( imageFileRelative ));
+                translator.finish( outDirectory.resolve( imageFileRelative ));
                 ++count; }
-            catch( final TransformError x ) { err().println( errMsg( x )); }}
+            catch( final ErrorAtFile x ) { err().println( errMsg( x )); }}
         if( count == 0 ) out(2).println( "    none finished" );
         return !hasFailed; }
 
@@ -308,10 +308,10 @@ public final class ImageMould<C extends ReusableCursor> {
       */
     private void formalResources_recordFrom( final Path f, final ImageabilityReference iR ) {
         if( iR.get() != indeterminate ) return;
-        final C in = transformer.sourceCursor();
+        final C in = translator.sourceCursor();
         try { in.perStateConditionally( f, state -> {
             final Markup mRef; // Reference in `Markup` form.
-            try { mRef = transformer.formalReferenceAt( in ); }
+            try { mRef = translator.formalReferenceAt( in ); }
             catch( final ParseError x ) {
                 err().println( errMsg( f, x ));
                 iR.set( unimageable );
@@ -415,7 +415,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    private FileTransformer<C> transformer; // Do not modify after `initialize`.
+    private FileTranslator<C> translator; // Do not modify after `initialize`.
 
 
 

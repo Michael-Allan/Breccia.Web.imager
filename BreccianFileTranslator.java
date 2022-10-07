@@ -28,7 +28,7 @@ import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
-import static Breccia.Web.imager.TransformError.wrnHead;
+import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.XML.translator.XStreamConstants.EMPTY;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
@@ -56,18 +56,18 @@ import static java.util.Arrays.sort;
 import static javax.xml.transform.OutputKeys.*;
 
 
-/** @param <C> The type of source cursor used by this transformer.
+/** @param <C> The type of source cursor used by this translator.
   */
-public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTransformer<C> {
+public class BreccianFileTranslator<C extends ReusableCursor> implements FileTranslator<C> {
 
 
     /** @see #sourceCursor()
-      * @see #sourceTranslator
+      * @see #sourceXCursor
       */
-    public BrecciaHTMLTransformer( C sourceCursor, BrecciaXCursor sourceTranslator,
+    public BreccianFileTranslator( C sourceCursor, BrecciaXCursor sourceXCursor,
           final ImageMould<?> mould ) {
         this.sourceCursor = sourceCursor;
-        this.sourceTranslator = sourceTranslator;
+        this.sourceXCursor = sourceXCursor;
         this.mould = mould;
         opt = mould.opt;
         final String f = opt.glyphTestFont();
@@ -79,17 +79,17 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    /** The source translator to use during calls to this transformer.
+    /** The source-markup translator (Breccia to X-Breccia) to use during calls to this file translator.
       * Between calls, it may be used for other purposes.
       */
-    public final BrecciaXCursor sourceTranslator;
+    public final BrecciaXCursor sourceXCursor;
 
 
 
-   // ━━━  F i l e   T r a n s f o r m e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   // ━━━  F i l e   T r a n s l a t o r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override void finish( final Path imageFile ) throws TransformError {
+    public @Override void finish( final Path imageFile ) throws ErrorAtFile {
         try {
 
           // XHTML DOM ← XHTML image file
@@ -113,7 +113,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
           // ────────────────
             write( d, imageFile ); }
         catch( IOException|TransformerException|XMLStreamException x ) {
-            throw new TransformError( imageFile, "Unable to finish image file", x ); }}
+            throw new ErrorAtFile( imageFile, "Unable to finish image file", x ); }}
 
 
 
@@ -138,7 +138,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
             if( iR == null ) return null; } /* The absence of `iR` implies that the indicated resource
               is the containing file, which is not an external resource as required by the API. */
         if( iR.qualifiers().contains( "non-fractal" )) return null; /* Fractal alone implies formal,
-          non-fractal implying a resource whose content is opaque to this transformer and therefore
+          non-fractal implying a resource whose content is opaque to this translator and therefore
           indeterminate of image form. */
         return iR.reference(); } /* The resource of `iR` is formal ∵ the associative reference containing
           `iR`refers to a matcher of markup *in* the resource and ∴ will be imaged as a hyperlink whose
@@ -150,8 +150,8 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    public @Override void transform( final Path sourceFile, final Path imageDirectory )
-          throws ParseError, TransformError {
+    public @Override void translate( final Path sourceFile, final Path imageDirectory )
+          throws ParseError, ErrorAtFile {
         final Path imageFile = imageDirectory.resolve( imageSimpleName( sourceFile ));
         try {
             createDirectories( imageFile.getParent() ); // Ensure the parent exists.
@@ -159,14 +159,14 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 sourceCursor.markupSource( sourceReader );
                 if( sourceCursor.state().typestamp() == empty ) {
                     logger.fine( () -> "Imaging empty source file: " + sourceFile );
-                    createFile( imageFile ); // Special case, no content to transform.
+                    createFile( imageFile ); // Special case, no content to translate.
                     return; }
 
               // X-Breccia DOM ← X-Breccia parse events ← Breccia source file
               // ─────────────
-                sourceTranslator.markupSource( sourceCursor );
+                sourceXCursor.markupSource( sourceCursor );
                 toDOM.setNode( null/*make a new `Document`*/ );
-                try { identityTransformer.transform( new StAXSource(sourceTranslator), toDOM ); }
+                try { identityTransformer.transform( new StAXSource(sourceXCursor), toDOM ); }
                   // [SNR]
                 catch( final TransformerException xT ) {
                     if( xT.getCause() instanceof XMLStreamException ) {
@@ -184,7 +184,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
                 do {
                     final Text nText = asText( n );
                     if( nText == null ) continue;
-                    assert !nText.isElementContentWhitespace(); /* The `sourceTranslator` has produced
+                    assert !nText.isElementContentWhitespace(); /* The `sourceXCursor` has produced
                       ‘X-Breccia with no ignorable whitespace’. */
                     final String text = nText.getData();
                     for( int ch, c = 0, cN = text.length(); c < cN; c += charCount(ch) ) {
@@ -205,13 +205,13 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
           // XHTML DOM ← X-Breccia DOM
           // ─────────
-            transform( d );
+            translate( d );
 
           // XHTML image file ← XHTML DOM
           // ────────────────
             write( d, imageFile, CREATE_NEW ); }
         catch( IOException|TransformerException x ) {
-            throw new TransformError( imageFile, "Unable to make image file", x ); }}
+            throw new ErrorAtFile( imageFile, "Unable to make image file", x ); }}
 
 
 
@@ -432,10 +432,10 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    /** The original text content of the given node and its descendants prior to any transformation.
+    /** The original text content of the given node and its descendants prior to any translation.
       */
     private String sourceText( final Node node ) { return node.getTextContent(); }
-      // Should the transform ever introduce text of its own, then it must be marked as non-original,
+      // Should the translation ever introduce text of its own, then it must be marked as non-original,
       // e.g. by some attribute defined for that purpose.  The present method would then be modified
       // to remove all such text from the return value, e.g. by cloning `node`, filtering the clone,
       // then calling `getTextContent` on it.
@@ -471,7 +471,7 @@ public class BrecciaHTMLTransformer<C extends ReusableCursor> implements FileTra
 
 
 
-    protected void transform( final Document d ) {
+    protected void translate( final Document d ) {
 
       // HTML form
       // ─────────

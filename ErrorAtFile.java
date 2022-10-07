@@ -4,14 +4,14 @@ import Breccia.parser.ParseError;
 import java.nio.file.Path;
 
 
-public class TransformError extends Exception {
+public class ErrorAtFile extends Exception {
 
 
     /** @see #file
       * @see #getMessage()
       * @see #getCause()
       */
-    public TransformError( Path file, String message, Throwable cause ) {
+    public ErrorAtFile( Path file, String message, Throwable cause ) {
         super( message, cause );
         this.file = file; }
 
@@ -53,11 +53,11 @@ public class TransformError extends Exception {
 
 
 
-    /** Makes a message for reporting a transform error.
+    /** Makes a message for reporting an error at a file.
       *
       *     @see #wrnMsg()
       */
-    public static String errMsg( final TransformError x ) { return errHead(x.file) + x.getMessage(); }
+    public static String errMsg( final ErrorAtFile x ) { return errHead(x.file) + x.getMessage(); }
 
 
 
@@ -103,11 +103,11 @@ public class TransformError extends Exception {
 
 
 
-    /** Makes a message for warning about a transform error.
+    /** Makes a message for warning about an error at a file.
       *
       *     @see #errMsg()
       */
-    public static String wrnMsg( final TransformError x ) { return wrnHead(x.file) + x.getMessage(); }
+    public static String wrnMsg( final ErrorAtFile x ) { return wrnHead(x.file) + x.getMessage(); }
 
 
 
