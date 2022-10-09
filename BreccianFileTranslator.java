@@ -488,13 +488,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ┈┈┈┈┈┈
             final Element documentHead = d.createElementNS( nsHTML, "head" );
             html.appendChild( documentHead );
+            String fileTitle = null; // Unless one can be derived from the markup:
             for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
                 if( !"Head".equals( n.getLocalName() )) continue;
-                final String tF = fileTitle( n );
-                if( tF != null ) {
-                    documentHead.appendChild( e = d.createElementNS( nsHTML, "title" ));
-                    e.appendChild( d.createTextNode( tF ));
-                    break; }}
+                if( (fileTitle = fileTitle(n)) != null ) break; }
+            documentHead.appendChild( e = d.createElementNS( nsHTML, "title" ));
+            e.appendChild( d.createTextNode( fileTitle == null ? "Untitled" : fileTitle )); /* A title
+              *is* mandatory.  https://html.spec.whatwg.org/multipage/semantics.html#the-head-element */
             documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
             e.setAttribute( "rel", "stylesheet" );
             e.setAttribute( "href", opt.coServiceDirectory() + "Breccia/Web/imager/image.css" );
