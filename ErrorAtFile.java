@@ -9,6 +9,13 @@ public class ErrorAtFile extends Exception {
 
     /** @see #file
       * @see #getMessage()
+      */
+    public ErrorAtFile( Path file, String message ) { this( file, message, /*cause*/null ); }
+
+
+
+    /** @see #file
+      * @see #getMessage()
       * @see #getCause()
       */
     public ErrorAtFile( Path file, String message, Throwable cause ) {

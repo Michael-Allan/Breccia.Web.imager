@@ -27,9 +27,7 @@ import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Project.imageSimpleName;
-import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
-import static Breccia.XML.translator.XStreamConstants.EMPTY;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
@@ -39,7 +37,6 @@ import static java.lang.Character.toLowerCase;
 import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.nio.file.Files.createDirectories;
-import static java.nio.file.Files.createFile;
 import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
@@ -158,9 +155,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             try( final Reader sourceReader = newSourceReader​( sourceFile )) {
                 sourceCursor.markupSource( sourceReader );
                 if( sourceCursor.state().typestamp() == empty ) {
-                    logger.fine( () -> "Imaging empty source file: " + sourceFile );
-                    createFile( imageFile ); // Special case, no content to translate.
-                    return; }
+                    throw new ErrorAtFile( sourceFile, "Empty source file" ); } /* Explicitly Breccia
+                      neither allows nor forbids an empty file.  Translating it to an empty image file
+                      would produce malformed XML, however, as necessarily a well formed XML document
+                      ‘contains one or more elements.’  https://www.w3.org/TR/xml/#sec-well-formed
+                      Maintaining compliance with XML (and HTML) would therefore require
+                      either complicating the code in order to deal with this edge case,
+                      or (as here) rejecting the edge case. */
 
               // X-Breccia DOM ← X-Breccia parse events ← Breccia source file
               // ─────────────
