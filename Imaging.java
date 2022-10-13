@@ -16,6 +16,7 @@ import static java.nio.file.Files.exists;
 import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import static Java.URIs.isHTTP;
 
 
 public final class Imaging {
@@ -62,15 +63,6 @@ public final class Imaging {
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
-
-
-    private static final boolean isHTTP( final String scheme ) {
-        if( scheme.startsWith( "http" )) {
-            final int sN = scheme.length();
-            if( sN == 4  ) return true;
-            if( sN == 5 && scheme.endsWith("s") ) return true; }
-        return false; }
-
 
 
     /** Whether the given reference is formally recognized, such that a Web imager
