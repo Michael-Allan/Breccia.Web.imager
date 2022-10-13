@@ -360,15 +360,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    private static final boolean isHTTP( final String scheme ) {
-        if( scheme.startsWith( "http" )) {
-            final int sN = scheme.length();
-            if( sN == 4  ) return true;
-            if( sN == 5 && scheme.endsWith("s") ) return true; }
-        return false; }
-
-
-
     /** @param f The path of a file.
       */
     private static boolean looksBreccian( final Path f ) {
