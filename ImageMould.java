@@ -310,28 +310,28 @@ public final class ImageMould<C extends ReusableCursor> {
         if( iR.get() != indeterminate ) return;
         final C in = translator.sourceCursor();
         try { in.perStateConditionally( f, state -> {
-            final Markup mRef; // Reference in `Markup` form.
+            final Markup mRef; // The reference enapsulated as parsed `Markup`.
             try { mRef = translator.formalReferenceAt( in ); }
             catch( final ParseError x ) {
                 err().println( errMsg( f, x ));
                 iR.set( unimageable );
                 return false; }
             if( mRef == null ) return true;
-            final String sRef = mRef.text().toString(); // Reference in string form.
+            final String sRef = mRef.text().toString(); // The reference in string form.
             if( isRemote( sRef )) { // Then the resource is reachable only through a network.
-                URI pRef; // Reference in parsed `URI` form.
+                URI uRef; // The reference in parsed `URI` form.
                 try {
-                    pRef = new URI( sRef );
-                    if( !looksReachable( pRef )) {
+                    uRef = new URI( sRef );
+                    if( !looksReachable( uRef )) {
                         throw new URISyntaxException( sRef, "Unrecognized form of reference" ); }}
                 catch( final URISyntaxException x ) {
                     err().println( errMsg( f, mRef.lineNumber(), x ));
                     iR.set( unimageable );
                     return false; }
-                assert pRef.getHost() != null; /* Assured by `looksReachable`.  Else, as described there,
+                assert uRef.getHost() != null; /* Assured by `looksReachable`.  Else, as described there,
                   rootless paths would be a possibility, raising the problem of how to resolve them. */
-                pRef = unfragmented(pRef).normalize();
-                map( formalResources.remote, /*resource*/pRef, /*dependant*/f ); }
+                uRef = unfragmented(uRef).normalize();
+                map( formalResources.remote, /*resource*/uRef, /*dependant*/f ); }
             else { /* This `sRef` is an absolute-path reference or relative-path reference (ibid.),
                   making the resource reachable through local file systems. */
                 if( sRef.startsWith( "~" )) { // [PUR]
@@ -341,7 +341,7 @@ public final class ImageMould<C extends ReusableCursor> {
                           + f );
                         wasTildeEncountered = true; }
                     return true; }
-                Path pRef = f.getParent().resolve( sRef ); /* Reference in parsed `Path` form,
+                Path pRef = f.getParent().resolve( sRef ); /* The reference in parsed `Path` form,
                   resolved from its context. */
                 if( !exists( pRef )) {
                     wrn().println( wrnHead(f, mRef.lineNumber())
