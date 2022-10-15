@@ -5,6 +5,8 @@ import Breccia.XML.translator.BrecciaXCursor;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.OpenOption;
 import Java.*;
@@ -27,6 +29,8 @@ import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Project.imageSimpleName;
+import static Breccia.Web.imager.Project.sourceFile;
+import static Breccia.Web.imager.ErrorAtFile.errHead;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
@@ -36,12 +40,13 @@ import static java.lang.Character.isDigit;
 import static java.lang.Character.toLowerCase;
 import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
+import static java.lang.Math.max;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
-import static Java.Nodes.asElement;
 import static Java.Nodes.asText;
+import static Java.Nodes.hasName;
 import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
@@ -95,8 +100,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             try( final Reader imageReader = newBufferedReader​( imageFile )) {
                 fromStream.setReader( imageReader );
              // identityTransformer.transform( fromStream, toDOM ); }
-             //// ↑ Transformation direct from an image file fails with ‘unknown protocol: about’. [UPA]
-             //// ↓ Transformation through an intermediate StAX parser does not.
+            ///  ↑ Transformation direct from an image file fails with ‘unknown protocol: about’. [UPA]
+           ////  ↓ Transformation through an intermediate StAX parser does not.
                 final XMLStreamReader imageParser = xmlInputFactory.createXMLStreamReader( fromStream );
                 try { identityTransformer.transform( new StAXSource(imageParser), toDOM ); } // [SNR]
                 finally { imageParser.close(); }}
@@ -104,7 +109,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // XHTML DOM ← XHTML DOM
           // ─────────
-            finish( d );
+            finish( imageFile, d );
 
           // XHTML image file ← XHTML DOM
           // ────────────────
@@ -120,7 +125,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final ReferentClause cR; {
                     final AssociativeReference rA; {
                         rA = in.asAssociativeReference();
-                        if( rA == null ) return null; }
+                        if( rA == null ) return null; } /* Adding the return of a formal reference other
+                          than an associative one?  Then sync with `finish(Path.Document)` below. */
                     cR = rA.referentClause();
                     if( cR == null ) return null; }
                 final var iIR = cR.inferentialReferentIndicant();
@@ -133,7 +139,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( iF == null ) return null; }
             iR = iF.resourceIndicant();
             if( iR == null ) return null; } /* The absence of `iR` implies that the indicated resource
-              is the containing file, which is not an external resource as required by the API. */
+              is the containing file, which is not an external resource as required by the method API. */
         if( iR.qualifiers().contains( "non-fractal" )) return null; /* Fractal alone implies formal,
           non-fractal implying a resource whose content is opaque to this translator and therefore
           indeterminate of image form. */
@@ -251,7 +257,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final int offsetRegional;
         final int numberRegional;
         for( Element h = markup;; ) {
-            if( "Head".equals( h.getLocalName() )) {
+            if( hasName( "Head", h )) {
                 textRegional = sourceText( h );
                 endsRegional.clear();
                 final StringTokenizer tt = new StringTokenizer( h.getAttribute( "xuncLineEnds" ));
@@ -296,10 +302,25 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @see <a href='https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries'>
       *       Grapheme cluster boundaries in Unicode text segmentation</a>
       */
-    private int columnarSpan( final String text, final int start, final int end ) {
+    private int columnarSpan( String text, int start, int end ) {
+        return columnarSpan( text, start, end, /*endMightBisect*/true ); }
+
+
+
+    /** @param endMightBisect Whether `end` might bisect the final cluster, the character at position
+      *   `end` (if any) being part of the same extended cluster as the preceding character (if any).
+      */
+    private int columnarSpan( final String text, final int start, final int end,
+          final boolean endMightBisect ) {
         graphemeMatcher.reset( text ).region( start, end );
         int count = 0;
         while( graphemeMatcher.find() ) ++count;
+        if( count > 0  &&  endMightBisect  &&  end < text.length() ) {
+            final int countNext = columnarSpan( text, start, end + 1, false );
+            if( countNext == count ) --count; } /* Indeed the character at `end` bisects the final
+              cluster, which ∴ lies partly outside the span.  Therefore exclude it from the count.
+                  The would-be alternative of using `\X\b{g}` instead of  `\X` in the `graphemeMatcher`
+              pattern fails to work; the addition of `\b{g}` has no apparent effect. */
         return count; }
 
 
@@ -309,10 +330,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       */
     private String fileTitle( Node head ) {
         final String titlingExtract; // The relevant text extracted from the fractal head.
-        if( "Division".equals( head.getParentNode().getLocalName() )) { // Then `head` is a divider.
+        if( hasName( "Division", head.getParentNode() )) { // Then `head` is a divider.
             for( Node n = successor(head);;  n = successor(n) ) {
                 if( n == null ) return null;
-                if( "DivisionLabel".equals( n.getLocalName() )) {
+                if( hasName( "DivisionLabel", n )) {
                     titlingExtract = sourceText( n );
                     break; }}}
         else { // Presumeably `head` is a file head or point head.
@@ -337,7 +358,43 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    protected void finish( final Document d ) {}
+    /** @param d The image file in parsed DOM form.
+      */
+    protected void finish( final Path imageFile, final Document d ) {
+        final Node fileFractum = d.getDocumentElement()./*body*/getLastChild().getFirstChild();
+        assert hasName( "FileFractum", fileFractum );
+
+      // URI references each formed as a hyperlink
+      // ──────────────
+        for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
+            if( !hasName( "Reference", n )) continue;
+            assert hasName( "AssociativeReference", fractalParent(n) ); /* Adding a hyperlink to other
+              than an associative reference?  Then sync with `formalReferenceAt` above. */
+            final Element eRef = (Element)n; // The reference enapsulated as an `Element`.
+            n = n.getFirstChild();
+            final Text tRef = (Text)n; // The reference enapsulated as `Text`.
+            URI uRef; // The reference in parsed `URI` form.
+            try {
+                final String sRef = tRef.getData(); // The reference in string form.
+                uRef = new URI( sRef ); }
+            catch( final URISyntaxException x ) {
+                final CharacterPointer p = characterPointer( eRef, max(x.getIndex(),0) );
+                mould.err().println( errHead( sourceFile(imageFile), p.lineNumber )
+                  + "Malformed URI reference: " + x.getReason() + '\n' + p.markedLine() );
+                continue; }
+            final Element a = d.createElementNS( nsHTML, "a" );
+            eRef.insertBefore( a, tRef );
+            a.setAttribute( "href", uRef.toASCIIString() );
+            a.appendChild( tRef ); }}
+
+
+
+    /** Returns the nearest fractal ancestor of `node`, or null if there is none.
+      */
+    private static Element fractalParent( final Node node ) {
+        Element p = parentElement( node );
+        while( p != null && !isFractum(p) ) p = parentElement( p );
+        return p; }
 
 
 
@@ -354,6 +411,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private final Matcher graphemeMatcher = graphemePattern.matcher( "" );
+
+
+
+    private static boolean isFractum( final Element e ) { return e.hasAttribute( "typestamp" ); }
 
 
 
@@ -477,7 +538,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // HTML form
       // ─────────
         final Node fileFractum = d.removeChild( d.getFirstChild() ); // To be reintroduced
-        assert "FileFractum".equals( fileFractum.getLocalName() );  // further below.
+        assert hasName( "FileFractum", fileFractum );               // further below.
         if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
         final Element html = d.createElementNS( nsHTML, "html" );
         d.appendChild( html );
@@ -491,7 +552,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             html.appendChild( documentHead );
             String fileTitle = null; // Unless one can be derived from the markup:
             for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
-                if( !"Head".equals( n.getLocalName() )) continue;
+                if( !hasName( "Head", n )) continue;
                 if( (fileTitle = fileTitle(n)) != null ) break; }
             documentHead.appendChild( e = d.createElementNS( nsHTML, "title" ));
             e.appendChild( d.createTextNode( fileTitle == null ? "Untitled" : fileTitle )); /* A title
@@ -513,8 +574,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // Division titling
       // ════════════════
         for( Element dL = successorElement(fileFractum);  dL != null;  dL = successorElement(dL) ) {
-            if( !"DivisionLabel".equals( dL.getLocalName() )) continue;
-            final String p = asText(dL.getPreviousSibling().getFirstChild()).getData();
+            if( !hasName( "DivisionLabel", dL )) continue;
+            final String p = ((Text)dL.getPreviousSibling().getFirstChild()).getData();
               // All `dL` have a `Markup` predecessor comprising flat text.
             int c = p.length();
             do --c; while( p.charAt(c) == ' ' );    // Scan leftward past any plain space characters,
@@ -527,7 +588,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // Free-form bullets  [BF↓]
       // ═════════════════
         for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
-            if( !"Bullet".equals( b.getLocalName() )) continue;
+            if( !hasName( "Bullet", b )) continue;
             final int pointType = parseInt( parentElement(parentElement(b)).getAttribute( "typestamp" ));
             final String typeMark; switch( pointType ) {
                 case Typestamp.alarmPoint  -> typeMark = "!!";
@@ -572,7 +633,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // ═══════════
         idMap.clear();
         for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
-            if( !bF.hasAttribute( "typestamp" )) continue; // Not a (body) fractum.
+            if( !isFractum( bF )) continue;
 
           // Identification by `id` attribution
           // ──────────────────────────────────
@@ -581,7 +642,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // gather the longest keywords from the fractal head
           // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-            final Element head = asElement( bF.getFirstChild() );
+            final Element head = (Element)bF.getFirstChild();
             skim: {
                 final StringTokenizer tt = new StringTokenizer( sourceText(head), " \n\r\u00A0" );
                   // Parsing into tokens the text of the fractal head broken on Breccian whitespace.
@@ -636,7 +697,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final int textLength = text.length();
                 if( textLength == 0 ) continue;
                 final int hyperlinkLength; {
-                    if( "PerfectIndent".equals( nText.getParentNode().getLocalName() )) {
+                    if( hasName( "PerfectIndent", nText.getParentNode() )) {
                         assert textLength >= 4;
                         hyperlinkLength = textLength - 1; } // All but the final character of the indent.
                     else hyperlinkLength = textLength > 1 && !impliesNewline(text.charAt(1)) ? 2 : 1; }
