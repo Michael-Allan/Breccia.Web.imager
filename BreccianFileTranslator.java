@@ -388,7 +388,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 mould.err().println( errHead( sourceFile(imageFile), p.lineNumber )
                   + "Malformed URI reference: " + x.getReason() + '\n' + p.markedLine() );
                 continue; }
-            final Element a = d.createElementNS( nsHTML, "a" );
+            final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
             a.setAttribute( "href", uRef.toASCIIString() );
             a.appendChild( tRef ); }}
@@ -543,9 +543,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
       // HTML form
       // ─────────
-        final Node fileFractum = d.removeChild( d.getFirstChild() ); // To be reintroduced
-        assert hasName( "FileFractum", fileFractum );               // further below.
-        if( d.hasChildNodes() ) throw new IllegalStateException(); // One alone was present.
+        final Element fileFractum = (Element)d.removeChild( d.getFirstChild() ); // To be reintroduced
+        assert hasName( "FileFractum", fileFractum );                           // further below.
+        if( d.hasChildNodes() ) throw new IllegalStateException();             // One alone was present.
         final Element html = d.createElementNS( nsHTML, "html" );
         d.appendChild( html );
         html.setAttributeNS( nsXMLNS, "xmlns:img", nsImager );
@@ -572,6 +572,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final Element documentBody = d.createElementNS( nsHTML, "body" );
             html.appendChild( documentBody );
             documentBody.appendChild( fileFractum );
+            fileFractum.setAttributeNS( nsXMLNS, "xmlns:html", nsHTML );
             documentBody.appendChild( e = d.createElementNS( nsHTML, "script" ));
             e.setAttribute( "src", opt.coServiceDirectory() + "Breccia/Web/imager/image.js" ); }
 
@@ -709,7 +710,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     else hyperlinkLength = textLength > 1 && !impliesNewline(text.charAt(1)) ? 2 : 1; }
                       // Taking if possible two characters in order to ease clicking.
                 final Text nTextRemainder = nText.splitText( hyperlinkLength );
-                final Element a = d.createElementNS( nsHTML, "a" );
+                final Element a = d.createElementNS( nsHTML, "html:a" );
                 nText.getParentNode().insertBefore( a, nTextRemainder );
                 a.setAttribute( "class", "self" );
                 a.setAttribute( "href", '#' + id );
