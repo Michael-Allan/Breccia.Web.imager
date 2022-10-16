@@ -298,27 +298,33 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     /** Returns the number of grapheme clusters within `text` between positions `start` and `end`.
+      * Omits any partial cluster at the end of the span.
       *
       *     @see <a href='https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries'>
       *       Grapheme cluster boundaries in Unicode text segmentation</a>
       */
     private int columnarSpan( String text, int start, int end ) {
-        return columnarSpan( text, start, end, /*endMightBisect*/true ); }
+        return columnarSpan( text, start, end, /*wholeOnly*/true ); }
 
 
 
-    /** @param endMightBisect Whether `end` might bisect the final cluster, the character at position
-      *   `end` (if any) being part of the same extended cluster as the preceding character (if any).
+    /** @param wholeOnly Whether to omit any partial cluster at the end of the span.  If `true` and `end`
+      *   bisects the final cluster — the character at position `end` being part of the same extended
+      *   cluster as the preceding character — then the final cluster is omitted from the count.
+      *   Otherwise the final cluster is included.
+      *       <p>Omitting partial clusters at the end is generally the behaviour you want in order
+      *   to print a line of text with a character pointer positioned beneath it (e.g. ‘^’)
+      *   pointing *into* the cluster of the character at the given index, as opposed to after.</p>
       */
     private int columnarSpan( final String text, final int start, final int end,
-          final boolean endMightBisect ) {
+          final boolean wholeOnly ) {
         graphemeMatcher.reset( text ).region( start, end );
         int count = 0;
         while( graphemeMatcher.find() ) ++count;
-        if( count > 0  &&  endMightBisect  &&  end < text.length() ) {
+        if( wholeOnly  &&  count > 0  &&  end < text.length() ) {
             final int countNext = columnarSpan( text, start, end + 1, false );
-            if( countNext == count ) --count; } /* Indeed the character at `end` bisects the final
-              cluster, which ∴ lies partly outside the span.  Therefore exclude it from the count.
+            if( countNext == count ) --count; } /* The character at `end` bisects the final cluster,
+              which therefore lies partly outside the span.  Therefore exclude it from the count.
                   The would-be alternative of using `\X\b{g}` instead of  `\X` in the `graphemeMatcher`
               pattern fails to work; the addition of `\b{g}` has no apparent effect. */
         return count; }
