@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static Breccia.Web.imager.ExternalResources.map;
@@ -26,10 +28,13 @@ import static Breccia.Web.imager.ErrorAtFile.errMsg;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
+import static java.io.File.separator;
+import static java.lang.System.getProperty;
 import static java.nio.file.Files.*;
 import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.regex.Pattern.quote;
 
 
 /** A frame in which to form or reform a Web image.
@@ -317,7 +322,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 iR.set( unimageable );
                 return false; }
             if( mRef == null ) return true;
-            final String sRef = mRef.text().toString(); // The reference in string form.
+            String sRef = mRef.text().toString(); // The reference in string form.
             if( isRemote( sRef )) { // Then the resource is reachable only through a network.
                 URI uRef; // The reference in parsed `URI` form.
                 try {
@@ -334,13 +339,11 @@ public final class ImageMould<C extends ReusableCursor> {
                 map( formalResources.remote, /*resource*/uRef, /*dependant*/f ); }
             else { /* This `sRef` is an absolute-path reference or relative-path reference (ibid.),
                   making the resource reachable through local file systems. */
-                if( sRef.startsWith( "~" )) { // [PUR]
-                    if( !wasTildeEncountered ) {
-                        logger.config( () ->
-                          "Ignoring references with unsupported tilde prefix (~) here and hereafter: "
-                          + f );
-                        wasTildeEncountered = true; }
-                    return true; }
+                if( tildeBasedPathPattern.matcher(sRef).lookingAt() ) {
+                    sRef = userHomeDirectory + sRef.substring( 1 );
+                    if( sRef.isEmpty() ) {                   // Then `sRef` was `~` and the user’s
+                        assert userHomeDirectory.isEmpty(); // home directory is the root directory.
+                        sRef = separator; }}
                 Path pRef = f.getParent().resolve( sRef ); /* The reference in parsed `Path` form,
                   resolved from its context. */
                 if( !exists( pRef )) {
@@ -406,11 +409,25 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    /** A `lookingAt` pattern that detects a path beginning with a tilde `~` that might symbolize
+      * the user’s home directory.
+      *
+      *     @see java.util.regex.Matcher#lookingAt()
+      */
+    private static final Pattern tildeBasedPathPattern = Pattern.compile(
+        "^~(?:" + quote(separator) + "|$)" );
+
+
+
     private FileTranslator<C> translator; // Do not modify after `initialize`.
 
 
 
-    private boolean wasTildeEncountered; // Viz. a file path prefixed by `~`.
+    private static final String userHomeDirectory; // Without a trailing name separator, e.g. `/`.
+    static {
+        String s = getProperty( "user.home" );
+        if( s.endsWith( separator )) s = s.substring( 0, s.length() - 1 );
+        userHomeDirectory = s; }
 
 
 
@@ -425,9 +442,6 @@ public final class ImageMould<C extends ReusableCursor> {
 //   ML · Mere logging of the IO error in order to avoid redundant and incomplete reporting.  The same
 //        or similar error is almost certain to recur at least once during imaging, each recurrence
 //        followed by a report to the user complete with source path and line number.
-//
-//   PUR  A peculiar URI reference yet unsupported by this image mould.  See *peculiar URI reference*
-//        at `http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht`.
 //
 //   SM · Structural modification of a `HashMap` defined.
 //        https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html
