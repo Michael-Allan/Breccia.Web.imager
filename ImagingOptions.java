@@ -139,7 +139,7 @@ public class ImagingOptions extends Options {
       *
       *     @see java.util.regex.Matcher#find()
       *     @see <a href='https://www.w3.org/TR/css-fonts/#src-desc'>Font reference</a>
-      *     @see <a href='https://datatracker.ietf.org/doc/html/rfc3986#section-4.1'>URI reference</a>
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>URI reference</a>
       */
     private static final Pattern glyphTestFontSrcPattern = Pattern.compile(
       "(['\"])(\\S+?)\\1 */\\* *\\[GTF\\]" ); // As per note GTF in `image.css`.
@@ -151,7 +151,7 @@ public class ImagingOptions extends Options {
       *
       *     @see java.util.regex.Matcher#find()
       *     @see <a href='https://www.w3.org/TR/css-cascade/#at-import'>Importing style sheets</a>
-      *     @see <a href='https://datatracker.ietf.org/doc/html/rfc3986#section-4.1'>URI reference</a>
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>URI reference</a>
       */
     private static final Pattern importedStyleSheetPattern = Pattern.compile(
       "@import +(?:(?:url|src)\\()?(['\"])(.+?)\\1" );

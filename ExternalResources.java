@@ -50,7 +50,7 @@ final @Async class ExternalResources {
       * unfragmented URI reference to the resource (key) mapped to the set (value) of source files
       * whose images depend on that resource.
       *
-      *     @see <a href='https://datatracker.ietf.org/doc/html/rfc3986#section-4.1'>URI reference</a>
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>URI reference</a>
       */
     final HashMap<URI,HashSet<Path>> remote = new HashMap<>( initialCapacity( 8192/*resources*/ )); }
 

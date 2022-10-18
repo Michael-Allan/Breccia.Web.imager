@@ -30,7 +30,7 @@
                 - In wide viewports, this column of the source file will appear at centre.
             - The default is 52.5.
         --co-service-directory: --co-service-directory=<URI reference>
-                : re `URI reference` see https://datatracker.ietf.org/doc/html/rfc3986#section-4.1
+                : re `URI reference` see https://www.rfc-editor.org/rfc/rfc3986#section-4.1
             - The location of the co-service directory.
                 - It may be given with or without a trailing ‘/’.
             - The co-service directory contains the auxiliary files of the Web image.

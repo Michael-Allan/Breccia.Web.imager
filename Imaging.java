@@ -68,7 +68,7 @@ public final class Imaging {
     /** Whether the given reference is formally recognized, such that a Web imager
       * might try to obtain its referent.
       *
-      *     @param ref A <a href='https://datatracker.ietf.org/doc/html/rfc3986#section-4.1'>
+      *     @param ref A <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
       *       URI reference</a>.
       */
     static boolean looksReachable( final URI ref ) { /* Note that whether an imager
