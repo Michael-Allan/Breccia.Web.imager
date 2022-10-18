@@ -34,7 +34,7 @@ public abstract class Options {
 
     /** @see ImageMould#out(int)
       */
-    public PrintStream out( final int v ) { // [SLA]
+    public final PrintStream out( final int v ) { // [SLA]
         if( v != 1 && v != 2 ) throw new IllegalArgumentException();
         return v > verbosity() ? outNull : System.out; }
 

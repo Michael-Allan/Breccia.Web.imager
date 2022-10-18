@@ -16,28 +16,26 @@ public final class CleaningOptions extends Options {
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/web-image-clean.brec.xht#force'>
       *         Command option `--force`</a>
       */
-    public final boolean toForce() { return toForce; }
+    public boolean toForce() { return toForce; }
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    /** Parses and incorporates the given argument, or prints an error message and returns false.
-      *
-      *     @param arg A nominal argument from the command line.
-      *     @return True if the argument was incorporated, false otherwise.
-      */
-    protected boolean initialize( final String arg ) {
+    private boolean toForce;
+
+
+
+   // ━━━  O p t i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+    protected @Override boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
         if( arg.equals( "--force" )) toForce = true;
         else isGo = super.initialize( arg );
-        return isGo; }
-
-
-
-    private boolean toForce; }
+        return isGo; }}
 
 
 

@@ -139,12 +139,14 @@ public class ImagingOptions extends Options {
 
 
 
-    /** Parses and incorporates the given argument, or prints an error message and returns false.
-      *
-      *     @param arg A nominal argument from the command line.
-      *     @return True if the argument was incorporated, false otherwise.
-      */
-    protected boolean initialize( final String arg ) {
+    private boolean toForce;
+
+
+
+   // ━━━  O p t i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+    protected @Override boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
         if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
@@ -153,11 +155,7 @@ public class ImagingOptions extends Options {
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
         else isGo = super.initialize( arg );
-        return isGo; }
-
-
-
-    private boolean toForce; }
+        return isGo; }}
 
 
 
