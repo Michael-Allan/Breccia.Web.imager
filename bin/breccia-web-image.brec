@@ -17,7 +17,7 @@
     - One positional argument is required:
 
         <boundary path>
-            / The path of a file or directory.
+            / The path of a local file or directory.
             - Sets the bounds of the Web image: any Breccian source file stored at or under this path
               is eligible for imaging.
 
@@ -70,7 +70,7 @@
         --force
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.
-        --glyph-test-font: --glyph-test-font=<file path> | none
+        --glyph-test-font: --glyph-test-font=<local file path> | none
             - The font file for glyph tests.
             - If the value is `none`, then no glyph tests are performed.
             - Otherwise the file must contain an OpenType font
@@ -90,6 +90,12 @@
         --quiet
             - Sets the verbosity to level 0.
                 : re `verbosity` see `^^--verbosity`
+        --user-home-directory: --user-home-directory=<local file path>
+            - The user’s home directory.
+            / It may serve for the purpose of expanding any tilde prefix of a URI reference.
+                : see e.g. `Tilde Expansion` @ non-fractal
+                  https://man7.org/linux/man-pages/man1/bash.1.html#EXPANSION
+            - The default value is got from the operating system.
         --verbose
             - Sets the verbosity to level 2.
                 : re `verbosity` see `^^--verbosity`

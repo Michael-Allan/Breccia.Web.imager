@@ -3,13 +3,15 @@ package Breccia.Web.imager;
 import java.io.IOException;
 import java.nio.file.Path;
 import Java.Unhandled;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static java.lang.Float.parseFloat;
 import static java.lang.System.err;
+import static java.lang.System.getProperty;
 import static java.nio.file.Files.readString;
-import static Java.Paths.enslash;
+import static Java.URI_References.enslash;
 import static Java.URI_References.isRemote;
 
 
@@ -36,7 +38,7 @@ public class ImagingOptions extends Options {
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#co-service-d,co-service-d,reference'>
       *         Command option `--co-service-directory`</a>
-      *     @see Java.Path.#enslash(String)
+      *     @see Java.Path#enslash(String)
       */
     public final String coServiceDirectory() { return coServiceDirectory; }
 
@@ -47,15 +49,7 @@ public class ImagingOptions extends Options {
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#glyph-test-f,glyph-test-f,path'>
       *         Command option `--glyph-test-font`</a>
       */
-    public final String glyphTestFont() {
-        if( glyphTestFont == null ) {
-            if( !isRemote( coServiceDirectory )) {
-                glyphTestFont = glyphTestFont( Path.of(
-                  coServiceDirectory + "Breccia/Web/imager/image.css" ));
-                if( glyphTestFont == null ) glyphTestFont = "none"; }
-            else glyphTestFont = "none";
-            out(2).println( "Glyph-test font: " + glyphTestFont ); }
-        return glyphTestFont; }
+    public final String glyphTestFont() { return glyphTestFont; }
 
 
 
@@ -65,6 +59,31 @@ public class ImagingOptions extends Options {
       *         Command option `--force`</a>
       */
     public final boolean toForce() { return toForce; }
+
+
+
+    /** The user’s home directory.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#co-service-d,co-service-d,reference'>
+      *         Command option `--user-home-directory`</a>
+      */
+    public final Path userHomeDirectory() { return userHomeDirectory; }
+
+
+
+   // ━━━  O p t i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+    public @Override void initialize( final List<String> args ) {
+        super.initialize( args );
+        if( glyphTestFont == null ) {
+            if( !isRemote( coServiceDirectory )) {
+                glyphTestFont = glyphTestFont( Path.of(
+                  coServiceDirectory + "Breccia/Web/imager/image.css" ));
+                if( glyphTestFont == null ) glyphTestFont = "none"; }
+            else glyphTestFont = "none";
+            out(2).println( "Glyph-test font: " + glyphTestFont ); }
+        if( userHomeDirectory == null ) userHomeDirectory = Path.of( getProperty( "user.home" )); }
 
 
 
@@ -143,6 +162,10 @@ public class ImagingOptions extends Options {
 
 
 
+    private Path userHomeDirectory;
+
+
+
    // ━━━  O p t i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
@@ -154,6 +177,8 @@ public class ImagingOptions extends Options {
             coServiceDirectory = enslash( value( arg, s )); }
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
+        else if( arg.startsWith( s = "--user-home-directory=" )) {
+            userHomeDirectory = Path.of( value( arg, s )); }
         else isGo = super.initialize( arg );
         return isGo; }}
 

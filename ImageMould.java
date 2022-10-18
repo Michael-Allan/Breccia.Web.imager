@@ -28,13 +28,10 @@ import static Breccia.Web.imager.ErrorAtFile.errMsg;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
-import static java.io.File.separator;
-import static java.lang.System.getProperty;
 import static java.nio.file.Files.*;
 import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.regex.Pattern.quote;
 
 
 /** A frame in which to form or reform a Web image.
@@ -322,9 +319,9 @@ public final class ImageMould<C extends ReusableCursor> {
                 iR.set( unimageable );
                 return false; }
             if( mRef == null ) return true;
-            String sRef = mRef.text().toString(); // The reference in string form.
+            final String sRef = mRef.text().toString(); // The reference in string form.
             if( isRemote( sRef )) { // Then the resource is reachable only through a network.
-                URI uRef; // The reference in parsed `URI` form.
+                URI uRef; // The reference parsed as a `URI`.
                 try {
                     uRef = new URI( sRef );
                     if( !looksReachable( uRef )) {
@@ -337,15 +334,12 @@ public final class ImageMould<C extends ReusableCursor> {
                   rootless paths would be a possibility, raising the problem of how to resolve them. */
                 uRef = unfragmented(uRef).normalize();
                 map( formalResources.remote, /*resource*/uRef, /*dependant*/f ); }
-            else { /* This `sRef` is an absolute-path reference or relative-path reference (ibid.),
+            else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
                   making the resource reachable through local file systems. */
-                if( tildeBasedPathPattern.matcher(sRef).lookingAt() ) {
-                    sRef = userHomeDirectory + sRef.substring( 1 );
-                    if( sRef.isEmpty() ) {                   // Then `sRef` was `~` and the user’s
-                        assert userHomeDirectory.isEmpty(); // home directory is the root directory.
-                        sRef = separator; }}
-                Path pRef = f.getParent().resolve( sRef ); /* The reference in parsed `Path` form,
-                  resolved from its context. */
+                final Matcher m = tildeBasedReferencePattern.matcher( sRef );
+                Path pRef = m.lookingAt() // The reference parsed as a local file `Path`, resolved either
+                  ? opt.userHomeDirectory().resolve( sRef.substring( m.end() )) // from the user’s home
+                  : f.getParent().resolve( sRef );                             // or the source file.
                 if( !exists( pRef )) {
                     wrn().println( wrnHead(f, mRef.lineNumber())
                       + "No such file or directory: " + pRef );
@@ -409,25 +403,16 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** A `lookingAt` pattern that detects a path beginning with a tilde `~` that might symbolize
-      * the user’s home directory.
+    /** A `lookingAt` pattern that detects a URI reference beginning with a tilde `~`
+      * that might symbolize the user’s local home directory.
       *
       *     @see java.util.regex.Matcher#lookingAt()
       */
-    private static final Pattern tildeBasedPathPattern = Pattern.compile(
-        "^~(?:" + quote(separator) + "|$)" );
+    private static final Pattern tildeBasedReferencePattern = Pattern.compile( "^~(?:/|$)" );
 
 
 
     private FileTranslator<C> translator; // Do not modify after `initialize`.
-
-
-
-    private static final String userHomeDirectory; // Without a trailing name separator, e.g. `/`.
-    static {
-        String s = getProperty( "user.home" );
-        if( s.endsWith( separator )) s = s.substring( 0, s.length() - 1 );
-        userHomeDirectory = s; }
 
 
 
@@ -442,6 +427,8 @@ public final class ImageMould<C extends ReusableCursor> {
 //   ML · Mere logging of the IO error in order to avoid redundant and incomplete reporting.  The same
 //        or similar error is almost certain to recur at least once during imaging, each recurrence
 //        followed by a report to the user complete with source path and line number.
+//
+//   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //
 //   SM · Structural modification of a `HashMap` defined.
 //        https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html

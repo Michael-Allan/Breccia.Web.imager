@@ -25,7 +25,7 @@ public abstract class Options {
       *
       *     @param args Nominal arguments, aka options, from the command line.
       */
-    public final void initialize( List<String> args ) {
+    public void initialize( final List<String> args ) {
         boolean isGo = true;
         for( String a: args ) isGo &= initialize( a );
         if( !isGo ) exit( 1 ); }
