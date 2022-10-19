@@ -25,6 +25,15 @@ public class ImagingOptions extends Options {
 
 
 
+    /** The home directory of the source author.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#co-service-d,co-service-d,reference'>
+      *         Command option `--author-home-directory`</a>
+      */
+    public final Path authorHomeDirectory() { return authorHomeDirectory; }
+
+
+
     /** The columnar offset on which to centre the text.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#centre-colum,centre-colum'>
@@ -62,32 +71,27 @@ public class ImagingOptions extends Options {
 
 
 
-    /** The user’s home directory.
-      *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#co-service-d,co-service-d,reference'>
-      *         Command option `--user-home-directory`</a>
-      */
-    public final Path userHomeDirectory() { return userHomeDirectory; }
-
-
-
    // ━━━  O p t i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
     public @Override void initialize( final List<String> args ) {
         super.initialize( args );
+        if( authorHomeDirectory == null ) authorHomeDirectory = Path.of( getProperty( "user.home" ));
         if( glyphTestFont == null ) {
             if( !isRemote( coServiceDirectory )) {
                 glyphTestFont = glyphTestFont( Path.of(
                   coServiceDirectory + "Breccia/Web/imager/image.css" ));
                 if( glyphTestFont == null ) glyphTestFont = "none"; }
             else glyphTestFont = "none";
-            out(2).println( "Glyph-test font: " + glyphTestFont ); }
-        if( userHomeDirectory == null ) userHomeDirectory = Path.of( getProperty( "user.home" )); }
+            out(2).println( "Glyph-test font: " + glyphTestFont ); }}
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    private Path authorHomeDirectory;
+
 
 
     private float centreColumn = 52.5f;
@@ -162,23 +166,19 @@ public class ImagingOptions extends Options {
 
 
 
-    private Path userHomeDirectory;
-
-
-
    // ━━━  O p t i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
     protected @Override boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
-        if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
+        if( arg.startsWith( s = "--author-home-directory=" )) {
+            authorHomeDirectory = Path.of( value( arg, s )); }
+        else if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
         else if( arg.startsWith( s = "--co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
-        else if( arg.startsWith( s = "--user-home-directory=" )) {
-            userHomeDirectory = Path.of( value( arg, s )); }
         else isGo = super.initialize( arg );
         return isGo; }}
 

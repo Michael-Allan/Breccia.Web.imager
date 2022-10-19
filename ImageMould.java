@@ -337,9 +337,9 @@ public final class ImageMould<C extends ReusableCursor> {
             else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
                   making the resource reachable through local file systems. */
                 final Matcher m = tildeBasedReferencePattern.matcher( sRef );
-                Path pRef = m.lookingAt() // The reference parsed as a local file `Path`, resolved either
-                  ? opt.userHomeDirectory().resolve( sRef.substring( m.end() )) // from the user’s home
-                  : f.getParent().resolve( sRef );                             // or the source file.
+                Path pRef = m.lookingAt() // The reference parsed as a local file `Path`, resolved from
+                  ? opt.authorHomeDirectory().resolve( sRef.substring( m.end() )) // the home directory
+                  : f.getParent().resolve( sRef );                               // or the source file.
                 if( !exists( pRef )) {
                     wrn().println( wrnHead(f, mRef.lineNumber())
                       + "No such file or directory: " + pRef );
