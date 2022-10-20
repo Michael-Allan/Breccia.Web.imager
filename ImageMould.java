@@ -23,6 +23,7 @@ import static Breccia.Web.imager.Imageability.*;
 import static Breccia.Web.imager.Project.imageFile;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
+import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
 import static Breccia.Web.imager.ErrorAtFile.errMsg;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
@@ -354,13 +355,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
     private boolean hasFailed;
-
-
-
-    /** @param f The path of a file.
-      */
-    private static boolean looksBreccian( final Path f ) {
-        return f.getFileName().toString().endsWith( ".brec" ); }
 
 
 

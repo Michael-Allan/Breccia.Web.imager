@@ -55,6 +55,23 @@ public final class Project {
 
 
 
+    /** Whether `f` appears to be the path of a Breccian file.
+      *
+      *     @param f The path of a file.
+      */
+    static boolean looksBreccian( final Path f ) { return looksBreccian( f.getFileName().toString() ); }
+
+
+
+    /** Whether `ref` appears to refer to a Breccian file.
+      *
+      *     @param ref A <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
+      *       URI reference</a>.
+      */
+    static boolean looksBreccian( final String ref ) { return ref.endsWith( ".brec" ); }
+
+
+
     /** Returns `imageFile.{@linkplain Path#getFileName() getFileName}`
       * bereft of its last four characters.
       *

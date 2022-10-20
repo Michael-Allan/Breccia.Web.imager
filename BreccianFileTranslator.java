@@ -29,6 +29,7 @@ import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Project.imageSimpleName;
+import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.Project.sourceFile;
 import static Breccia.Web.imager.ErrorAtFile.errHead;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
@@ -379,13 +380,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final Element eRef = (Element)n; // The reference enapsulated as an `Element`.
             n = n.getFirstChild();
             final Text tRef = (Text)n; // The reference enapsulated as `Text`.
-            final String sRef = tRef.getData(); // The reference in string form.
+            String sRef = tRef.getData(); // The reference in string form.
             try { new URI( sRef ); } // The reference in parsed `URI` form.
             catch( final URISyntaxException x ) {
                 final CharacterPointer p = characterPointer( eRef, max(x.getIndex(),0) );
                 mould.err().println( errHead( sourceFile(imageFile), p.lineNumber )
                   + "Malformed URI reference: " + x.getReason() + '\n' + p.markedLine() );
                 continue; }
+            if( looksBreccian( sRef )) sRef += ".xht"; // Hyperlinking instead to the image file.
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
             a.setAttribute( "href", sRef );
