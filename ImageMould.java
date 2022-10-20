@@ -17,9 +17,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static Breccia.Web.imager.ExternalResources.looksReachable;
 import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
-import static Breccia.Web.imager.Imaging.looksReachable;
 import static Breccia.Web.imager.Project.imageFile;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;

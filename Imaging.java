@@ -2,7 +2,6 @@ package Breccia.Web.imager;
 
 import Breccia.parser.ReusableCursor;
 import java.io.*;
-import java.net.URI;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import Java.Unhandled;
@@ -16,7 +15,6 @@ import static java.nio.file.Files.exists;
 import static java.nio.file.Files.walkFileTree;
 import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static Java.URIs.isHTTP;
 
 
 public final class Imaging {
@@ -63,29 +61,6 @@ public final class Imaging {
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
-
-
-    /** Whether the given reference is formally recognized, such that a Web imager
-      * might try to obtain its referent.
-      *
-      *     @param ref A <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
-      *       URI reference</a>.
-      */
-    static boolean looksReachable( final URI ref ) { /* Note that whether an imager
-          would go ahead and image `ref` as a hyperlink is a separate question. */
-        boolean answer = true;
-        if( ref.isOpaque() ) answer = false; // No known use case.
-        else {
-            final String scheme = ref.getScheme();
-            if( scheme == null ) {
-                if( ref.getHost() != null ) answer = false; } // Too weird to trouble over.
-            else {
-                if( ref.getHost() == null ) answer = false; /* Too weird to trouble over.
-                  Moreover such a hostless URI is allowed a rootless path, making it hard to
-                  resolve from outside the network context (e.g. HTTP) implied by the scheme. */
-                else if( !isHTTP( scheme )) answer = false; }} // No known use case.
-        return answer; }
-
 
 
     /** Moves all simple files of directory `dFrom` to the same relative path of `dTo`,
