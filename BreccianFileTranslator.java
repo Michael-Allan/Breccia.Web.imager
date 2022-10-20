@@ -379,10 +379,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final Element eRef = (Element)n; // The reference enapsulated as an `Element`.
             n = n.getFirstChild();
             final Text tRef = (Text)n; // The reference enapsulated as `Text`.
-            URI uRef; // The reference in parsed `URI` form.
-            try {
-                final String sRef = tRef.getData(); // The reference in string form.
-                uRef = new URI( sRef ); }
+            final String sRef = tRef.getData(); // The reference in string form.
+            try { new URI( sRef ); } // The reference in parsed `URI` form.
             catch( final URISyntaxException x ) {
                 final CharacterPointer p = characterPointer( eRef, max(x.getIndex(),0) );
                 mould.err().println( errHead( sourceFile(imageFile), p.lineNumber )
@@ -390,7 +388,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 continue; }
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
-            a.setAttribute( "href", uRef.toASCIIString() );
+            a.setAttribute( "href", sRef );
             a.appendChild( tRef ); }}
 
 
