@@ -17,10 +17,10 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 
-public final class Imaging {
+public final class ImagingCommands {
 
 
-    private Imaging() {}
+    private ImagingCommands() {}
 
 
 
