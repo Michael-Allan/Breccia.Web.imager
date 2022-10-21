@@ -17,19 +17,26 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static Breccia.Web.imager.ExternalResources.looksReachable;
 import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
 import static Breccia.Web.imager.Project.imageFile;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBreccian;
+import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
+import static Breccia.Web.imager.ErrorAtFile.errHead;
 import static Breccia.Web.imager.ErrorAtFile.errMsg;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
-import static java.nio.file.Files.*;
+import static java.io.File.separatorChar;
+import static java.nio.file.Files.exists;
+import static java.nio.file.Files.getLastModifiedTime;
+import static java.nio.file.Files.isDirectory;
+import static java.nio.file.Files.isReadable;
+import static java.nio.file.Files.isWritable;
+import static java.nio.file.Files.list;
 import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -313,40 +320,48 @@ public final class ImageMould<C extends ReusableCursor> {
         if( iR.get() != indeterminate ) return;
         final C in = translator.sourceCursor();
         try { in.perStateConditionally( f, state -> {
-            final Markup mRef; // The reference enapsulated as parsed `Markup`.
-            try { mRef = translator.formalReferenceAt( in ); }
-            catch( final ParseError x ) {
-                err().println( errMsg( f, x ));
-                iR.set( unimageable );
-                return false; }
-            if( mRef == null ) return true;
+            final Markup mRef; { // The reference enapsulated as parsed `Markup`.
+                try { mRef = translator.formalReferenceAt( in ); }
+                catch( final ParseError x ) {
+                    err().println( errMsg( f, x ));
+                    iR.set( unimageable );
+                    return false; }
+                if( mRef == null ) return true; }
             final String sRef = mRef.text().toString(); // The reference in string form.
-            if( isRemote( sRef )) { // Then the resource is reachable only through a network.
-                URI uRef; // The reference parsed as a `URI`.
-                try {
-                    uRef = new URI( sRef );
-                    if( !looksReachable( uRef )) {
-                        throw new URISyntaxException( sRef, "Unrecognized form of reference" ); }}
+            final URI uRef; { // The reference in parsed `URI` form.
+                try { uRef = new URI( sRef ); }
                 catch( final URISyntaxException x ) {
                     err().println( errMsg( f, mRef.lineNumber(), x ));
                     iR.set( unimageable );
-                    return false; }
-                assert uRef.getHost() != null; /* Assured by `looksReachable`.  Else, as described there,
-                  rootless paths would be a possibility, raising the problem of how to resolve them. */
-                uRef = unfragmented(uRef).normalize();
-                map( formalResources.remote, /*resource*/uRef, /*dependant*/f ); }
-            else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
-                  making the resource reachable through local file systems. */
-                final Matcher m = tildeBasedReferencePattern.matcher( sRef );
-                Path pRef = m.lookingAt() // The reference parsed as a local file `Path`, resolved from
-                  ? opt.authorHomeDirectory().resolve( sRef.substring( m.end() )) // the home directory
-                  : f.getParent().resolve( sRef );                               // or the source file.
-                if( !exists( pRef )) {
-                    wrn().println( wrnHead(f, mRef.lineNumber())
-                      + "No such file or directory: " + pRef );
+                    return true; }}
+            if( isRemote( uRef )) { // Then the resource would be reachable only through a network.
+                if( !looksProbeable( uRef )) {
+                    err().println( errHead(f, mRef.lineNumber())
+                      + "Unable to probe this form of reference: " + sRef );
+                    iR.set( unimageable );
                     return true; }
-                pRef = pRef.normalize();
-                map( formalResources.local, /*resource*/pRef, /*dependant*/f ); }
+                map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(),
+                  /*dependant*/f ); }
+            else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
+                  making the resource reachable through a local file system. */
+                if( uRef.getRawQuery() != null  ||  uRef.getRawFragment() != null ) {
+                    err().println( errHead(f, mRef.lineNumber())
+                      + "Unsupported query or fragment component on local reference: " + sRef );
+                    iR.set( unimageable );
+                    return true; }
+                final Path pRef; { // The reference parsed and resolved as a local file `Path`.
+                    String s = uRef.getPath();
+                    final Matcher m = tildeBasedReferencePattern.matcher( s );
+                    final Path pBase;
+                    if( m.lookingAt() ) {
+                        s = s.substring( m.end() );
+                        pBase = opt.authorHomeDirectory(); } // Resolved either from the home directory,
+                    else pBase = f.getParent();             // or from the source file.
+                    if( separatorChar != '/' ) s = s.replace( '/', separatorChar );
+                    pRef = pBase.resolve( s ); }
+                if( !exists( pRef )) return true; /* Let the translator warn of this later;
+                  the only consequence is a broken hyperlink in the resulting image file. */
+                map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
             return true; }); }
         catch( final ParseError x ) {
             err().println( errMsg( f, x ));
