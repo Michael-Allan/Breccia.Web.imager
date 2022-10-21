@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import static Java.Hashing.initialCapacity;
-import static Java.URIs.isHTTP;
 
 
 /** A record of external imaging resources, mapping each resource to the source files whose images depend
@@ -20,29 +19,6 @@ import static Java.URIs.isHTTP;
   * and `{@linkplain HashSet HashSet}`.</p>
   */
 final @Async class ExternalResources {
-
-
-    /** Whether the given reference is formally recognized, such that a Web imager
-      * might try to obtain its referent.
-      *
-      *     @param ref A <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
-      *       URI reference</a>.
-      */
-    static boolean looksReachable( final URI ref ) { /* Note that whether an imager
-          would go ahead and image `ref` as a hyperlink is a separate question. */
-        boolean answer = true;
-        if( ref.isOpaque() ) answer = false; // No known use case.
-        else {
-            final String scheme = ref.getScheme();
-            if( scheme == null ) {
-                if( ref.getHost() != null ) answer = false; } // Too weird to trouble over.
-            else {
-                if( ref.getHost() == null ) answer = false; /* Too weird to trouble over.
-                  Moreover such a hostless URI is allowed a rootless path, making it hard to
-                  resolve from outside the network context (e.g. HTTP) implied by the scheme. */
-                else if( !isHTTP( scheme )) answer = false; }} // No known use case.
-        return answer; }
-
 
 
     /** Ensures the given resource is mapped to its dependant, mapping it if necessary.
@@ -62,22 +38,23 @@ final @Async class ExternalResources {
 
 
 
-    /** Map of resources reachable through local file systems.  Each entry comprises a normalized
-      * file path to the resource (key) mapped to the set (value) of source files whose images
-      * depend on that resource.
+    /** Map of resources that are reachable through one or more of the local file systems.
+      * Each entry comprises a normalized file path to the resource (key)
+      * mapped to the set (value) of source files whose images depend on that resource.
       */
     final HashMap<Path,HashSet<Path>> local = new HashMap<>( initialCapacity( 8192/*resources*/ ));
 
 
 
-    /** Map of resources that are reachable only through a network.  Each entry comprises a normalized,
-      * unfragmented URI reference to the resource (key) mapped to the set (value) of source files
-      * whose images depend on that resource.
+    /** Map of resources that are reachable only through a network and appear to be probeable.
+      * Each entry comprises a normalized, unfragmented URI reference to the resource (key)
+      * mapped to the set (value) of source files whose images depend on that resource.
       *
       *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>URI reference</a>
+      *     @see RemoteChangeProbe#looksProbeable(ava.net.URI)
       */
     final HashMap<URI,HashSet<Path>> remote = new HashMap<>( initialCapacity( 8192/*resources*/ )); }
 
 
 
-                                                        // Copyright © 2021  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2021-2022  Michael Allan.  Licence MIT.

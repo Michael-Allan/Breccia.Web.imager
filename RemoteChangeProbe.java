@@ -9,6 +9,8 @@ import java.util.Set;
 import static Breccia.Web.imager.Imageability.*;
 import static Java.Collections.forEachRemaining;
 import static java.lang.Thread.sleep;
+import static Java.URI_References.isRemote;
+import static Java.URIs.isHTTP;
 
 
 /** A crawling probe of the formal resources at a remote Web host.  It reads the timestamps
@@ -30,6 +32,28 @@ final class RemoteChangeProbe implements Runnable {
     RemoteChangeProbe( final String host, final ImageMould<?> mould ) {
         this.host = host;
         this.mould = mould; }
+
+
+
+    /** Whether it appears possible to probe the referent of `ref`.
+      *
+      *     @param ref A <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
+      *       URI reference</a> to a remote resource.
+      */
+    static boolean looksProbeable( final URI ref ) {
+        if( !isRemote( ref )) throw new IllegalArgumentException();
+        boolean answer = true;
+        if( ref.isOpaque() ) answer = false;
+        else {
+            final String scheme = ref.getScheme();
+            if( scheme != null ) {
+                if( ref.getHost() == null ) answer = false; /* Trouble with no justifying use case.
+                  Such a hostless URI is allowed a rootless path, making it hard to resolve
+                  from outside the network context (e.g. HTTP) implied by the scheme. */
+                else if( !isHTTP( scheme )) answer = false; }
+            else answer = false; } /* Trouble with no justifying use case, a network-path reference.
+              https://www.rfc-editor.org/rfc/rfc3986#section-4.2 */
+        return answer; }
 
 
 
@@ -70,7 +94,8 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
-    private void probe( final URI resource, final Set<Path> dependants ) {
+    private void probe( final URI ref, final Set<Path> dependants ) {
+        if( !looksProbeable( ref )) throw new IllegalArgumentException();
 
       // Ensure the resource still needs probing
       // ───────────────────────────────────────
@@ -84,7 +109,7 @@ final class RemoteChangeProbe implements Runnable {
 
       // Probe the resource
       // ──────────────────
-     // System.err.println( " ——— probe TEST: " + resource );
+     // System.err.println( " ——— probe TEST: " + ref );
         /* TODO, the actual probe */; }}
 
 
