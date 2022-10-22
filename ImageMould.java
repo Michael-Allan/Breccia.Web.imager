@@ -349,7 +349,11 @@ public final class ImageMould<C extends ReusableCursor> {
                       + "Unsupported query or fragment component on local reference: " + sRef );
                     iR.set( unimageable );
                     return true; }
-                final Path pRef; { // The reference parsed and resolved as a local file `Path`.
+                final Path pRef; { /* The reference parsed and resolved as a local file `Path`.  Formal
+                      translation from `URI` to `Path` is here coded ad hoc.  The alternative method
+                      of `Path.of(URI)` fails for URIs encoding relative-path references [RR] because
+                      it requires putting a scheme on the URI, and the only relevant scheme it supports
+                      by default is `file:`, which cannot encode a relative-path reference [FSS]. */
                     String s = uRef.getPath();
                     final Matcher m = tildeBasedReferencePattern.matcher( s );
                     final Path pBase;
@@ -433,6 +437,8 @@ public final class ImageMould<C extends ReusableCursor> {
 
 // NOTES
 // ─────
+//   FSS  File-scheme URI syntax.  https://www.rfc-editor.org/rfc/rfc8089#section-2
+//
 //   ML · Mere logging of the IO error in order to avoid redundant and incomplete reporting.  The same
 //        or similar error is almost certain to recur at least once during imaging, each recurrence
 //        followed by a report to the user complete with source path and line number.
