@@ -336,7 +336,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     return true; }}
             if( isRemote( uRef )) { // Then the resource would be reachable only through a network.
                 if( !looksProbeable( uRef )) {
-                    err().println( errHead(f, mRef.lineNumber())
+                    err().println( errHead( f, mRef.lineNumber() )
                       + "Unable to probe this form of reference: " + sRef );
                     iR.set( unimageable );
                     return true; }
@@ -345,7 +345,7 @@ public final class ImageMould<C extends ReusableCursor> {
             else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
                   making the resource reachable through a local file system. */
                 if( uRef.getRawQuery() != null  ||  uRef.getRawFragment() != null ) {
-                    err().println( errHead(f, mRef.lineNumber())
+                    err().println( errHead( f, mRef.lineNumber() )
                       + "Unsupported query or fragment component on local reference: " + sRef );
                     iR.set( unimageable );
                     return true; }
