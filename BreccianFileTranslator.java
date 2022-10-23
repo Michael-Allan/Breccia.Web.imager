@@ -31,7 +31,6 @@ import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.malformationIndex;
 import static Breccia.Web.imager.Project.malformationMessage;
 import static Breccia.Web.imager.Project.looksBreccian;
-import static Breccia.Web.imager.Project.sourceFile;
 import static Breccia.Web.imager.ErrorAtFile.errHead;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static java.awt.Font.createFont;
@@ -91,7 +90,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
    // ━━━  F i l e   T r a n s l a t o r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override void finish( final Path imageFile ) throws ErrorAtFile {
+    public @Override void finish( Path sourceFile, final Path imageFile ) throws ErrorAtFile {
         try {
 
           // XHTML DOM ← XHTML image file
@@ -109,7 +108,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // XHTML DOM ← XHTML DOM
           // ─────────
-            finish( imageFile, d );
+            finish( sourceFile, d );
 
           // XHTML image file ← XHTML DOM
           // ────────────────
@@ -332,7 +331,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     /** @param d The image file in parsed DOM form.
       */
-    protected void finish( final Path imageFile, final Document d ) {
+    protected void finish( Path sourceFile, final Document d ) {
         final Node fileFractum = d.getDocumentElement()./*body*/getLastChild().getFirstChild();
         assert hasName( "FileFractum", fileFractum );
 
@@ -349,8 +348,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             try { new URI( sRef ); } // The reference in parsed `URI` form.
             catch( final URISyntaxException x ) {
                 final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
-                mould.err().println( errHead( sourceFile(imageFile), p.lineNumber )
-                  + malformationMessage( x, p ));
+                mould.err().println( errHead(sourceFile,p.lineNumber) + malformationMessage(x,p) );
                 continue; }
             if( looksBreccian( sRef )) sRef += ".xht"; // Hyperlinking instead to the image file.
             final Element a = d.createElementNS( nsHTML, "html:a" );

@@ -252,7 +252,7 @@ public final class ImageMould<C extends ReusableCursor> {
             final Path imageFileRelative = imageFile( boundaryPathDirectory.relativize( sourceFile ));
             out(1).println( "  → " + imageFileRelative );
             try {
-                translator.finish( outDirectory.resolve( imageFileRelative ));
+                translator.finish( sourceFile, outDirectory.resolve( imageFileRelative ));
                 ++count; }
             catch( final ErrorAtFile x ) { err().println( errMsg( x )); }}
         if( count == 0 ) out(2).println( "    none finished" );

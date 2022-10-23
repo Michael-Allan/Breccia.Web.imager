@@ -16,7 +16,7 @@ public interface FileTranslator<C extends ReusableCursor> {
       *
       *     @see #translate(Path,Path)
       */
-    public void finish( Path imageFile ) throws ErrorAtFile;
+    public void finish( Path sourceFile, Path imageFile ) throws ErrorAtFile;
 
 
 
