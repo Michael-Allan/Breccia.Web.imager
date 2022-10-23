@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import java.nio.file.OpenOption;
 import Java.*;
 import java.util.*;
-import java.util.regex.Matcher;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -29,6 +28,8 @@ import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.Project.imageSimpleName;
+import static Breccia.Web.imager.Project.malformationIndex;
+import static Breccia.Web.imager.Project.malformationMessage;
 import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.Project.sourceFile;
 import static Breccia.Web.imager.ErrorAtFile.errHead;
@@ -41,7 +42,6 @@ import static java.lang.Character.isDigit;
 import static java.lang.Character.toLowerCase;
 import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
-import static java.lang.Math.max;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
@@ -54,7 +54,6 @@ import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
-import static Java.Unicode.graphemePattern;
 import static java.util.Arrays.sort;
 import static javax.xml.transform.OutputKeys.*;
 
@@ -283,7 +282,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // Form the pointer
       // ────────────────
         offset -= offsetRegional; // whole text → `textRegional`
-        final int column = columnarSpan( textRegional, lineStart, offset );
+        final int column = GCC.clusterCount( textRegional, lineStart, offset );
         return new CharacterPointer( line, lineLocator.number(), column ); }
 
 
@@ -295,40 +294,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final Element p = parentElement( markup );
         if( p == null ) throw new IllegalArgumentException( markup.toString() );
         return characterPointer( p, c ); }
-
-
-
-    /** Returns the number of grapheme clusters within `text` between positions `start` and `end`.
-      * Omits any partial cluster at the end of the span.
-      *
-      *     @see <a href='https://unicode.org/reports/tr29/#Grapheme_Cluster_Boundaries'>
-      *       Grapheme cluster boundaries in Unicode text segmentation</a>
-      */
-    private int columnarSpan( String text, int start, int end ) {
-        return columnarSpan( text, start, end, /*wholeOnly*/true ); }
-
-
-
-    /** @param wholeOnly Whether to omit any partial cluster at the end of the span.  If `true` and `end`
-      *   bisects the final cluster — the character at position `end` being part of the same extended
-      *   cluster as the preceding character — then the final cluster is omitted from the count.
-      *   Otherwise the final cluster is included.
-      *       <p>Omitting partial clusters at the end is generally the behaviour you want in order
-      *   to print a line of text with a character pointer positioned beneath it (e.g. ‘^’)
-      *   pointing *into* the cluster of the character at the given index, as opposed to after.</p>
-      */
-    private int columnarSpan( final String text, final int start, final int end,
-          final boolean wholeOnly ) {
-        graphemeMatcher.reset( text ).region( start, end );
-        int count = 0;
-        while( graphemeMatcher.find() ) ++count;
-        if( wholeOnly  &&  count > 0  &&  end < text.length() ) {
-            final int countNext = columnarSpan( text, start, end + 1, false );
-            if( countNext == count ) --count; } /* The character at `end` bisects the final cluster,
-              which therefore lies partly outside the span.  Therefore exclude it from the count.
-                  The would-be alternative of using `\X\b{g}` instead of  `\X` in the `graphemeMatcher`
-              pattern fails to work; the addition of `\b{g}` has no apparent effect. */
-        return count; }
 
 
 
@@ -383,9 +348,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             String sRef = tRef.getData(); // The reference in string form.
             try { new URI( sRef ); } // The reference in parsed `URI` form.
             catch( final URISyntaxException x ) {
-                final CharacterPointer p = characterPointer( eRef, max(x.getIndex(),0) );
+                final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
                 mould.err().println( errHead( sourceFile(imageFile), p.lineNumber )
-                  + "Malformed URI reference: " + x.getReason() + '\n' + p.markedLine() );
+                  + malformationMessage( x, p ));
                 continue; }
             if( looksBreccian( sRef )) sRef += ".xht"; // Hyperlinking instead to the image file.
             final Element a = d.createElementNS( nsHTML, "html:a" );
@@ -412,11 +377,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    private final GraphemeClusterCounter GCC = new GraphemeClusterCounter();
+
+
+
     private Font glyphTestFont;
-
-
-
-    private final Matcher graphemeMatcher = graphemePattern.matcher( "" );
 
 
 

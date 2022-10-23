@@ -1,8 +1,11 @@
 package Breccia.Web.imager;
 
+import Java.CharacterPointer;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
+import static java.lang.Math.max;
 import static java.lang.System.getProperty;
 
 
@@ -69,6 +72,19 @@ public final class Project {
       *       URI reference</a>.
       */
     static boolean looksBreccian( final String ref ) { return ref.endsWith( ".brec" ); }
+
+
+
+    /** Returns `max( x.getIndex(), 0 )`, so translating as zero any index of -1.
+      */
+    static int malformationIndex( final URISyntaxException x ) { return max( x.getIndex(), 0 ); }
+
+
+
+    /** Makes a message to describe a malformed URI reference.
+      */
+    static String malformationMessage( final URISyntaxException x, final CharacterPointer p ) {
+      return "Malformed URI reference: " + x.getReason() + '\n' + p.markedLine(); }
 
 
 

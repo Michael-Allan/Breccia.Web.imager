@@ -23,6 +23,8 @@ import static Breccia.Web.imager.Project.imageFile;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBreccian;
+import static Breccia.Web.imager.Project.malformationIndex;
+import static Breccia.Web.imager.Project.malformationMessage;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
 import static Breccia.Web.imager.ErrorAtFile.errHead;
@@ -331,7 +333,8 @@ public final class ImageMould<C extends ReusableCursor> {
             final URI uRef; { // The reference in parsed `URI` form.
                 try { uRef = new URI( sRef ); }
                 catch( final URISyntaxException x ) {
-                    err().println( errMsg( f, mRef.lineNumber(), x ));
+                    final CharacterPointer p = mRef.characterPointer( malformationIndex( x ));
+                    err().println( errHead(f,p.lineNumber) + malformationMessage(x,p) );
                     iR.set( unimageable );
                     return true; }}
             if( isRemote( uRef )) { // Then the resource would be reachable only through a network.
