@@ -142,19 +142,19 @@ public final class ImageMould<C extends ReusableCursor> {
         if( isDirectory( boundaryPath )) {   // A streamlined process versus that of `pullPath`
             pullDirectory( boundaryPath ); } // whose added testing and messaging would be redundant
         else pullFile( boundaryPath );       // for this topmost path.
-        // Now `imageabilityDetermination` is structurally complete.  Newly started threads
+        // Now `imageabilityDeterminations` is structurally complete.  Newly started threads
         // may safely use it for all but structural modification.
 
 
       // ════════════════════════════════════
       // 2. Begin reducing the indeterminates, determining the imageability of each
       // ════════════════════════════════════
-        imageabilityDetermination.forEach( this::formalResources_recordFrom ); // Collate the resources.
+        imageabilityDeterminations.forEach( this::formalResources_recordFrom ); // Collate the resources.
         // Now `formalResources` is structurally complete.  Newly started threads
         // may safely use it for all but structural modification.
 
-      // Start any change probes that are required for remote resources
-      // ───────────────────────
+      // Start any probes that are required for remote resources
+      // ────────────────
         final Phaser barrier = new Phaser();
         final Map<String,RemoteChangeProbe> probes = new HashMap<>( initialCapacity( 256 ));
           // Network hosts (keys) mapped each to its assigned probe (value).
@@ -170,29 +170,35 @@ public final class ImageMould<C extends ReusableCursor> {
                 thread.start();
                 return probe; }));
 
-      // Probe the locally reachable resources
-      // ─────────────────────────────────────
+      // Probe the local resources
+      // ─────────────────────────
         formalResources.local.forEach( (res, dependants) -> {
             final FileTime resTime; {
                 FileTime t = null;
+                assert exists( res ); /* Assured by the API of `formalResources.local`.
+                  Therefore any failure to read the timestamp of `res` below is unexpected. */
                 try { t = getLastModifiedTime( res ); }
                 catch( final IOException x ) {
-                    logger.warning( () -> "Forcefully reimaging dependants of resource `" + res // [ML]
-                      + "` its timestamp being unreadable: " + x ); }
+                    logger.warning( () -> "Forcefully reimaging the dependants of resource `" + res
+                      + "` its timestamp being unreadable: " + x ); } // [LUR]
                 resTime = t; }
             dependants.forEach( dep -> {
-                final ImageabilityReference depImageability = imageabilityDetermination.get( dep );
+                final ImageabilityReference depImageability = imageabilityDeterminations.get( dep );
                 if( depImageability.get() != indeterminate ) return; /* Already determined by an
                   earlier pass of this probe, or (however unlikely) one of the slow remote probes. */
                 boolean toReformImage = true;
                 if( resTime != null ) { // So letting the null case be forcefully reimaged, as per above.
                     final Path depImage = imageFile( dep );
+                    assert exists( depImage ); /* Guaranteed by the `depImageability` guard above,
+                      because already `dep` would have been marked as `imageable` if it had no image.
+                      Therefore any failure to read the timestamp of `depImage` below is unexpected. */
                     try { toReformImage = resTime.compareTo(getLastModifiedTime(depImage)) >= 0; }
                       // Viz. iff the formal resource has changed since the image was formed.
                     catch( final IOException x ) {
-                        logger.warning( () -> "Forcefully reimaging `" + depImage // [ML]
-                          + "` its timestamp being unreadable: " + x ); }}
-                if( toReformImage ) imageabilityDetermination.get(dep).set( imageable ); }); });
+                        logger.warning( () ->
+                          "Forcefully reimaging the source file, the timestamp of its image `"
+                          + depImage + "` being unreadable: " + x ); }} // [LUR]
+                if( toReformImage ) depImageability.set( imageable ); }); });
 
 
       // ═══════════════════════════
@@ -210,7 +216,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
           // Translate any imageables now determined, so forming part of the image
           // ────────────────────────
-            for( final var det: imageabilityDetermination.entrySet() ) {
+            for( final var det: imageabilityDeterminations.entrySet() ) {
                 final ImageabilityReference iR = det.getValue();
                 if( iR.get() != imageable ) continue;
                 ++c;
@@ -245,7 +251,7 @@ public final class ImageMould<C extends ReusableCursor> {
       // ═════════════════════════
         out(2).println( "Finishing the image files" );
         count = 0; // Count of finished image files.
-        for( final var det: imageabilityDetermination.entrySet() ) {
+        for( final var det: imageabilityDeterminations.entrySet() ) {
             final ImageabilityReference iR = det.getValue();
             if( iR.get() != imaged ) continue;
             final Path sourceFile = det.getKey();
@@ -265,7 +271,7 @@ public final class ImageMould<C extends ReusableCursor> {
       * structural modification being defined as for `{@linkplain HashMap HashMap}`.
       *
       */ @Async // See `start` of remote probe threads in `formImage`.
-    final Map<Path,ImageabilityReference> imageabilityDetermination = new HashMap<>(
+    final Map<Path,ImageabilityReference> imageabilityDeterminations = new HashMap<>(
       initialCapacity( 8192/*source files*/ ));
 
 
@@ -326,32 +332,34 @@ public final class ImageMould<C extends ReusableCursor> {
                 try { mRef = translator.formalReferenceAt( in ); }
                 catch( final ParseError x ) {
                     err().println( errMsg( f, x ));
-                    iR.set( unimageable );
-                    return false; }
-                if( mRef == null ) return true; }
+                    iR.set( unimageable ); // The source fails to parse.
+                    return /*to continue parsing*/false; } // No point, the parser has halted.
+                if( mRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
             final String sRef = mRef.text().toString(); // The reference in string form.
             final URI uRef; { // The reference in parsed `URI` form.
                 try { uRef = new URI( sRef ); }
                 catch( final URISyntaxException x ) {
                     final CharacterPointer p = mRef.characterPointer( malformationIndex( x ));
                     err().println( errHead(f,p.lineNumber) + malformationMessage(x,p) );
-                    iR.set( unimageable );
-                    return true; }}
-            if( isRemote( uRef )) { // Then the resource would be reachable only through a network.
+                    iR.set( unimageable ); // It fails to parse.
+                    return /*to continue parsing*/true; }} // For sake of reporting any further errors.
+            if( isRemote( uRef )) { // Then the resource would be reachable through a network.
                 if( !looksProbeable( uRef )) {
                     err().println( errHead( f, mRef.lineNumber() )
-                      + "Unable to probe this form of reference: " + sRef );
-                    iR.set( unimageable );
-                    return true; }
+                      + "Unable to access the referent by this form of reference: " + sRef );
+                    iR.set( unimageable ); // Do not image the file. [UFR]
+                    return // Without mapping ∵ `formalResources.remote` forbids unprobeable references.
+                      /*to continue parsing*/true; } // For sake of reporting any further errors.
                 map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(),
                   /*dependant*/f ); }
             else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
-                  making the resource reachable through a local file system. */
+                  indicating a resource that would be reachable through a file system. */
                 if( uRef.getRawQuery() != null  ||  uRef.getRawFragment() != null ) {
                     err().println( errHead( f, mRef.lineNumber() )
                       + "Unsupported query or fragment component on local reference: " + sRef );
-                    iR.set( unimageable );
-                    return true; }
+                    iR.set( unimageable ); // Do not image the file. [UFR]
+                    return // Without path formation ∵ the foregoing leaves the intended form unclear.
+                      /*to continue parsing*/true; } // For sake of reporting any further errors.
                 final Path pRef; { /* The reference parsed and resolved as a local file `Path`.  Formal
                       translation from `URI` to `Path` is here coded ad hoc.  The alternative method
                       of `Path.of(URI)` fails for URIs encoding relative-path references [RR] because
@@ -366,8 +374,12 @@ public final class ImageMould<C extends ReusableCursor> {
                     else pBase = f.getParent();             // or from the source file.
                     if( separatorChar != '/' ) s = s.replace( '/', separatorChar );
                     pRef = pBase.resolve( s ); }
-                if( !exists( pRef )) return true; /* Let the translator warn of this later;
-                  the only consequence is a broken hyperlink in the resulting image file. */
+                if( !exists( pRef )) { /* Then let the translator warn of it.  Unlike the present code,
+                      the translator tests the existence of all referents, whether formal or informal,
+                      making it a better place to issue reports of broken references. */
+                    iR.set( imageable ); // Therefore force imaging of this file.
+                    return // Without mapping ∵ `formalResources.local` forbids non-existent resources.
+                      /*to continue parsing*/true; } // For sake of reporting any further errors.
                 map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
             return true; }); }
         catch( final ParseError x ) {
@@ -393,7 +405,7 @@ public final class ImageMould<C extends ReusableCursor> {
       */
     private void pullFile( final Path f ) {
         if( !looksBreccian( f )) return;
-        imageabilityDetermination.computeIfAbsent( f, f_ -> {
+        imageabilityDeterminations.computeIfAbsent( f, f_ -> {
             final Imageability i;
             if( opt.toForce() ) i = imageable;
             else {
@@ -442,14 +454,27 @@ public final class ImageMould<C extends ReusableCursor> {
 // ─────
 //   FSS  File-scheme URI syntax.  https://www.rfc-editor.org/rfc/rfc8089#section-2
 //
-//   ML · Mere logging of the IO error in order to avoid redundant and incomplete reporting.  The same
-//        or similar error is almost certain to recur at least once during imaging, each recurrence
-//        followed by a report to the user complete with source path and line number.
+//   LUR  Logging of unexpected yet recoverable IO errors.  Aside from avoiding a flood of reports
+//        on the `err` stream, these lines of code merely serve as examples (the only ones at present)
+//        of efficient report formation for logging purposes.
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //
 //   SM · Structural modification of a `HashMap` defined.
 //        https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html
+//
+//   UFR  Marking a source file as `unimageable` after encountering an unsupported form of reference
+//        and reporting it as an error.  Neither of the alternatives seems adequate.
+//
+//           a) Marking the file as `imageable` would cause the preceding error report to be repeated
+//              when the translator prepares to probe the same reference.  Attempting to remedy
+//              that repetition by omitting (here) the initial report would risk the greater fault
+//              of leaving the error unreported.
+//           b) Leaving the imageability as `indeterminate` would risk the foregoing (a)
+//              because the file might subsequently be marked as `imageable`.
+//
+//        Rather leave the file `unimageable` and let the author repair the reference.
+
 
 
 

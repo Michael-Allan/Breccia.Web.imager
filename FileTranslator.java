@@ -24,6 +24,7 @@ public interface FileTranslator<C extends ReusableCursor> {
       * URI reference to an external imaging resource that would be formal were it obtained by
       * this translator.  ‘Nominal’ here means that what is returned ought to be a URI reference
       * and so forth, e.g. based on where it occurs in the markup, though actually it might not be.
+      * ‘Formal’ means determining of image form.
       *
       *     @see ImageMould#formalResources
       *     @return The formal reference, or null if there is none.

@@ -17,10 +17,10 @@ import static Java.URIs.isHTTP;
   * of each resource and so determines the imageability of the local source files that depend
   * on it (dependants).  Assigned a particular host from among `formalResources`, the probe
   * determines as imageable any dependant of a resource whose image file does not postdate
-  * the resource, then updates the dependant’s `imageabilityDetermination` accordingly.
+  * the resource, then updates the dependant’s `imageabilityDeterminations` accordingly.
   *
   *     @see ImageMould#formalResources
-  *     @see ImageMould#imageabilityDetermination
+  *     @see ImageMould#imageabilityDeterminations
   */
 final class RemoteChangeProbe implements Runnable {
 
@@ -35,7 +35,7 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
-    /** Whether it appears possible to probe the referent of `ref`.
+    /** Whether it appears possible to access the referent of the given reference.
       *
       *     @param ref A <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
       *       URI reference</a> to a remote resource.
@@ -101,7 +101,7 @@ final class RemoteChangeProbe implements Runnable {
       // ───────────────────────────────────────
         boolean toProbe = false;
         for( final Path dep: dependants ) {
-            final ImageabilityReference depImageability = mould.imageabilityDetermination.get( dep );
+            final ImageabilityReference depImageability = mould.imageabilityDeterminations.get( dep );
             if( depImageability.get() == indeterminate ) {
                 toProbe = true;
                 break; }}

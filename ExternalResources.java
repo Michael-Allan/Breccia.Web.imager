@@ -38,20 +38,28 @@ final @Async class ExternalResources {
 
 
 
-    /** Map of resources that are reachable through one or more of the local file systems.
-      * Each entry comprises a normalized file path to the resource (key)
-      * mapped to the set (value) of source files whose images depend on that resource.
+    /** Map of resources that would be reachable each through a file system.
+      * Each entry comprises a normalized file path to an existent resource (key)
+      * mapped to the set (value) of source files whose images depend on that resource. *//*
+      *
+      * Resource existence is required up front for sake of clarity of user feedback.  It allows broken
+      * references (to non-existent resources) to be reported in the context of their source markup
+      * while that markup is still easily accessible.
       */
     final HashMap<Path,HashSet<Path>> local = new HashMap<>( initialCapacity( 8192/*resources*/ ));
 
 
 
-    /** Map of resources that are reachable only through a network and appear to be probeable.
-      * Each entry comprises a normalized, unfragmented URI reference to the resource (key)
+    /** Map of resources that would be reachable each through a network.  Each entry comprises
+      * a normalized, unfragmented and apparently probeable URI reference to the resource (key)
       * mapped to the set (value) of source files whose images depend on that resource.
       *
-      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>URI reference</a>
       *     @see RemoteChangeProbe#looksProbeable(ava.net.URI)
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>URI reference</a> *//*
+      *
+      * Apparent probeability is required up front for sake of clarity of user feedback.  It allows
+      * unprobeable references to be reported in the context of their source markup while that markup
+      * is still easily accessible.
       */
     final HashMap<URI,HashSet<Path>> remote = new HashMap<>( initialCapacity( 8192/*resources*/ )); }
 
