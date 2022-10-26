@@ -9,10 +9,12 @@ import java.util.HashSet;
 import static Java.Hashing.initialCapacity;
 
 
-/** A record of external imaging resources, mapping each resource to the source files whose images depend
-  * on it.  ‘External’ here means located outside of the source file.  The record comprises two maps, one
-  * for local and another for remote resources.  Each entry of either map comprises a resource reference
-  * (key) mapped to the set (value) of source files whose images depend on that resource.
+/** A record of external imaging resources, mapping each resource to the source files
+  * whose images depend on it.  ‘External’ here means located outside of the source file.
+  * The record comprises two maps, namely `{@linkplain #local local}` for the resources
+  * that are file-system accessible, and `{@linkplain #remote remote}` for the resources
+  * that are network accessible.  Map entries each comprise a resource reference (key)
+  * mapped to the set (value) of source files whose images depend on that resource.
   *
   * <p>Each of the two maps is thread safe on condition of no concurrent structural modification,
   * structural modification being defined as for `{@linkplain HashMap HashMap}`
@@ -38,7 +40,7 @@ final @Async class ExternalResources {
 
 
 
-    /** Map of resources that would be reachable each through a file system.
+    /** Map of external imaging resources that are file-system accessible.
       * Each entry comprises a normalized file path to an existent resource (key)
       * mapped to the set (value) of source files whose images depend on that resource. *//*
       *
@@ -50,7 +52,7 @@ final @Async class ExternalResources {
 
 
 
-    /** Map of resources that would be reachable each through a network.  Each entry comprises
+    /** Map of external imaging resources that are network accessible.  Each entry comprises
       * a normalized, unfragmented and apparently probeable URI reference to the resource (key)
       * mapped to the set (value) of source files whose images depend on that resource.
       *
