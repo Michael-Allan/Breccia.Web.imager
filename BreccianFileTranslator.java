@@ -27,12 +27,14 @@ import static Breccia.parser.Typestamp.empty;
 import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
+import static Breccia.Web.imager.ErrorAtFile.errHead;
+import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.malformationIndex;
 import static Breccia.Web.imager.Project.malformationMessage;
 import static Breccia.Web.imager.Project.looksBreccian;
-import static Breccia.Web.imager.ErrorAtFile.errHead;
-import static Breccia.Web.imager.ErrorAtFile.wrnHead;
+import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
+import static Breccia.Web.imager.RemoteChangeProbe.unprobeableMessage;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
@@ -53,6 +55,7 @@ import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
+import static Java.URI_References.isRemote;
 import static java.util.Arrays.sort;
 import static javax.xml.transform.OutputKeys.*;
 
@@ -248,6 +251,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     /** @param markup An element of Breccian markup.
+      */
+    private CharacterPointer characterPointer( Element markup ) { return characterPointer( markup, 0 ); }
+
+
+
+    /** @param markup An element of Breccian markup.
       * @param c The offset in `markup` context of the character to point to.
       */
     private CharacterPointer characterPointer( final Element markup, final int c ) {
@@ -343,17 +352,45 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
               than an associative reference?  Then sync with `formalReferenceAt` above. */
             final Element eRef = (Element)n; // The reference enapsulated as an `Element`.
             n = n.getFirstChild();
-            final Text tRef = (Text)n; // The reference enapsulated as `Text`.
-            String sRef = tRef.getData(); // The reference in string form.
-            try { new URI( sRef ); } // The reference in parsed `URI` form.
-            catch( final URISyntaxException x ) {
-                final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
-                mould.err().println( errHead(sourceFile,p.lineNumber) + malformationMessage(x,p) );
-                continue; }
-            if( looksBreccian( sRef )) sRef += ".xht"; // Hyperlinking instead to the image file.
+            final Text tRef = (Text)n;          // The reference enapsulated as `Text`.
+            final String sRef = tRef.getData(); // The reference in string form.
+            final URI uRef; {                   // The reference in parsed `URI` form.
+                try { uRef = new URI( sRef ); }
+                catch( final URISyntaxException x ) {
+                    final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
+                    mould.err().println( errHead(sourceFile,p.lineNumber) + malformationMessage(x,p) );
+                    continue; }}
+            final String hRef; // The target reference for the hyperlink `a` element.
+
+          // remote
+          // ┈┈┈┈┈┈
+            if( isRemote( uRef )) { // Then the referent would be reachable through a network.
+                if( !looksProbeable( uRef )) {
+                    final CharacterPointer p = characterPointer( eRef );
+                    mould.err().println( errHead(sourceFile,p.lineNumber) + unprobeableMessage(p) );
+                    continue; }
+                ; }
+
+          // local
+          // ┈┈┈┈┈
+            else { /* This is an absolute-path reference or relative-path reference [RR],
+                  indicating a referent that would be reachable through a file system. */
+                final Path pRef; { // The reference parsed and resolved as a local file path.
+                    try { pRef = mould.resolvePathReference( uRef, sourceFile ); }
+                    catch( final IllegalArgumentException x ) {
+                        final CharacterPointer p = characterPointer( eRef );
+                        mould.err().println( errHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
+                          + p.markedLine() );
+                    continue; }}
+                ; }
+
+
+            hRef = looksBreccian(sRef) ? sRef + ".xht" : sRef; // TEST, targeting image files.
+
+
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
-            a.setAttribute( "href", sRef );
+            a.setAttribute( "href", hRef );
             a.appendChild( tRef ); }}
 
 
@@ -737,6 +774,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   MT · Mask trimming for ID stability.  The purpose is to omit any punctuation marks such as quote
 //        characters, commas or periods that might destabilize the ID as the source text is edited.
+//
+//   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //
 //   SNR  `StAXSource` is ‘not reusable’ according to its API.  This is puzzling, however,
 //        given that it’s a pure wrapper.

@@ -1,6 +1,7 @@
 package Breccia.Web.imager;
 
 import Java.Async;
+import Java.CharacterPointer;
 import Java.UnsourcedInterrupt;
 import java.net.URI;
 import java.nio.file.Path;
@@ -61,6 +62,15 @@ final class RemoteChangeProbe implements Runnable {
       */
     static final int msQueryInterval = /*TEST*/0; /* Cf. `Crawl-delay`.
       https://en.wikipedia.org/wiki/Robots_exclusion_standard#Crawl-delay_directive */
+
+
+
+    /** Makes a message to describe an unprobeable URI reference.
+      *
+      *     @see #looksProbeable(URI)
+      */
+    static String unprobeableMessage( final CharacterPointer p ) {
+      return "Unable to access the referent by this form of reference" + '\n' + p.markedLine(); }
 
 
 

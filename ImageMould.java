@@ -17,6 +17,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static Breccia.Web.imager.ErrorAtFile.errHead;
+import static Breccia.Web.imager.ErrorAtFile.errMsg;
+import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
 import static Breccia.Web.imager.Project.imageFile;
@@ -27,9 +30,7 @@ import static Breccia.Web.imager.Project.malformationIndex;
 import static Breccia.Web.imager.Project.malformationMessage;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
-import static Breccia.Web.imager.ErrorAtFile.errHead;
-import static Breccia.Web.imager.ErrorAtFile.errMsg;
-import static Breccia.Web.imager.ErrorAtFile.wrnHead;
+import static Breccia.Web.imager.RemoteChangeProbe.unprobeableMessage;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
 import static java.io.File.separatorChar;
@@ -317,7 +318,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Records all formal resources of source file `f`, provided it is of indeterminate imageability;
+    /** Records all formal resources of source file `f`, provided `f` is of indeterminate imageability;
       * otherwise does nothing.
       *
       *     @see #formalResources
@@ -343,37 +344,32 @@ public final class ImageMould<C extends ReusableCursor> {
                     err().println( errHead(f,p.lineNumber) + malformationMessage(x,p) );
                     iR.set( unimageable ); // It fails to parse.
                     return /*to continue parsing*/true; }} // For sake of reporting any further errors.
+
+          // remote
+          // ┈┈┈┈┈┈
             if( isRemote( uRef )) { // Then the resource would be reachable through a network.
                 if( !looksProbeable( uRef )) {
-                    err().println( errHead( f, mRef.lineNumber() )
-                      + "Unable to access the referent by this form of reference: " + sRef );
+                    final CharacterPointer p = mRef.characterPointer();
+                    err().println( errHead(f,p.lineNumber) + unprobeableMessage(p) );
                     iR.set( unimageable ); // Do not image the file. [UFR]
                     return // Without mapping ∵ `formalResources.remote` forbids unprobeable references.
                       /*to continue parsing*/true; } // For sake of reporting any further errors.
                 map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(),
                   /*dependant*/f ); }
+
+          // local
+          // ┈┈┈┈┈
             else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
                   indicating a resource that would be reachable through a file system. */
-                if( uRef.getRawQuery() != null  ||  uRef.getRawFragment() != null ) {
-                    err().println( errHead( f, mRef.lineNumber() )
-                      + "Unsupported query or fragment component on local reference: " + sRef );
-                    iR.set( unimageable ); // Do not image the file. [UFR]
-                    return // Without path formation ∵ the foregoing leaves the intended form unclear.
-                      /*to continue parsing*/true; } // For sake of reporting any further errors.
-                final Path pRef; { /* The reference parsed and resolved as a local file `Path`.  Formal
-                      translation from `URI` to `Path` is here coded ad hoc.  The alternative method
-                      of `Path.of(URI)` fails for URIs encoding relative-path references [RR] because
-                      it requires putting a scheme on the URI, and the only relevant scheme it supports
-                      by default is `file:`, which cannot encode a relative-path reference [FSS]. */
-                    String s = uRef.getPath();
-                    final Matcher m = tildeBasedReferencePattern.matcher( s );
-                    final Path pBase;
-                    if( m.lookingAt() ) {
-                        s = s.substring( m.end() );
-                        pBase = opt.authorHomeDirectory(); } // Resolved either from the home directory,
-                    else pBase = f.getParent();             // or from the source file.
-                    if( separatorChar != '/' ) s = s.replace( '/', separatorChar );
-                    pRef = pBase.resolve( s ); }
+                final Path pRef; { // The reference parsed and resolved as a local file path.
+                    try { pRef = resolvePathReference( uRef, f ); }
+                    catch( final IllegalArgumentException x ) {
+                        final CharacterPointer p = mRef.characterPointer();
+                        err().println( errHead(f,p.lineNumber) + x.getMessage() + '\n'
+                          + p.markedLine() );
+                        iR.set( unimageable ); // Do not image the file. [UFR]
+                        return // Without mapping ∵ the foregoing leaves the intended resource unclear.
+                          /*to continue parsing*/true; }} // For sake of reporting any further errors.
                 if( !exists( pRef )) { /* Then let the translator warn of it.  Unlike the present code,
                       the translator tests the existence of all referents, whether formal or informal,
                       making it a better place to issue reports of broken references. */
@@ -431,6 +427,38 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    /** Translates the path reference `ref` contained in file `f` to a local file path.
+      * Any tilde prefix is taken to represent the author’s home directory.
+      *
+      * <p>The alternative method `Path.of(URI)` fails for relative-path references.  It requires
+      * grafting a scheme onto the reference, and the only relevant scheme it supports is `file`
+      * (at least by default), which cannot encode a relative-path reference.</p>
+      *
+      *     @param ref A path reference, whether an absolute-path reference or a relative-path reference.
+      *     @param f The path of the referring source file, wherein `ref` is contained.
+      *     @throws IllegalArgumentException If `ref` is not a path reference.
+      *     @throws IllegalArgumentException If `ref` includes a query component or fragment component.
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.2'>
+      *       URI generic syntax §4.2</a>
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc8089#section-2'>File-scheme URI syntax</a>
+      *     @see Path#of(URI)
+      */
+    Path resolvePathReference( final URI ref, final Path f ) {
+        if( isRemote( ref )) throw new IllegalArgumentException( "Not a path reference" );
+        if( ref.getRawQuery() != null  ||  ref.getRawFragment() != null ) {
+            throw new IllegalArgumentException( "Query or fragment component on a path reference" ); }
+        String s = ref.getPath();
+        final Matcher m = tildeBasedReferencePattern.matcher( s );
+        final Path base; {
+            if( m.lookingAt() ) {
+                s = s.substring( m.end() );
+                base = opt.authorHomeDirectory(); } // Resolved either from the home directory,
+            else base = f.getParent(); }           // or the directory of the source file.
+        if( separatorChar != '/' ) s = s.replace( '/', separatorChar );
+        return base.resolve( s ); }
+
+
+
     /** A `lookingAt` pattern that detects a URI reference beginning with a tilde `~`
       * that might symbolize the user’s local home directory.
       *
@@ -452,8 +480,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
 // NOTES
 // ─────
-//   FSS  File-scheme URI syntax.  https://www.rfc-editor.org/rfc/rfc8089#section-2
-//
 //   LUR  Logging of unexpected yet recoverable IO errors.  Aside from avoiding a flood of reports
 //        on the `err` stream, these lines of code merely serve as examples (the only ones at present)
 //        of efficient report formation for logging purposes.
