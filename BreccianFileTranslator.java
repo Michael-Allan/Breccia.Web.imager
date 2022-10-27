@@ -420,6 +420,30 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    private final Transformer identityTransformer; {
+        Transformer t;
+        try { t = TransformerFactory.newInstance().newTransformer(); }
+        catch( TransformerConfigurationException x ) { throw new Unhandled( x ); }
+        t.setOutputProperty( DOCTYPE_SYSTEM, systemID_HTML ); /* A DTD is mandatory. [DTR]
+          A system identifier for the DTD is not mandatory.  One is given here only as a workaround in
+          order to make `identityTransformer` generate the DTD.  It fails to do so unless an identifier
+          of some kind (system or public) is given.
+              The would-be alternative of inserting a DTD into the DOM before file output, as with
+          `Document.appendChild( Document.getImplementation().createDocumentType( "html", null, null ))`,
+          fails without effect. */
+        t.setOutputProperty( ENCODING, "UTF-8" );
+        t.setOutputProperty( METHOD, "XML" );
+        t.setOutputProperty( OMIT_XML_DECLARATION, "yes" );
+        identityTransformer = t; }
+
+
+
+    private final Map<String,Integer> idMap = new HashMap<>();
+      // Fractum base identifiers (keys) each mapped to the count of occurences (value).
+      // Base identifiers omit any ordinal suffix.
+
+
+
     private static boolean isFractum( final Element e ) { return e.hasAttribute( "typestamp" ); }
 
 
@@ -448,30 +472,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         if( 'A' <= ch && ch <= 'Z' ) b.setCharAt( 0, toLowerCase(ch) ); /* Lower-casing the first letter
           for sake of ID stability, as the keyword might lead a sentence now, then move under editing. */
         return b.toString(); }
-
-
-
-    private final Transformer identityTransformer; {
-        Transformer t;
-        try { t = TransformerFactory.newInstance().newTransformer(); }
-        catch( TransformerConfigurationException x ) { throw new Unhandled( x ); }
-        t.setOutputProperty( DOCTYPE_SYSTEM, systemID_HTML ); /* A DTD is mandatory. [DTR]
-          A system identifier for the DTD is not mandatory.  One is given here only as a workaround in
-          order to make `identityTransformer` generate the DTD.  It fails to do so unless an identifier
-          of some kind (system or public) is given.
-              The would-be alternative of inserting a DTD into the DOM before file output, as with
-          `Document.appendChild( Document.getImplementation().createDocumentType( "html", null, null ))`,
-          fails without effect. */
-        t.setOutputProperty( ENCODING, "UTF-8" );
-        t.setOutputProperty( METHOD, "XML" );
-        t.setOutputProperty( OMIT_XML_DECLARATION, "yes" );
-        identityTransformer = t; }
-
-
-
-    private final Map<String,Integer> idMap = new HashMap<>();
-      // Fractum base identifiers (keys) each mapped to the count of occurences (value).
-      // Base identifiers omit any ordinal suffix.
 
 
 
