@@ -4,23 +4,37 @@ import Breccia.parser.*;
 import Breccia.XML.translator.BrecciaXCursor;
 import java.awt.Font;
 import java.awt.FontFormatException;
-import java.io.*;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.OpenOption;
 import Java.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringTokenizer;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.transform.*;
-import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import org.w3c.dom.*;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
 import static Breccia.parser.Typestamp.empty;
@@ -207,9 +221,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         ++un.count; }}
                     while( (n = successor(n)) != null );
                 if( !unsMap.isEmpty() ) {
-                    final var uns = unsMap.values().toArray( unArrayType );
+                    final UnglyphedCharacter[] uns = unsMap.values().toArray( unArrayType );
                     sort( uns, unsComparator );
-                    for( var un: uns ) {
+                    for( final var un: uns ) {
                         mould.wrn().println( wrnHead(sourceFile,un.pointer.lineNumber) + un ); }}}
 
           // XHTML DOM ← X-Breccia DOM
@@ -305,6 +319,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    private PrintWriter err() {  return mould.err(); }
+
+
+
     /** @param head A `Head` element representing a fractal head.
       * @return The file title as derived from the head, or null if it yields none.
       */
@@ -348,7 +366,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // ──────────────
         for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
             if( !hasName( "Reference", n )) continue;
-            assert hasName( "AssociativeReference", fractalParent(n) ); /* Adding a hyperlink to other
+            assert hasName( "AssociativeReference", ownerFractum(n) ); /* Adding a hyperlink to other
               than an associative reference?  Then sync with `formalReferenceAt` above. */
             final Element eRef = (Element)n; // The reference enapsulated as an `Element`.
             n = n.getFirstChild();
@@ -358,7 +376,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 try { uRef = new URI( sRef ); }
                 catch( final URISyntaxException x ) {
                     final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
-                    mould.err().println( errHead(sourceFile,p.lineNumber) + malformationMessage(x,p) );
+                    err().println( errHead(sourceFile,p.lineNumber) + malformationMessage(x,p) );
                     continue; }}
             final String hRef; // The target reference for the hyperlink `a` element.
 
@@ -367,7 +385,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             if( isRemote( uRef )) { // Then the referent would be reachable through a network.
                 if( !looksProbeable( uRef )) {
                     final CharacterPointer p = characterPointer( eRef );
-                    mould.err().println( errHead(sourceFile,p.lineNumber) + unprobeableMessage(p) );
+                    err().println( errHead(sourceFile,p.lineNumber) + unprobeableMessage(p) );
                     continue; }
                 ; }
 
@@ -379,7 +397,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     try { pRef = mould.resolvePathReference( uRef, sourceFile ); }
                     catch( final IllegalArgumentException x ) {
                         final CharacterPointer p = characterPointer( eRef );
-                        mould.err().println( errHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
+                        err().println( errHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
                           + p.markedLine() );
                     continue; }}
                 ; }
@@ -392,15 +410,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             eRef.insertBefore( a, tRef );
             a.setAttribute( "href", hRef );
             a.appendChild( tRef ); }}
-
-
-
-    /** Returns the nearest fractal ancestor of `node`, or null if there is none.
-      */
-    private static Element fractalParent( final Node node ) {
-        Element p = parentElement( node );
-        while( p != null && !isFractum(p) ) p = parentElement( p );
-        return p; }
 
 
 
@@ -497,6 +506,15 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private final ImagingOptions opt;
+
+
+
+    /** Returns the nearest ancestor of `node` that is a fractum, or null if there is none.
+      */
+    private static Element ownerFractum( final Node node ) {
+        Element p = parentElement( node );
+        while( p != null && !isFractum(p) ) p = parentElement( p );
+        return p; }
 
 
 
@@ -738,7 +756,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-     private final Map<Integer,UnglyphedCharacter> unsMap = new HashMap<>();
+    private final Map<Integer,UnglyphedCharacter> unsMap = new HashMap<>();
       // Code points (keys) each mapped to an unglyphed-character record (value).
 
 
