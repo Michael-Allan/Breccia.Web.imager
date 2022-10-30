@@ -48,7 +48,7 @@ import static Breccia.Web.imager.Project.malformationIndex;
 import static Breccia.Web.imager.Project.malformationMessage;
 import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
-import static Breccia.Web.imager.RemoteChangeProbe.unprobeableMessage;
+import static Breccia.Web.imager.RemoteChangeProbe.improbeableMessage;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
@@ -61,6 +61,7 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
+import static Java.Nodes.asElement;
 import static Java.Nodes.asText;
 import static Java.Nodes.hasName;
 import static Java.Nodes.parentElement;
@@ -125,7 +126,15 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // XHTML DOM ← XHTML DOM
           // ─────────
-            finish( sourceFile, d );
+            final Element fileFractum = asElement(
+              d.getDocumentElement()./*body*/getLastChild().getFirstChild() );
+            assert hasName( "FileFractum", fileFractum );
+         // xuncPrivatized.clear(); /* TEST.  Maybe also set the document against which `xuncPrivatized`
+         //   is POPULATED (so better put these lines in a method and call that)
+         //   and have `isPrivatized(Node)` test the node’s owner document against it on each call. */
+         // POPULATE( xuncPrivatized, fileFractum, "xuncPrivatized" ); /* TEST.
+         //   Elsewhere use `POPULATE` to populate `endsRegional`. */
+            finish( sourceFile, fileFractum );
 
           // XHTML image file ← XHTML DOM
           // ────────────────
@@ -356,11 +365,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param d The image file in parsed DOM form.
+    /** @param fileFractum The file fractal image in DOM form.
       */
-    protected void finish( Path sourceFile, final Document d ) {
-        final Node fileFractum = d.getDocumentElement()./*body*/getLastChild().getFirstChild();
-        assert hasName( "FileFractum", fileFractum );
+    protected void finish( Path sourceFile, final Element fileFractum ) {
+        final Document d = fileFractum.getOwnerDocument();
 
       // URI references each formed as a hyperlink
       // ──────────────
@@ -384,8 +392,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ┈┈┈┈┈┈
             if( isRemote( uRef )) { // Then the referent would be reachable through a network.
                 if( !looksProbeable( uRef )) {
-                    final CharacterPointer p = characterPointer( eRef );
-                    err().println( errHead(sourceFile,p.lineNumber) + unprobeableMessage(p) );
+                 // if( !isPrivatized( eRef )) {
+                        final CharacterPointer p = characterPointer( eRef );
+                        err().println( errHead(sourceFile,p.lineNumber) + improbeableMessage(p) );
+                 //     ; }
                     continue; }
                 ; }
 

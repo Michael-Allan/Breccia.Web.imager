@@ -60,7 +60,7 @@ final @Async class ExternalResources {
       *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>URI reference</a> *//*
       *
       * Apparent probeability is required up front for sake of clarity of user feedback.  It allows
-      * unprobeable references to be reported in the context of their source markup while that markup
+      * improbeable references to be reported in the context of their source markup while that markup
       * is still easily accessible.
       */
     final HashMap<URI,HashSet<Path>> remote = new HashMap<>( initialCapacity( 8192/*resources*/ )); }

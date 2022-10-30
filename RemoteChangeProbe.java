@@ -65,11 +65,11 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
-    /** Makes a message to describe an unprobeable URI reference.
+    /** Makes a message to describe an improbeable URI reference.
       *
       *     @see #looksProbeable(URI)
       */
-    static String unprobeableMessage( final CharacterPointer p ) {
+    static String improbeableMessage( final CharacterPointer p ) {
       return "Unable to access the referent by this form of reference" + '\n' + p.markedLine(); }
 
 

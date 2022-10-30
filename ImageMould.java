@@ -3,20 +3,22 @@ package Breccia.Web.imager;
 import Breccia.parser.*;
 import Java.*;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeoutException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import static Breccia.parser.Cursor.isPrivatized;
 import static Breccia.Web.imager.ErrorAtFile.errHead;
 import static Breccia.Web.imager.ErrorAtFile.errMsg;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
@@ -30,7 +32,7 @@ import static Breccia.Web.imager.Project.malformationIndex;
 import static Breccia.Web.imager.Project.malformationMessage;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
-import static Breccia.Web.imager.RemoteChangeProbe.unprobeableMessage;
+import static Breccia.Web.imager.RemoteChangeProbe.improbeableMessage;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
 import static java.io.File.separatorChar;
@@ -327,64 +329,81 @@ public final class ImageMould<C extends ReusableCursor> {
       */
     private void formalResources_recordFrom( final Path f, final ImageabilityReference iR ) {
         if( iR.get() != indeterminate ) return;
+        imps.clear(); // List of improbeable-reference occurences.
         final C in = translator.sourceCursor();
-        try { in.perStateConditionally( f, state -> {
-            final Markup mRef; { // The reference enapsulated as parsed `Markup`.
-                try { mRef = translator.formalReferenceAt( in ); }
-                catch( final ParseError x ) {
-                    err().println( errMsg( f, x ));
-                    iR.set( unimageable ); // The source fails to parse.
-                    return /*to continue parsing*/false; } // No point, the parser has halted.
-                if( mRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
-            final String sRef = mRef.text().toString(); // The reference in string form.
-            final URI uRef; { // The reference in parsed `URI` form.
-                try { uRef = new URI( sRef ); }
-                catch( final URISyntaxException x ) {
-                    final CharacterPointer p = mRef.characterPointer( malformationIndex( x ));
-                    err().println( errHead(f,p.lineNumber) + malformationMessage(x,p) );
-                    iR.set( unimageable ); // It fails to parse.
-                    return /*to continue parsing*/true; }} // For sake of reporting any further errors.
+        try {
+            in.perStateConditionally( f, state -> {
+                final Markup mRef; { // The reference enapsulated as parsed `Markup`.
+                    try { mRef = translator.formalReferenceAt( in ); }
+                    catch( final ParseError x ) {
+                        err().println( errMsg( f, x ));
+                        iR.set( unimageable ); // The source fails to parse.
+                        return /*to continue parsing*/false; } // No point, the parser has halted.
+                    if( mRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
+                final String sRef = mRef.text().toString(); // The reference in string form.
+                final URI uRef; { // The reference in parsed `URI` form.
+                    try { uRef = new URI( sRef ); }
+                    catch( final URISyntaxException x ) {
+                        final CharacterPointer p = mRef.characterPointer( malformationIndex( x ));
+                        err().println( errHead(f,p.lineNumber) + malformationMessage(x,p) );
+                        iR.set( unimageable ); // It fails to parse.
+                        return /*to continue parsing*/true; }} // To report any further errors.
 
-          // remote
-          // ┈┈┈┈┈┈
-            if( isRemote( uRef )) { // Then the resource would be reachable through a network.
-                if( !looksProbeable( uRef )) {
-                    final CharacterPointer p = mRef.characterPointer();
-                    err().println( errHead(f,p.lineNumber) + unprobeableMessage(p) );
-                    iR.set( unimageable ); // Do not image the file. [UFR]
-                    return // Without mapping ∵ `formalResources.remote` forbids unprobeable references.
-                      /*to continue parsing*/true; } // For sake of reporting any further errors.
-                map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(),
-                  /*dependant*/f ); }
-
-          // local
-          // ┈┈┈┈┈
-            else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
-                  indicating a resource that would be reachable through a file system. */
-                final Path pRef; { // The reference parsed and resolved as a local file path.
-                    try { pRef = resolvePathReference( uRef, f ); }
-                    catch( final IllegalArgumentException x ) {
-                        final CharacterPointer p = mRef.characterPointer();
-                        err().println( errHead(f,p.lineNumber) + x.getMessage() + '\n'
-                          + p.markedLine() );
+              // remote
+              // ┈┈┈┈┈┈
+                if( isRemote( uRef )) { // Then the resource would be reachable through a network.
+                    if( !looksProbeable( uRef )) {
+                        imps.add( new Improbeable( mRef.characterPointer(),
+                          mRef.xuncFractalDescent() ));
                         iR.set( unimageable ); // Do not image the file. [UFR]
-                        return // Without mapping ∵ the foregoing leaves the intended resource unclear.
-                          /*to continue parsing*/true; }} // For sake of reporting any further errors.
-                if( !exists( pRef )) { /* Then let the translator warn of it.  Unlike the present code,
-                      the translator tests the existence of all referents, whether formal or informal,
-                      making it a better place to issue reports of broken references. */
-                    iR.set( imageable ); // Therefore force imaging of this file.
-                    return // Without mapping ∵ `formalResources.local` forbids non-existent resources.
-                      /*to continue parsing*/true; } // For sake of reporting any further errors.
-                map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
-            return true; }); }
+                        return // Without mapping ∵ `formalResources.remote` forbids improbeables.
+                          /*to continue parsing*/true; } // To report/detect any further errors.
+                    map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(),
+                      /*dependant*/f ); }
+
+              // local
+              // ┈┈┈┈┈
+                else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
+                      indicating a resource that would be reachable through a file system. */
+                    final Path pRef; { // The reference parsed and resolved as a local file path.
+                        try { pRef = resolvePathReference( uRef, f ); }
+                        catch( final IllegalArgumentException x ) {
+                            final CharacterPointer p = mRef.characterPointer();
+                            err().println( errHead(f,p.lineNumber) + x.getMessage() + '\n'
+                              + p.markedLine() );
+                            iR.set( unimageable ); // Do not image the file. [UFR]
+                            return // Without mapping ∵ the above leaves the intended resource unclear.
+                              /*to continue parsing*/true; }} // To report any further errors.
+                    if( !exists( pRef )) { /* Then let the translator warn of it.  Unlike the present
+                          code, the translator tests the existence of all referents, whether formal or
+                          informal, making it a better place to issue reports of broken references. */
+                        iR.set( imageable ); // Therefore force imaging of this file.
+                        return // Without mapping ∵ `formalResources.local` forbids broken references.
+                          /*to continue parsing*/true; } // For sake of reporting any further errors.
+                    map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
+                return true; });
+            while( !in.state().isFinal() ) in.next(); } // API requirement of `xuncPrivatized`, below.
         catch( final ParseError x ) {
             err().println( errMsg( f, x ));
-            iR.set( unimageable ); }}
+            iR.set( unimageable );
+            return; }
+        if( !imps.isEmpty() ) {
+            final int[] xuncPrivatized = in.xuncPrivatized();
+            int i = 0;
+            do {
+                final Improbeable imp = imps.get( i );
+                if( !isPrivatized( imp.xuncFractalDescent, xuncPrivatized )) {
+                    final CharacterPointer p = imp.characterPointer;
+                    err().println( errHead(f,p.lineNumber) + improbeableMessage(p) ); }}
+                while( ++i < imps.size() ); }}
 
 
 
     private boolean hasFailed;
+
+
+
+    private final ArrayList<Improbeable> imps = new ArrayList<>();
 
 
 
@@ -474,7 +493,18 @@ public final class ImageMould<C extends ReusableCursor> {
 
     /** Whether path `p` would be read during image formation if it were readable.
       */
-    private static boolean wouldRead( final Path p ) { return isDirectory(p) || looksBreccian(p); }}
+    private static boolean wouldRead( final Path p ) { return isDirectory(p) || looksBreccian(p); }
+
+
+
+   // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+
+    /** An occurence of an improbeable remote reference.
+      *
+      *     @see RemoteChangeProbe#looksProbeable(URI)
+      */
+    private static record Improbeable( CharacterPointer characterPointer, int[] xuncFractalDescent ) {}}
 
 
 
