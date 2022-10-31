@@ -98,8 +98,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** The source-markup translator (Breccia to X-Breccia) to use during calls to this file translator.
-      * Between calls, it may be used for other purposes.
+    /** The XML source cursor (Breccia to X-Breccia translator) to use during calls
+      * to this file translator.  Between calls, it may be used for other purposes.
       */
     public final BrecciaXCursor sourceXCursor;
 
@@ -144,7 +144,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    public @Override Markup formalReferenceAt( final C in ) throws ParseError {
+    public @Override Granum formalReferenceAt( final C in ) throws ParseError {
         final ResourceIndicant iR; {
             FractumIndicant iF; {
                 final ReferentClause cR; {
@@ -169,8 +169,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           non-fractal implying a resource whose content is opaque to this translator and therefore
           indeterminate of image form. */
         return iR.reference(); } /* The resource of `iR` is formal ∵ the associative reference containing
-          `iR`refers to a matcher of markup *in* the resource and ∴ will be imaged as a hyperlink whose
-          form depends on the content of the resource.  In short, it is formal ∵ it informs the image. */
+          `iR` refers to a pattern of text *in* the resource and ∴ will be imaged as a hyperlink whose
+          form depends on the content of that resource.  So it informs the image and ∴ is formal. */
 
 
 
@@ -184,7 +184,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         try {
             createDirectories( imageFile.getParent() ); // Ensure the parent exists.
             try( final Reader sourceReader = newSourceReader​( sourceFile )) {
-                sourceCursor.markupSource( sourceReader );
+                sourceCursor.source( sourceReader );
                 if( sourceCursor.state().typestamp() == empty ) {
                     throw new ErrorAtFile( sourceFile, "Empty source file" ); } /* Explicitly Breccia
                       neither allows nor forbids an empty file.  Translating it to an empty image file
@@ -196,7 +196,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
               // X-Breccia DOM ← X-Breccia parse events ← Breccia source file
               // ─────────────
-                sourceXCursor.markupSource( sourceCursor );
+                sourceXCursor.source( sourceCursor );
                 toDOM.setNode( null/*make a new `Document`*/ );
                 try { identityTransformer.transform( new StAXSource(sourceXCursor), toDOM ); }
                   // [SNR]
@@ -273,21 +273,18 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param markup An element of Breccian markup.
+    private CharacterPointer characterPointer( Element granum ) { return characterPointer( granum, 0 ); }
+
+
+
+    /** @param c The offset in `granum` context of the character to point to.
       */
-    private CharacterPointer characterPointer( Element markup ) { return characterPointer( markup, 0 ); }
-
-
-
-    /** @param markup An element of Breccian markup.
-      * @param c The offset in `markup` context of the character to point to.
-      */
-    private CharacterPointer characterPointer( final Element markup, final int c ) {
+    private CharacterPointer characterPointer( final Element granum, final int c ) {
         final String textRegional;
         final IntArrayExtensor endsRegional = lineLocator.endsRegional;
         final int offsetRegional;
         final int numberRegional;
-        for( Element h = markup;; ) {
+        for( Element h = granum;; ) {
             if( hasName( "Head", h )) {
                 textRegional = sourceText( h );
                 endsRegional.clear();
@@ -297,11 +294,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 numberRegional = parseUnsignedInt( h.getAttribute( "lineNumber" ));
                 break; }
             h = parentElement( h );
-            if( h == null ) throw new IllegalArgumentException( markup.toString() ); }
+            if( h == null ) throw new IllegalArgumentException( granum.toString() ); }
 
       // Locate the line
       // ───────────────
-        int offset = c + parseUnsignedInt( markup.getAttribute( "xunc" )); // `markup` → whole text
+        int offset = c + parseUnsignedInt( granum.getAttribute( "xunc" )); // `granum` → whole text
         lineLocator.locateLine( offset, offsetRegional, numberRegional );
 
       // Resolve its content
@@ -318,12 +315,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param markup The text of an element of Breccian markup.
-      * @param c The offset in `markup` context of the character to point to.
+    /** @param granalText The text of a flat granum.
+      * @param c The offset in `granalText` context of the character to point to.
       */
-    private CharacterPointer characterPointer( final Text markup, int c ) {
-        final Element p = parentElement( markup );
-        if( p == null ) throw new IllegalArgumentException( markup.toString() );
+    private CharacterPointer characterPointer( final Text granalText, int c ) {
+        final Element p = parentElement( granalText );
+        if( p == null ) throw new IllegalArgumentException( granalText.toString() );
         return characterPointer( p, c ); }
 
 
@@ -376,9 +373,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             if( !hasName( "Reference", n )) continue;
             assert hasName( "AssociativeReference", ownerFractum(n) ); /* Adding a hyperlink to other
               than an associative reference?  Then sync with `formalReferenceAt` above. */
-            final Element eRef = (Element)n; // The reference enapsulated as an `Element`.
+            final Element eRef = (Element)n; // The reference encapsulated as an `Element`.
             n = n.getFirstChild();
-            final Text tRef = (Text)n;          // The reference enapsulated as `Text`.
+            final Text tRef = (Text)n;          // The reference encapsulated as `Text`.
             final String sRef = tRef.getData(); // The reference in string form.
             final URI uRef; {                   // The reference in parsed `URI` form.
                 try { uRef = new URI( sRef ); }
@@ -584,7 +581,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ┈┈┈┈┈┈
             final Element documentHead = d.createElementNS( nsHTML, "head" );
             html.appendChild( documentHead );
-            String fileTitle = null; // Unless one can be derived from the markup:
+            String fileTitle = null; // Unless one can be derived from the text:
             for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
                 if( !hasName( "Head", n )) continue;
                 if( (fileTitle = fileTitle(n)) != null ) break; }
@@ -611,7 +608,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         for( Element dL = successorElement(fileFractum);  dL != null;  dL = successorElement(dL) ) {
             if( !hasName( "DivisionLabel", dL )) continue;
             final String p = ((Text)dL.getPreviousSibling().getFirstChild()).getData();
-              // All `dL` have a `Markup` predecessor comprising flat text.
+              // All `dL` have a `Granum` predecessor comprising flat text.
             int c = p.length();
             do --c; while( p.charAt(c) == ' ' );    // Scan leftward past any plain space characters,
             if( completesNewline( p.charAt( c ))) { // and there test for the presence of a newline.

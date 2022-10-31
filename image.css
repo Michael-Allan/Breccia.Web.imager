@@ -318,7 +318,7 @@
         color:       var(--command-point-bullet-colour);
         font-weight: var(--command-point-bullet-weight); }
 
-    brec|AssociativeReference > Head > Descriptor > Command > ReferrerClause > Markup:first-child/*‘re’*/,
+    brec|AssociativeReference > Head > Descriptor > Command > ReferrerClause > Granum:first-child/*‘re’*/,
     brec|AssociativeReference > Head > Descriptor > Command > ReferentialCommand {
         color: var(--command-operator-colour); }
 

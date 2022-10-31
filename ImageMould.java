@@ -333,7 +333,7 @@ public final class ImageMould<C extends ReusableCursor> {
         final C in = translator.sourceCursor();
         try {
             in.perStateConditionally( f, state -> {
-                final Markup mRef; { // The reference enapsulated as parsed `Markup`.
+                final Granum mRef; { // The reference encapsulated as a `Granum`.
                     try { mRef = translator.formalReferenceAt( in ); }
                     catch( final ParseError x ) {
                         err().println( errMsg( f, x ));

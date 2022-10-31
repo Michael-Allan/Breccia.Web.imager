@@ -23,13 +23,13 @@ public interface FileTranslator<C extends ReusableCursor> {
     /** From the present position of the given source cursor, this method returns any nominal
       * URI reference to an external imaging resource that would be formal were it obtained by
       * this translator.  ‘Nominal’ here means that what is returned ought to be a URI reference
-      * and so forth, e.g. based on where it occurs in the markup, though actually it might not be.
+      * and so forth, e.g. based on where it occurs in the text, though actually it might not be.
       * ‘Formal’ means determining of image form.
       *
       *     @see ImageMould#formalResources
       *     @return The formal reference, or null if there is none.
       */
-    public Markup formalReferenceAt( C sourceCursor ) throws ParseError;
+    public Granum formalReferenceAt( C sourceCursor ) throws ParseError;
 
 
 

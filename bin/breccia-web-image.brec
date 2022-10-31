@@ -31,7 +31,7 @@
             - The default value is the home directory of the user.
         --centre-column: --centre-column=<number>
             - The columnar offset on which to centre the text.
-                : re `columnar offset` see http://reluk.ca/project/Breccia/parser/Markup.java :
+                : re `columnar offset` see http://reluk.ca/project/Breccia/parser/Granum.java :
                   Columnar offsets are zero based.
                 - In wide viewports, this column of the source file will appear at centre.
             - The default is 52.5.
