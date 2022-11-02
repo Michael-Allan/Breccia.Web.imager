@@ -63,6 +63,7 @@ import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static Java.Nodes.asElement;
 import static Java.Nodes.asText;
+import static Java.Nodes.contextElement;
 import static Java.Nodes.hasName;
 import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
@@ -277,24 +278,22 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param c The offset in `granum` context of the character to point to.
+    /** @param granum A granal element other than `FileFractum`.
+      * @param c The offset in `granum` context of the character to point to.
       */
     private CharacterPointer characterPointer( final Element granum, final int c ) {
         final String textRegional;
         final IntArrayExtensor endsRegional = lineLocator.endsRegional;
         final int offsetRegional;
-        final int numberRegional;
-        for( Element h = granum;; ) {
-            if( hasName( "Head", h )) {
-                textRegional = sourceText( h );
-                endsRegional.clear();
-                final StringTokenizer tt = new StringTokenizer( h.getAttribute( "xuncLineEnds" ));
-                while( tt.hasMoreTokens() ) endsRegional.add( parseUnsignedInt( tt.nextToken() ));
-                offsetRegional = parseUnsignedInt( h.getAttribute( "xunc" ));
-                numberRegional = parseUnsignedInt( h.getAttribute( "lineNumber" ));
-                break; }
-            h = parentElement( h );
-            if( h == null ) throw new IllegalArgumentException( granum.toString() ); }
+        final int numberRegional; {
+            final Element h = contextHead( granum );
+            assert h != null; // Caller obeys the API.
+            textRegional = sourceText( h );
+            endsRegional.clear();
+            final StringTokenizer tt = new StringTokenizer( h.getAttribute( "xuncLineEnds" ));
+            while( tt.hasMoreTokens() ) endsRegional.add( parseUnsignedInt( tt.nextToken() ));
+            offsetRegional = parseUnsignedInt( h.getAttribute( "xunc" ));
+            numberRegional = parseUnsignedInt( h.getAttribute( "lineNumber" )); }
 
       // Locate the line
       // ───────────────
@@ -322,6 +321,25 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final Element p = parentElement( granalText );
         if( p == null ) throw new IllegalArgumentException( granalText.toString() );
         return characterPointer( p, c ); }
+
+
+
+    /** Returns `node` if it is a fractum, otherwise `ownerFractum(node)`.
+      *
+      *     @see #ownerFractum(Node)
+      */
+    private static Element contextFractum( final Node node ) {
+        Element c = contextElement( node );
+        return isFractum(c) ? c : ownerFractum(c); }
+
+
+
+    /** Returns `node` if it is a fractal head, otherwise `ownerHead(node)`.
+      *
+      *     @see #ownerHead(Node)
+      */
+    private static Element contextHead( final Node node ) {
+        return hasName("Head",node) ? (Element)node : ownerHead(node); }
 
 
 
@@ -516,12 +534,25 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** Returns the nearest ancestor of `node` that is a fractum, or null if there is none.
+    /** Returns the nearest fractal ancestor of `node`, or null if there is none.
+      *
+      *     @return The nearest ancestor of `node` that is a fractum, or null if there is none.
+      *     @see #contextFractum(Node)
       */
     private static Element ownerFractum( final Node node ) {
-        Element p = parentElement( node );
-        while( p != null && !isFractum(p) ) p = parentElement( p );
-        return p; }
+        Element a = parentElement( node );
+        while( a != null && !isFractum(a) ) a = parentElement( a );
+        return a; }
+
+
+
+    /** Returns the nearest ancestor of `node` that is a fractal head, or null if there is none.
+      *
+      *     @see #contextHead(Node)
+      */
+    private static Element ownerHead( Node node ) {
+        do node = node.getParentNode(); while( node != null && !hasName("Head",node) );
+        return (Element)node; }
 
 
 
