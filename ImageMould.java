@@ -18,7 +18,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import static Breccia.parser.Cursor.isPrivatized;
 import static Breccia.Web.imager.ErrorAtFile.errHead;
 import static Breccia.Web.imager.ErrorAtFile.errMsg;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
@@ -382,20 +381,14 @@ public final class ImageMould<C extends ReusableCursor> {
                           /*to continue parsing*/true; } // For sake of reporting any further errors.
                     map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
                 return true; });
-            while( !in.state().isFinal() ) in.next(); } // API requirement of `xuncPrivatized`, below.
+            while( !in.state().isFinal() ) in.next(); } // API requirement of `isPrivatized`, below.
         catch( final ParseError x ) {
             err().println( errMsg( f, x ));
             iR.set( unimageable );
             return; }
-        if( !imps.isEmpty() ) {
-            final int[] xuncPrivatized = in.xuncPrivatized();
-            int i = 0;
-            do {
-                final Improbeable imp = imps.get( i );
-                if( !isPrivatized( imp.xuncFractalDescent, xuncPrivatized )) {
-                    final CharacterPointer p = imp.characterPointer;
-                    err().println( errHead(f,p.lineNumber) + improbeableMessage(p) ); }}
-                while( ++i < imps.size() ); }}
+        for( final Improbeable imp: imps ) if( !in.isPrivatized( imp.xuncFractalDescent )) {
+            final CharacterPointer p = imp.characterPointer;
+            err().println( errHead(f,p.lineNumber) + improbeableMessage(p) ); }}
 
 
 
