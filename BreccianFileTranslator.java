@@ -286,14 +286,15 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final IntArrayExtensor endsRegional = lineLocator.endsRegional;
         final int offsetRegional;
         final int numberRegional; {
-            final Element h = contextHead( granum );
-            assert h != null; // Caller obeys the API.
-            textRegional = sourceText( h );
+            final Element fH = contextHead( granum );
+            assert fH != null; // Caller obeys the API.
+            textRegional = sourceText( fH );
             endsRegional.clear();
-            final StringTokenizer tt = new StringTokenizer( h.getAttribute( "xuncLineEnds" ));
+            final StringTokenizer tt = new StringTokenizer( fH.getAttribute( "xuncLineEnds" ));
             while( tt.hasMoreTokens() ) endsRegional.add( parseUnsignedInt( tt.nextToken() ));
-            offsetRegional = parseUnsignedInt( h.getAttribute( "xunc" ));
-            numberRegional = parseUnsignedInt( h.getAttribute( "lineNumber" )); }
+            final Element f = parentElement( fH );
+            offsetRegional = parseUnsignedInt( f.getAttribute( "xunc" ));
+            numberRegional = parseUnsignedInt( f.getAttribute( "lineNumber" )); }
 
       // Locate the line
       // ───────────────
