@@ -36,12 +36,15 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
-    /** Makes a message to describe an improbeable URI reference.
+    /** Makes an error message for an improbeable looking URI reference.
       *
       *     @see #looksProbeable(URI)
       */
     static String improbeableMessage( final CharacterPointer p ) {
-      return "Unable to access the referent by this form of reference" + '\n' + p.markedLine(); }
+      return "Unable to access the referent by this form of reference.  Consider marking it private.\n"
+        + p.markedLine(); } /* Re ‘marking it private’: The intent of allowing private improbeables
+        was to accommodate any URI pseudo-schemes that an author might employ; but the code extends
+        the allowance to all references that look improbeable, regardless of the reason. */
 
 
 
