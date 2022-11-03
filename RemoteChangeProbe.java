@@ -36,6 +36,15 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
+    /** Makes a message to describe an improbeable URI reference.
+      *
+      *     @see #looksProbeable(URI)
+      */
+    static String improbeableMessage( final CharacterPointer p ) {
+      return "Unable to access the referent by this form of reference" + '\n' + p.markedLine(); }
+
+
+
     /** Whether it appears possible to access the referent of the given reference.
       *
       *     @param ref A <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
@@ -62,15 +71,6 @@ final class RemoteChangeProbe implements Runnable {
       */
     static final int msQueryInterval = /*TEST*/0; /* Cf. `Crawl-delay`.
       https://en.wikipedia.org/wiki/Robots_exclusion_standard#Crawl-delay_directive */
-
-
-
-    /** Makes a message to describe an improbeable URI reference.
-      *
-      *     @see #looksProbeable(URI)
-      */
-    static String improbeableMessage( final CharacterPointer p ) {
-      return "Unable to access the referent by this form of reference" + '\n' + p.markedLine(); }
 
 
 
