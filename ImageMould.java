@@ -352,8 +352,7 @@ public final class ImageMould<C extends ReusableCursor> {
               // ┈┈┈┈┈┈
                 if( isRemote( uRef )) { // Then the resource would be reachable through a network.
                     if( !looksProbeable( uRef )) {
-                        imps.add( new Improbeable( mRef.characterPointer(),
-                          mRef.xuncFractalDescent() ));
+                        imps.add( new Improbeable( mRef.characterPointer(), mRef.xuncFractalDescent() ));
                         iR.set( unimageable ); // Do not image the file. [UFR]
                         return // Without mapping ∵ `formalResources.remote` forbids improbeables.
                           /*to continue parsing*/true; } // To report/detect any further errors.
