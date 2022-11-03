@@ -36,7 +36,7 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
-    /** Makes an error message for an improbeable looking URI reference.
+    /** Makes an error/warning message for an improbeable looking URI reference.
       *
       *     @see #looksProbeable(URI)
       */

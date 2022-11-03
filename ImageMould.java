@@ -103,6 +103,9 @@ public final class ImageMould<C extends ReusableCursor> {
     /** Tells where to report any survivable errors in the process of image formation,
       * while ensuring the return value of `formImage` will be false.
       *
+      * <p>The reporting of errors should be coded such that uncorrected errors
+      * repeat with each imaging command.  No such stipulation applies to warnings.</p>
+      *
       *     @see #out(int)
       *     @see #wrn()
       */

@@ -41,7 +41,6 @@ import static Breccia.parser.Typestamp.empty;
 import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
-import static Breccia.Web.imager.ErrorAtFile.errHead;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.malformationIndex;
@@ -228,7 +227,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     final UnglyphedCharacter[] uns = unsMap.values().toArray( unArrayType );
                     sort( uns, unsComparator );
                     for( final var un: uns ) {
-                        mould.wrn().println( wrnHead(sourceFile,un.pointer.lineNumber) + un ); }}}
+                        wrn().println( wrnHead(sourceFile,un.pointer.lineNumber) + un ); }}}
 
           // XHTML DOM ← X-Breccia DOM
           // ─────────
@@ -329,10 +328,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private PrintWriter err() {  return mould.err(); }
-
-
-
     /** @param head A `Head` element representing a fractal head.
       * @return The file title as derived from the head, or null if it yields none.
       */
@@ -384,7 +379,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 try { uRef = new URI( sRef ); }
                 catch( final URISyntaxException x ) {
                     final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
-                    err().println( errHead(sourceFile,p.lineNumber) + malformationMessage(x,p) );
+                    wrn().println( wrnHead(sourceFile,p.lineNumber) + malformationMessage(x,p) );
                     continue; }}
             final String hRef; // The target reference for the hyperlink `a` element.
 
@@ -394,7 +389,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( !looksProbeable( uRef )) {
                     if( !isPrivatized( contextFractum( eRef ))) {
                         final CharacterPointer p = characterPointer( eRef );
-                        err().println( errHead(sourceFile,p.lineNumber) + improbeableMessage(p) ); }
+                        wrn().println( wrnHead(sourceFile,p.lineNumber) + improbeableMessage(p) ); }
                     continue; }}
 
           // local
@@ -405,7 +400,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     try { pRef = mould.resolvePathReference( uRef, sourceFile ); }
                     catch( final IllegalArgumentException x ) {
                         final CharacterPointer p = characterPointer( eRef );
-                        err().println( errHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
+                        wrn().println( wrnHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
                           + p.markedLine() );
                     continue; }}
                 ; }
@@ -810,6 +805,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         try( final OutputStream imageWriter = newOutputStream​( imageFile, outputOptions )) {
             toImageFile.setOutputStream( imageWriter );
             identityTransformer.transform( fromDOM, toImageFile ); }}
+
+
+
+    private PrintWriter wrn() {  return mould.wrn(); }
 
 
 
