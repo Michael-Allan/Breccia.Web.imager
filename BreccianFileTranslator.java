@@ -61,10 +61,9 @@ import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
-import static Java.Nodes.asElement;
-import static Java.Nodes.asText;
-import static Java.Nodes.contextElement;
 import static Java.Nodes.hasName;
+import static Java.Nodes.isText;
+import static Java.Nodes.parentAsElement;
 import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
@@ -127,14 +126,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // XHTML DOM ← XHTML DOM
           // ─────────
-            final Element fileFractum = asElement(
+            final Element fileFractum = (Element)(
               d.getDocumentElement()./*body*/getLastChild().getFirstChild() );
             assert hasName( "FileFractum", fileFractum );
-         // xuncPrivatized.clear(); /* TEST.  Maybe also set the document against which `xuncPrivatized`
-         //   is POPULATED (so better put these lines in a method and call that)
-         //   and have `isPrivatized(Node)` test the node’s owner document against it on each call. */
-         // POPULATE( xuncPrivatized, fileFractum, "xuncPrivatized" ); /* TEST.
-         //   Elsewhere use `POPULATE` to populate `endsRegional`. */
             finish( sourceFile, fileFractum );
 
           // XHTML image file ← XHTML DOM
@@ -215,8 +209,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 unsMap.clear(); // Map of unglyphed characters.
                 Node n = d.getFirstChild();
                 do {
-                    final Text nText = asText( n );
-                    if( nText == null ) continue;
+                    if( !isText( n )) continue;
+                    final Text nText = (Text)n;
                     assert !nText.isElementContentWhitespace(); /* The `sourceXCursor` has produced
                       ‘X-Breccia with no ignorable whitespace’. */
                     final String text = nText.getData();
@@ -226,7 +220,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         UnglyphedCharacter un = unsMap.get( ch );
                         if( un == null ) {
                             un = new UnglyphedCharacter( glyphTestFont.getFontName(), ch,
-                              characterPointer( nText, c ));
+                              characterPointer( parentAsElement(nText), c ));
                             unsMap.put( ch, un ); }
                         ++un.count; }}
                     while( (n = successor(n)) != null );
@@ -292,7 +286,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             endsRegional.clear();
             final StringTokenizer tt = new StringTokenizer( fH.getAttribute( "xuncLineEnds" ));
             while( tt.hasMoreTokens() ) endsRegional.add( parseUnsignedInt( tt.nextToken() ));
-            final Element f = parentElement( fH );
+            final Element f = parentAsElement( fH );
             offsetRegional = parseUnsignedInt( f.getAttribute( "xunc" ));
             numberRegional = parseUnsignedInt( f.getAttribute( "lineNumber" )); }
 
@@ -315,32 +309,23 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param granalText The text of a flat granum.
-      * @param c The offset in `granalText` context of the character to point to.
-      */
-    private CharacterPointer characterPointer( final Text granalText, int c ) {
-        final Element p = parentElement( granalText );
-        if( p == null ) throw new IllegalArgumentException( granalText.toString() );
-        return characterPointer( p, c ); }
-
-
-
-    /** Returns `node` if it is a fractum, otherwise `ownerFractum(node)`.
+    /** Returns the fractal context of `e`, or null if there is none.
       *
+      *     @return The same `e` if it is a fractum, otherwise `ownerFractum(e)`.
       *     @see #ownerFractum(Node)
       */
-    private static Element contextFractum( final Node node ) {
-        Element c = contextElement( node );
-        return isFractum(c) ? c : ownerFractum(c); }
+    private static Element contextFractum( final Element e ) {
+        return isFractum(e) ? e : ownerFractum(e); }
 
 
 
-    /** Returns `node` if it is a fractal head, otherwise `ownerHead(node)`.
+    /** Returns the fractal head context of `e`, or null if there is none.
       *
+      *     @return The same `e` if it is a fractal head, otherwise `ownerHead(e)`.
       *     @see #ownerHead(Node)
       */
-    private static Element contextHead( final Node node ) {
-        return hasName("Head",node) ? (Element)node : ownerHead(node); }
+    private static Element contextHead( final Element e ) {
+        return hasName("Head",e) ? e : ownerHead(e); }
 
 
 
@@ -351,16 +336,16 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** @param head A `Head` element representing a fractal head.
       * @return The file title as derived from the head, or null if it yields none.
       */
-    private String fileTitle( Node head ) {
+    private String fileTitle( Element head ) {
         final String titlingExtract; // The relevant text extracted from the fractal head.
         if( hasName( "Division", head.getParentNode() )) { // Then `head` is a divider.
-            for( Node n = successor(head);;  n = successor(n) ) {
-                if( n == null ) return null;
-                if( hasName( "DivisionLabel", n )) {
-                    titlingExtract = sourceText( n );
+            for( Element e = successorElement(head);;  e = successorElement(e) ) {
+                if( e == null ) return null;
+                if( hasName( "DivisionLabel", e )) {
+                    titlingExtract = sourceText( e );
                     break; }}}
         else { // Presumeably `head` is a file head or point head.
-            head = head.cloneNode( /*deeply*/true ); /* So both preserving the original,
+            head = (Element)head.cloneNode( /*deeply*/true ); /* So both preserving the original,
               and keeping the nodal scan that follows within the bounds of the isolated copy. */
             strip: for( Node p, n = successor(p = head);  n != null;  n = successor(p = n) ) {
                 final String localName = n.getLocalName();
@@ -388,13 +373,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
       // URI references each formed as a hyperlink
       // ──────────────
-        for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
-            if( !hasName( "Reference", n )) continue;
-            assert hasName( "AssociativeReference", ownerFractum(n) ); /* Adding a hyperlink to other
+        for( Element e = successorElement(fileFractum);  e != null;  e = successorElement(e) ) {
+            if( !hasName( "Reference", e )) continue;
+            assert hasName( "AssociativeReference", ownerFractum(e) ); /* Adding a hyperlink to other
               than an associative reference?  Then sync with `formalReferenceAt` above. */
-            final Element eRef = (Element)n; // The reference encapsulated as an `Element`.
-            n = n.getFirstChild();
-            final Text tRef = (Text)n;          // The reference encapsulated as `Text`.
+            final Element eRef = e; // The reference encapsulated as an `Element`.
+            final Text tRef = (Text)eRef.getFirstChild(); // The reference encapsulated as `Text`.
             final String sRef = tRef.getData(); // The reference in string form.
             final URI uRef; {                   // The reference in parsed `URI` form.
                 try { uRef = new URI( sRef ); }
@@ -408,12 +392,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ┈┈┈┈┈┈
             if( isRemote( uRef )) { // Then the referent would be reachable through a network.
                 if( !looksProbeable( uRef )) {
-                 // if( !isPrivatized( eRef )) {
+                    if( !isPrivatized( contextFractum( eRef ))) {
                         final CharacterPointer p = characterPointer( eRef );
-                        err().println( errHead(sourceFile,p.lineNumber) + improbeableMessage(p) );
-                 //     ; }
-                    continue; }
-                ; }
+                        err().println( errHead(sourceFile,p.lineNumber) + improbeableMessage(p) ); }
+                    continue; }}
 
           // local
           // ┈┈┈┈┈
@@ -483,6 +465,27 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** Returns true if `fractum` is marked as private (whether directly or indirectly)
+      * by the use of a privatizer; false otherwise.
+      *
+      *     @see Cursor#isPrivatized(int[])
+      */
+    private static boolean isPrivatized( Element fractum ) {
+        assert isFractum( fractum ); // Else the call is needlessly slower.
+        if( isPrivatizedDirectly( fractum )) return true;
+        if( hasName( "FileFractum", fractum )) return false; // End of ancestral line.
+        return isPrivatized( parentAsElement( fractum )); }
+
+
+
+    private static boolean isPrivatizedDirectly( Element fractum ) {
+        if( fractum.getAttribute("modifiers").contains( "privately" )) return true;
+        for( Node child = fractum.getFirstChild(); child != null; child = child.getNextSibling() ) {
+            if( hasName( "Privatizer", child )) return true; }
+        return false; }
+
+
+
     /** @param token A word or other sequence of characters extracted from a fractal head.
       * @return The token transformed as necessary to serve as a keyword in a fractum `id` attribute.
       */
@@ -538,7 +541,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** Returns the nearest fractal ancestor of `node`, or null if there is none.
       *
       *     @return The nearest ancestor of `node` that is a fractum, or null if there is none.
-      *     @see #contextFractum(Node)
+      *     @see #contextFractum(Element)
       */
     private static Element ownerFractum( final Node node ) {
         Element a = parentElement( node );
@@ -614,9 +617,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final Element documentHead = d.createElementNS( nsHTML, "head" );
             html.appendChild( documentHead );
             String fileTitle = null; // Unless one can be derived from the text:
-            for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
-                if( !hasName( "Head", n )) continue;
-                if( (fileTitle = fileTitle(n)) != null ) break; }
+            for( e = successorElement(fileFractum);  e != null;  e = successorElement(e) ) {
+                if( !hasName( "Head", e )) continue;
+                if( (fileTitle = fileTitle(e)) != null ) break; }
             documentHead.appendChild( e = d.createElementNS( nsHTML, "title" ));
             e.appendChild( d.createTextNode( fileTitle == null ? "Untitled" : fileTitle )); /* A title
               *is* mandatory.  https://html.spec.whatwg.org/multipage/semantics.html#the-head-element */
@@ -653,7 +656,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // ═════════════════
         for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
             if( !hasName( "Bullet", b )) continue;
-            final int pointType = parseInt( parentElement(parentElement(b)).getAttribute( "typestamp" ));
+            final int pointType = parseInt(
+              parentAsElement(parentAsElement(b)).getAttribute( "typestamp" ));
             final String typeMark; switch( pointType ) {
                 case Typestamp.alarmPoint  -> typeMark = "!!";
                 case Typestamp.plainPoint  -> typeMark =  ""; // None.
@@ -755,8 +759,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // Self hyperlink
           // ──────────────
             for( Node n = successor(head);  n != null;  n = successor(n) ) {
-                final Text nText = asText( n );
-                if( nText == null ) continue;
+                if( !isText( n )) continue;
+                final Text nText = (Text)n;
                 final String text = nText.getData();
                 final int textLength = text.length();
                 if( textLength == 0 ) continue;
