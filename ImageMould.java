@@ -364,8 +364,8 @@ public final class ImageMould<C extends ReusableCursor> {
 
               // local
               // ┈┈┈┈┈
-                else { /* This `sRef` is an absolute-path reference or relative-path reference [RR],
-                      indicating a resource that would be reachable through a file system. */
+                else { /* The resource would be reachable through a file system, the reference
+                      being an absolute-path reference or relative-path reference [RR]. */
                     final Path pRef; { // The reference parsed and resolved as a local file path.
                         try { pRef = resolvePathReference( uRef, f ); }
                         catch( final IllegalArgumentException x ) {
