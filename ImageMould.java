@@ -378,7 +378,8 @@ public final class ImageMould<C extends ReusableCursor> {
                     if( !exists( pRef )) { /* Then let the translator warn of it.  Unlike the present
                           code, the translator tests the existence of all referents, whether formal or
                           informal, making it a better place to issue reports of broken references. */
-                        iR.set( imageable ); // Therefore force imaging of this file.
+                     // iR.set( imageable ); // Therefore force imaging of this file.
+                    //// Overkill, `err` says warnings need not ‘repeat with each imaging command’.
                         return // Without mapping ∵ `formalResources.local` forbids broken references.
                           /*to continue parsing*/true; } // For sake of reporting any further errors.
                     map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
