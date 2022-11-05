@@ -57,6 +57,7 @@ import static java.lang.Character.toLowerCase;
 import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.nio.file.Files.createDirectories;
+import static java.nio.file.Files.exists;
 import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
@@ -402,8 +403,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         final CharacterPointer p = characterPointer( eRef );
                         wrn().println( wrnHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
                           + p.markedLine() );
+                        continue; }}
+                if( !exists( pRef )) {
+                    final CharacterPointer p = characterPointer( eRef );
+                    wrn().println( wrnHead(sourceFile,p.lineNumber) + "No such file or directory: \n"
+                      + p.markedLine() );
                     continue; }}
-                ; }
 
 
             hRef = looksBreccian(sRef) ? sRef + ".xht" : sRef; // TEST, targeting image files.
