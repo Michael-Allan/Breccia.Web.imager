@@ -11,7 +11,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
-import static Breccia.Web.imager.Project.sourceFile;
+import static Breccia.Web.imager.Project.sourceSibling;
 import static java.lang.System.err;
 import static java.lang.System.out;
 import static java.lang.System.exit;
@@ -76,7 +76,7 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
       */
     private void clean( final Path f ) throws IOException {
         if( !f.getFileName().toString().endsWith( ".brec.xht" )) return; // Not an image file.
-        if( isRegularFile( sourceFile( f ))) return;                     // Not an orphan.
+        if( isRegularFile( sourceSibling( f ))) return;                  // Not an orphan.
         boolean toDelete = true;
         if( toAsk ) for( ;; ) {
             out.print( "Delete orphan image file " + f + "? (y, n, !)  " );

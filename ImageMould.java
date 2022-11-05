@@ -23,8 +23,7 @@ import static Breccia.Web.imager.ErrorAtFile.errMsg;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
-import static Breccia.Web.imager.Project.imageFile;
-import static Breccia.Web.imager.Project.imageSimpleName;
+import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.Project.malformationIndex;
@@ -193,7 +192,7 @@ public final class ImageMould<C extends ReusableCursor> {
                   earlier pass of this probe, or (however unlikely) one of the slow remote probes. */
                 boolean toReformImage = true;
                 if( resTime != null ) { // So letting the null case be forcefully reimaged, as per above.
-                    final Path depImage = imageFile( dep );
+                    final Path depImage = imageSibling( dep );
                     assert exists( depImage ); /* Guaranteed by the `depImageability` guard above,
                       because already `dep` would have been marked as `imageable` if it had no image.
                       Therefore any failure to read the timestamp of `depImage` below is unexpected. */
@@ -260,7 +259,7 @@ public final class ImageMould<C extends ReusableCursor> {
             final ImageabilityReference iR = det.getValue();
             if( iR.get() != imaged ) continue;
             final Path sourceFile = det.getKey();
-            final Path imageFileRelative = imageFile( boundaryPathDirectory.relativize( sourceFile ));
+            final Path imageFileRelative = imageSibling( boundaryPathDirectory.relativize( sourceFile ));
             out(1).println( "  → " + imageFileRelative );
             try {
                 translator.finish( sourceFile, outDirectory.resolve( imageFileRelative ));
@@ -423,7 +422,7 @@ public final class ImageMould<C extends ReusableCursor> {
             final Imageability i;
             if( opt.toForce() ) i = imageable;
             else {
-                final Path fI = imageFile( f );
+                final Path fI = imageSibling( f );
                 try {
                     if( !exists(fI) || getLastModifiedTime(f).compareTo(getLastModifiedTime(fI)) >= 0 ) {
                         i = imageable; }
@@ -463,7 +462,6 @@ public final class ImageMould<C extends ReusableCursor> {
       */
     Path resolvePathReference( final URI ref, final Path f ) {
         assert !isRemote( ref ): "The argument is a path reference";
-        if( isRemote( ref )) throw new IllegalArgumentException( "Not a path reference" );
         if( ref.getRawQuery() != null  ||  ref.getRawFragment() != null ) {
             throw new IllegalArgumentException( "Query or fragment component on a path reference" ); }
         String s = ref.getPath();
