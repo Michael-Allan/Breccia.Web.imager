@@ -42,10 +42,11 @@ import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
+import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.imageSimpleName;
+import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.Project.malformationIndex;
 import static Breccia.Web.imager.Project.malformationMessage;
-import static Breccia.Web.imager.Project.looksBreccian;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
@@ -56,6 +57,8 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.exists;
+import static java.nio.file.Files.isDirectory;
+import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
@@ -387,7 +390,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // remote  [RC]
           // ┈┈┈┈┈┈
             if( isRemote( uRef )) { // Then the referent would be reachable through a network.
-                ; } // TEST, pending knowledge of whether this case requires handling.
+                hRef = looksBreccian(sRef) ? imageSibling(sRef) : sRef; } // TEST
 
           // local  [RC]
           // ┈┈┈┈┈
@@ -400,16 +403,22 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         wrn().println( wrnHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
                           + p.markedLine() );
                         continue; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
-                if( !exists( pRef )) {
+                if( exists( pRef )) {
+                    if( !isDirectory(pRef) && looksBreccian(sRef) ) {
+                        final boolean sRefImageExists; { /* Whether this (Breccian) referent
+                              has an image file either (a) pre-existing or (b) newly formed. */
+                            final Path pRefImageSib = imageSibling( pRef );
+                            sRefImageExists = /*(a)*/isRegularFile( pRefImageSib )
+                              || /*(b)*/pRef.startsWith( mould.boundaryPathDirectory )
+                                   && isRegularFile( mould.outDirectory.resolve(
+                                        mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
+                        hRef = sRefImageExists ? imageSibling(sRef) : sRef; }
+                    else hRef = sRef; }
+                else {
                     final CharacterPointer p = characterPointer( eRef );
                     wrn().println( wrnHead(sourceFile,p.lineNumber) + "No such file or directory: \n"
-                      + p.markedLine() ); }} /* Yet carry on and form the hyperlink; the fault
-                    could be a referent misplaced, as opposed to a reference malformed. */
-
-
-            hRef = looksBreccian(sRef) ? sRef + ".xht" : sRef; // TEST, targeting image files.
-
-
+                      + p.markedLine() ); // Yet carry on and form the hyperlink, for the fault could be
+                    hRef = sRef; }}      // a referent misplaced as opposed to a reference malformed.
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
             a.setAttribute( "href", hRef );
