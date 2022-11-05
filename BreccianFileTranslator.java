@@ -46,8 +46,6 @@ import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.malformationIndex;
 import static Breccia.Web.imager.Project.malformationMessage;
 import static Breccia.Web.imager.Project.looksBreccian;
-import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
-import static Breccia.Web.imager.RemoteChangeProbe.improbeableMessage;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
@@ -389,11 +387,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // remote  [RC]
           // ┈┈┈┈┈┈
             if( isRemote( uRef )) { // Then the referent would be reachable through a network.
-                if( !looksProbeable( uRef )) {
-                    if( !isPrivatized( contextFractum( eRef ))) {
-                        final CharacterPointer p = characterPointer( eRef );
-                        wrn().println( wrnHead(sourceFile,p.lineNumber) + improbeableMessage(p) ); }
-                    continue; }} // Without a hyperlink, which improbeability implies would be broken.
+                ; } // TEST, pending knowledge of whether this case requires handling.
 
           // local  [RC]
           // ┈┈┈┈┈
