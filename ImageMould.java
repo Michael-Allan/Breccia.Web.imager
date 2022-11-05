@@ -453,7 +453,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *
       *     @param ref A path reference, whether an absolute-path reference or a relative-path reference.
       *     @param f The path of the referring source file, wherein `ref` is contained.
-      *     @throws IllegalArgumentException If `ref` is not a path reference.
+      *     @throws AssertionError If assertions are enabled and `ref` is not a path reference.
       *     @throws IllegalArgumentException If `ref` includes a query component or fragment component.
       *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.2'>
       *       URI generic syntax §4.2</a>
@@ -461,6 +461,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @see Path#of(URI)
       */
     Path resolvePathReference( final URI ref, final Path f ) {
+        assert !isRemote( ref ): "The argument is a path reference";
         if( isRemote( ref )) throw new IllegalArgumentException( "Not a path reference" );
         if( ref.getRawQuery() != null  ||  ref.getRawFragment() != null ) {
             throw new IllegalArgumentException( "Query or fragment component on a path reference" ); }
