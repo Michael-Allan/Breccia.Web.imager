@@ -334,7 +334,9 @@ public final class ImageMould<C extends ReusableCursor> {
         imps.clear(); // List of improbeable-reference occurences.
         final C in = translator.sourceCursor();
         try {
-            in.perStateConditionally( f, state -> {
+            in.perStateConditionally( f, state -> { /*
+                For what follows, cf. `BreccianFileTranslator.finish(Path,Element)`. [RC] */
+
                 final Granum mRef; { // The reference encapsulated as a `Granum`.
                     try { mRef = translator.formalReferenceAt( in ); }
                     catch( final ParseError x ) {
@@ -351,7 +353,7 @@ public final class ImageMould<C extends ReusableCursor> {
                         iR.set( unimageable ); // It fails to parse.
                         return /*to continue parsing*/true; }} // To report any further errors.
 
-              // remote
+              // remote  [RC]
               // ┈┈┈┈┈┈
                 if( isRemote( uRef )) { // Then the resource would be reachable through a network.
                     if( !looksProbeable( uRef )) {
@@ -362,7 +364,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(),
                       /*dependant*/f ); }
 
-              // local
+              // local  [RC]
               // ┈┈┈┈┈
                 else { /* The resource would be reachable through a file system, the reference
                       being an absolute-path reference or relative-path reference [RR]. */
@@ -509,6 +511,8 @@ public final class ImageMould<C extends ReusableCursor> {
 //   LUR  Logging of unexpected yet recoverable IO errors.  Aside from avoiding a flood of reports
 //        on the `err` stream, these lines of code merely serve as examples (the only ones at present)
 //        of efficient report formation for logging purposes.
+//
+//   RC · Cf. the comparably structured referencing code @ `ImageMould.formalResources_recordFrom`.
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //

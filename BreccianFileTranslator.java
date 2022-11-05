@@ -372,7 +372,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         for( Element e = successorElement(fileFractum);  e != null;  e = successorElement(e) ) {
             if( !hasName( "Reference", e )) continue;
             assert hasName( "AssociativeReference", ownerFractum(e) ); /* Adding a hyperlink to other
-              than an associative reference?  Then sync with `formalReferenceAt` above. */
+                  than an associative reference?  Then sync with `formalReferenceAt` above.
+            For what follows, cf. `ImageMould.formalResources_recordFrom`. [RC] */
+
             final Element eRef = e; // The reference encapsulated as an `Element`.
             final Text tRef = (Text)eRef.getFirstChild(); // The reference encapsulated as `Text`.
             final String sRef = tRef.getData(); // The reference in string form.
@@ -384,7 +386,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     continue; }}
             final String hRef; // The target reference for the hyperlink `a` element.
 
-          // remote
+          // remote  [RC]
           // ┈┈┈┈┈┈
             if( isRemote( uRef )) { // Then the referent would be reachable through a network.
                 if( !looksProbeable( uRef )) {
@@ -393,7 +395,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         wrn().println( wrnHead(sourceFile,p.lineNumber) + improbeableMessage(p) ); }
                     continue; }}
 
-          // local
+          // local  [RC]
           // ┈┈┈┈┈
             else { /* The referent would be reachable through a file system, the reference
                   being an absolute-path reference or relative-path reference [RR]. */
@@ -839,6 +841,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   MT · Mask trimming for ID stability.  The purpose is to omit any punctuation marks such as quote
 //        characters, commas or periods that might destabilize the ID as the source text is edited.
+//
+//   RC · Cf. the comparably structured referencing code @ `BreccianFileTranslator.finish(Path,Element)`.
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //
