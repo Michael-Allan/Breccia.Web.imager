@@ -350,8 +350,9 @@ public final class ImageMould<C extends ReusableCursor> {
                     catch( final URISyntaxException x ) {
                         final CharacterPointer p = mRef.characterPointer( malformationIndex( x ));
                         err().println( errHead(f,p.lineNumber) + malformationMessage(x,p) );
-                        iR.set( unimageable ); // It fails to parse.
-                        return /*to continue parsing*/true; }} // To report any further errors.
+                        iR.set( unimageable ); // Do not image the file. [UFR]
+                        return // Without mapping ∵ `x` leaves the intended resource unclear.
+                          /*to continue parsing*/true; }} // To report any further errors.
 
               // remote  [RC]
               // ┈┈┈┈┈┈
@@ -375,7 +376,7 @@ public final class ImageMould<C extends ReusableCursor> {
                             err().println( errHead(f,p.lineNumber) + x.getMessage() + '\n'
                               + p.markedLine() );
                             iR.set( unimageable ); // Do not image the file. [UFR]
-                            return // Without mapping ∵ the above leaves the intended resource unclear.
+                            return // Without mapping ∵ `x` leaves the intended resource unclear.
                               /*to continue parsing*/true; }} // To report any further errors.
                     if( !exists( pRef )) { /* Then let the translator warn of it.  Unlike the present
                           code, the translator tests the existence of all referents, whether formal or
@@ -520,8 +521,8 @@ public final class ImageMould<C extends ReusableCursor> {
 //   SM · Structural modification of a `HashMap` defined.
 //        https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html
 //
-//   UFR  Marking a source file as `unimageable` after encountering an unsupported form of reference
-//        and reporting it as an error.  Neither of the alternatives seems adequate.
+//   UFR  Marking a source file as `unimageable` after encountering a bad or unsupported form of reference
+//        (and reporting it as an error).  Neither of the alternatives seems adequate.
 //
 //           a) Marking the file as `imageable` would cause the preceding error report to be repeated
 //              when the translator prepares to probe the same reference.  Attempting to remedy

@@ -383,7 +383,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 catch( final URISyntaxException x ) {
                     final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
                     wrn().println( wrnHead(sourceFile,p.lineNumber) + malformationMessage(x,p) );
-                    continue; }}
+                    continue; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
             final String hRef; // The target reference for the hyperlink `a` element.
 
           // remote  [RC]
@@ -393,7 +393,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     if( !isPrivatized( contextFractum( eRef ))) {
                         final CharacterPointer p = characterPointer( eRef );
                         wrn().println( wrnHead(sourceFile,p.lineNumber) + improbeableMessage(p) ); }
-                    continue; }}
+                    continue; }} // Without a hyperlink, which improbeability implies would be broken.
 
           // local  [RC]
           // ┈┈┈┈┈
@@ -405,12 +405,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         final CharacterPointer p = characterPointer( eRef );
                         wrn().println( wrnHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
                           + p.markedLine() );
-                        continue; }}
+                        continue; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
                 if( !exists( pRef )) {
                     final CharacterPointer p = characterPointer( eRef );
                     wrn().println( wrnHead(sourceFile,p.lineNumber) + "No such file or directory: \n"
-                      + p.markedLine() );
-                    continue; }}
+                      + p.markedLine() ); }} /* Yet carry on and form the hyperlink; the fault
+                    could be a referent misplaced, as opposed to a reference malformed. */
 
 
             hRef = looksBreccian(sRef) ? sRef + ".xht" : sRef; // TEST, targeting image files.
