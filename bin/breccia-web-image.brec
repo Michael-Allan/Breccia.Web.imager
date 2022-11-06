@@ -60,7 +60,7 @@
                     style sheet: `<CS>/Breccia/Web/imager/image.css`
                         - Typically this is a copy of the bundled sheet, or a custom sheet
                           that imports from a copy of the bundled sheet.
-                            : re `bundled sheet` see image.css
+                            : re `bundled sheet` see ../image.css
 
                 - Any resource files referred to by the style sheet must also be included.
                   For the bundled sheet, these are:
@@ -92,7 +92,7 @@
                     : re `CS` see `CS.+stands for` @ `^^--co-service-directory`
                     : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
                 - The bundled style sheet gives a description and example of this mark.
-                    : re `bundled style sheet` see image.css
+                    : re `bundled style sheet` see ../image.css
         --quiet
             - Sets the verbosity to level 0.
                 : re `verbosity` see `^^--verbosity`
