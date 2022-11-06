@@ -11,6 +11,8 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.OpenOption;
 import Java.*;
@@ -57,6 +59,7 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.exists;
+import static java.nio.file.Files.getPosixFilePermissions;
 import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.newBufferedReader;
@@ -415,10 +418,20 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         hRef = sRefImageExists ? imageSibling(sRef) : sRef; }
                     else hRef = sRef; }
                 else {
+                    String message; {
+                        try {
+                            getPosixFilePermissions( pRef ); // Merely as an access test.
+                            assert false;                   // Always it should throw an exception.
+                            message = "No access to this file or directory, reason unknown"; }
+                        catch( NoSuchFileException x ) { message = "No such file or directory"; }
+                        catch( AccessDeniedException x ) {
+                            if( isPrivatized( contextFractum( eRef ))) continue; // Without a hyperlink.
+                            message = "File access denied; consider marking this reference as private"; }
+                        catch( IOException x ) { message = x.getClass().getSimpleName(); }}
                     final CharacterPointer p = characterPointer( eRef );
-                    wrn().println( wrnHead(sourceFile,p.lineNumber) + "No such file or directory: \n"
-                      + p.markedLine() ); // Yet carry on and form the hyperlink, for the fault could be
-                    hRef = sRef; }}      // a referent misplaced as opposed to a reference malformed.
+                    wrn().println( wrnHead(sourceFile,p.lineNumber) + message + ":\n" // Yet carry on
+                      + p.markedLine() ); // and form the hyperlink, for the fault could be a referent
+                    hRef = sRef; }} // misplaced or misconfigured as opposed to a reference malformed.
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
             a.setAttribute( "href", hRef );
