@@ -3,16 +3,17 @@ package Breccia.Web.imager;
 import java.io.IOException;
 import java.nio.file.Path;
 import Java.Unhandled;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static Breccia.Web.imager.ReRefTranslation.newTranslation;
 import static java.lang.Float.parseFloat;
-import static java.lang.System.err;
-import static java.lang.System.getProperty;
 import static java.nio.file.Files.readString;
 import static Java.URI_References.enslash;
 import static Java.URI_References.isRemote;
+import static java.util.Collections.unmodifiableList;
 
 
 /** @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#positional,argument,arguments'>
@@ -22,15 +23,6 @@ public class ImagingOptions extends Options {
 
 
     public ImagingOptions( String commandName ) { super( commandName ); } // [SLA]
-
-
-
-    /** The home directory of the source author.
-      *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#co-service-d,co-service-d,reference'>
-      *         Command option `--author-home-directory`</a>
-      */
-    public final Path authorHomeDirectory() { return authorHomeDirectory; }
 
 
 
@@ -62,6 +54,15 @@ public class ImagingOptions extends Options {
 
 
 
+    /** List of occurences of the `--re-ref` option, each itself a list of translations.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *         Command option `--re-ref`</a>
+      */
+    public final List<List<ReRefTranslation>> reRefs() { return reRefs; }
+
+
+
     /** Whether to forcefully remake the Web image.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#force'>
@@ -76,22 +77,19 @@ public class ImagingOptions extends Options {
 
     public @Override void initialize( final List<String> args ) {
         super.initialize( args );
-        if( authorHomeDirectory == null ) authorHomeDirectory = Path.of( getProperty( "user.home" ));
         if( glyphTestFont == null ) {
             if( !isRemote( coServiceDirectory )) {
                 glyphTestFont = glyphTestFont( Path.of(
                   coServiceDirectory + "Breccia/Web/imager/image.css" ));
                 if( glyphTestFont == null ) glyphTestFont = "none"; }
             else glyphTestFont = "none";
-            out(2).println( "Glyph-test font: " + glyphTestFont ); }}
+            out(2).println( "Glyph-test font: " + glyphTestFont ); }
+        assert reRefs instanceof ArrayList; // Yet to be initialized, that is.
+        reRefs = unmodifiableList( reRefs ); }
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
-
-
-    private Path authorHomeDirectory;
-
 
 
     private float centreColumn = 52.5f;
@@ -162,6 +160,22 @@ public class ImagingOptions extends Options {
 
 
 
+    private List<List<ReRefTranslation>> reRefs = new ArrayList<>( /*initial capacity*/4 );
+
+
+
+    /** A pattern to `find` the next translation within a `--re-ref` option.  It captures as group (2)
+      * the pattern, and group (3) the replacement string.
+      *
+      *     @see java.util.regex.Matcher#find()
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *         Command option `--re-ref`</a>
+      */
+    private static final Pattern reRefTranslationPattern = Pattern.compile(
+        "(.)(.+?)\\1(.+?)\\1(?:\\|\\|)?" );
+
+
+
     private boolean toForce;
 
 
@@ -172,13 +186,17 @@ public class ImagingOptions extends Options {
     protected @Override boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
-        if( arg.startsWith( s = "--author-home-directory=" )) {
-            authorHomeDirectory = Path.of( value( arg, s )); }
-        else if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
+        if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
         else if( arg.startsWith( s = "--co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
+        else if( arg.startsWith( s = "--re-ref=" )) {
+            final List<ReRefTranslation> reRef = new ArrayList<>( /*initial capacity*/8 );
+            final Matcher m = reRefTranslationPattern.matcher( value( arg, s ));
+            while( m.find() ) {
+                reRef.add( newTranslation( Pattern.compile(m.group(2)), /*replacement*/m.group(3) )); }
+            reRefs.add( unmodifiableList( reRef )); }
         else isGo = super.initialize( arg );
         return isGo; }}
 

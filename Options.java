@@ -21,7 +21,7 @@ public abstract class Options {
 
 
     /** Finishes making this instance.  If instead a fatal error is detected, then this method
-      * prints an error message and exits the runtime with a non-zero status code.
+      * prints an error message and exits the runtime with a non-zero status code.  Call once only.
       *
       *     @param args Nominal arguments, aka options, from the command line.
       */

@@ -72,6 +72,7 @@ import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
+import static Java.Paths.toPath;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static Java.URI_References.isRemote;
@@ -381,8 +382,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
             final Element eRef = e; // The reference encapsulated as an `Element`.
             final Text tRef = (Text)eRef.getFirstChild(); // The reference encapsulated as `Text`.
-            final String sRef = tRef.getData(); // The reference in string form.
-            final URI uRef; {                   // The reference in parsed `URI` form.
+            final String sRefOriginal = tRef.getData(); // The reference in string form.
+            final String sRef = mould.reRef( sourceFile, sRefOriginal );
+              // Applying any `--re-ref` translations.
+            final URI uRef; { // The reference in parsed `URI` form.
                 try { uRef = new URI( sRef ); }
                 catch( final URISyntaxException x ) {
                     final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
@@ -400,7 +403,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             else { /* The referent would be reachable through a file system, the reference
                   being an absolute-path reference or relative-path reference [RR]. */
                 final Path pRef; { // The reference parsed and resolved as a local file path.
-                    try { pRef = mould.resolvePathReference( uRef, sourceFile ); }
+                    try { pRef = sourceFile.resolveSibling( toPath( uRef )); }
                     catch( final IllegalArgumentException x ) {
                         final CharacterPointer p = characterPointer( eRef );
                         wrn().println( wrnHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
@@ -423,11 +426,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             getPosixFilePermissions( pRef ); // Merely as an access test.
                             assert false;                   // Always it should throw an exception.
                             message = "No access to this file or directory, reason unknown"; }
-                        catch( NoSuchFileException x ) { message = "No such file or directory"; }
                         catch( AccessDeniedException x ) {
                             if( isPrivatized( contextFractum( eRef ))) continue; // Without a hyperlink.
                             message = "File access denied; consider marking this reference as private"; }
-                        catch( IOException x ) { message = x.getClass().getSimpleName(); }}
+                        catch( NoSuchFileException x ) { message = "No such file or directory"; }
+                        catch( IOException x ) { message = x.toString(); }}
                     final CharacterPointer p = characterPointer( eRef );
                     wrn().println( wrnHead(sourceFile,p.lineNumber) + message + ":\n" // Yet carry on
                       + p.markedLine() ); // and form the hyperlink, for the fault could be a referent

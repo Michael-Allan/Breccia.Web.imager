@@ -15,7 +15,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static Breccia.Web.imager.ErrorAtFile.errHead;
@@ -33,13 +32,15 @@ import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
 import static Breccia.Web.imager.RemoteChangeProbe.improbeableMessage;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
-import static java.io.File.separatorChar;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isReadable;
 import static java.nio.file.Files.isWritable;
 import static java.nio.file.Files.list;
+import static Java.Paths.toPath;
+import static Java.Paths.toRelativePathReference;
+import static Java.StringBuilding.clear;
 import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
@@ -343,7 +344,8 @@ public final class ImageMould<C extends ReusableCursor> {
                         iR.set( unimageable ); // The source fails to parse.
                         return /*to continue parsing*/false; } // No point, the parser has halted.
                     if( mRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
-                final String sRef = mRef.text().toString(); // The reference in string form.
+                final String sRefOriginal = mRef.text().toString(); // The reference in string form.
+                final String sRef = reRef( f, sRefOriginal ); // Applying any `--re-ref` translations.
                 final URI uRef; { // The reference in parsed `URI` form.
                     try { uRef = new URI( sRef ); }
                     catch( final URISyntaxException x ) {
@@ -369,7 +371,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 else { /* The resource would be reachable through a file system, the reference
                       being an absolute-path reference or relative-path reference [RR]. */
                     final Path pRef; { // The reference parsed and resolved as a local file path.
-                        try { pRef = resolvePathReference( uRef, f ); }
+                        try { pRef = f.resolveSibling( toPath( uRef )); }
                         catch( final IllegalArgumentException x ) {
                             final CharacterPointer p = mRef.characterPointer();
                             err().println( errHead(f,p.lineNumber) + x.getMessage() + '\n'
@@ -444,44 +446,41 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Translates the path reference `ref` contained in file `f` to a local file path.
-      * Any tilde prefix is taken to represent the author’s home directory.
+    /** Applies any `--re-ref` translations that match the given reference and returns the result.
       *
-      * <p>The alternative method `Path.of(URI)` fails for relative-path references.  It requires
-      * grafting a scheme onto the reference, and the only relevant scheme it supports is `file`
-      * (at least by default), which cannot encode a relative-path reference.</p>
-      *
-      *     @param ref A path reference, whether an absolute-path reference or a relative-path reference.
-      *     @param f The path of the referring source file, wherein `ref` is contained.
-      *     @throws AssertionError If assertions are enabled and `ref` is not a path reference.
-      *     @throws IllegalArgumentException If `ref` includes a query component or fragment component.
-      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.2'>
-      *       URI generic syntax §4.2</a>
-      *     @see <a href='https://www.rfc-editor.org/rfc/rfc8089#section-2'>File-scheme URI syntax</a>
-      *     @see Path#of(URI)
+      *     @param f The path of a source file.
+      *     @param ref A URI reference from `f`.
+      *     @return The same `ref` if translation failed; otherwise the translated result in a new string
+      *       of equal or different content.
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *         Command option `--re-ref`</a>
       */
-    Path resolvePathReference( final URI ref, final Path f ) {
-        assert !isRemote( ref ): "The argument is a path reference";
-        if( ref.getRawQuery() != null  ||  ref.getRawFragment() != null ) {
-            throw new IllegalArgumentException( "Query or fragment component on a path reference" ); }
-        String s = ref.getPath();
-        final Matcher m = tildeBasedReferencePattern.matcher( s );
-        final Path base; {
-            if( m.lookingAt() ) {
-                s = s.substring( m.end() );
-                base = opt.authorHomeDirectory(); } // Resolved either from the home directory,
-            else base = f.getParent(); }           // or the directory of the source file.
-        if( separatorChar != '/' ) s = s.replace( '/', separatorChar );
-        return base.resolve( s ); }
+    String reRef( final Path f, final String ref ) {
+        for( final var rr: opt.reRefs() ) { // For each `--re-ref` option given on the command line.
+            for( final ReRefTranslation t: rr ) { // For each translation given in the `--re-ref`.
+                final Matcher m = t.matcher().reset( ref );
+                if( m.find() ) {
+                    final StringBuilder b = clear( stringBuilder );
+                    final String r; {
+                        if( t.isBounded() ) {
+                            assert f.startsWith( boundaryPath ); /* That ‘the boundary path itself
+                              will not appear in the replacement string that results.’
+                              http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht */
+                            b.append( toRelativePathReference(
+                              f.getParent().relativize( boundaryPathDirectory )));
+                            if( b.length() == 0 ) b.append( '.' ); // `f` sits in `boundaryPathDirectory`
+                            b.append( t.replacement() );
+                            r = b.toString();
+                            clear( b ); }
+                        else r = t.replacement(); }
+                    do m.appendReplacement( b, r ); while( m.find() );
+                    m.appendTail( b );
+                    return b.toString(); }}} // Translation succeeded.
+        return ref; } // Translation failed.
 
 
 
-    /** A `lookingAt` pattern that detects a URI reference beginning with a tilde `~`
-      * that might symbolize the user’s local home directory.
-      *
-      *     @see java.util.regex.Matcher#lookingAt()
-      */
-    private static final Pattern tildeBasedReferencePattern = Pattern.compile( "^~(?:/|$)" );
+    private final StringBuilder stringBuilder = new StringBuilder( /*initial capacity*/0x100/*or 256*/ );
 
 
 

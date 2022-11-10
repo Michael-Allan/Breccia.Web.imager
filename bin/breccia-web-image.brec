@@ -23,12 +23,6 @@
 
     - The positional argument may be preceded by one or more nominal arguments, aka options:
 
-        --author-home-directory: --author-home-directory=<local file path>
-            - The home directory of the source author.
-            / It may serve for the purpose of expanding any tilde prefix of a URI reference.
-                : see e.g. `Tilde Expansion` @ non-fractal
-                  https://man7.org/linux/man-pages/man1/bash.1.html#EXPANSION
-            - The default value is the home directory of the user.
         --centre-column: --centre-column=<number>
             - The columnar offset on which to centre the text.
                 : re `columnar offset` see http://reluk.ca/project/Breccia/parser/Granum.java :
@@ -80,7 +74,7 @@
             - The font file for glyph tests.
             - If the value is `none`, then no glyph tests are performed.
             - Otherwise the file must contain an OpenType font
-                - A test is performed on each character of the image source and a warning emitted
+                - A test is performed on each character of the source text and a warning emitted
                   for any whose glyph is missing from the font.
             - The default value is either read from the style sheet, or it is `none`.
                 : re `style sheet` see @ `^^--co-service-directory`
@@ -93,6 +87,44 @@
                     : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
                 - The bundled style sheet gives a description and example of this mark.
                     : re `bundled style sheet` see ../image.css
+        --re-ref: --re-ref=<translation> [|| <translation>] ...
+            - A double-bar-separated list of translations to apply to URI references of the source text.
+                : re `URI references` see e.g. `─ (URI reference) ─` @ `^^ Resource indicant$` @
+                  http://reluk.ca/project/Breccia/language_definition.brec
+            - On each URI reference of the source text, the translations are attempted in the given order
+              until one succeeds or the list is exhausted.
+                / At most one translation of the list will be applied to a reference;
+                  to apply multiple translations, use multiple `--re-ref` options.
+            - Any translation that succeeds on a reference determines the referent for imaging purposes.
+                / For instance, although the image will still show the original reference,
+                  any associated hyperlink will be formed using the translated reference.
+            - The form of each translation is:
+
+                    translation: ;<pattern>;<replacement>; \ [three separators], q.v. at end note
+
+                - The semicolons ‘;’ of the separator triplet may be replaced with any other character.
+                - The form of the given pattern is a regular expression as defined by the `Pattern` class
+                  of Java.
+                    : see https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/util/regex/Pattern.html
+                    - If the pattern is found in a reference, then translation proceeds and all parts of
+                      the reference that match the pattern are replaced by the given replacement string.
+                - The form of the given replacement string is defined by the `Matcher.appendReplacement`
+                  method of Java.
+                    : see https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/util/regex/Matcher.html#appendReplacement(java.lang.StringBuffer,java.lang.String) :
+                    - In particular, the replacement string may contain references to groups
+                      that were captured in the pattern match.
+                        / ‘Each occurrence of `${<name>}` or `$<g>` will be replaced by the result of
+                          evaluating the corresponding `group(<name>)` or `group(<g>)` respectively.’
+                    - Further — in extension of `Matcher.appendReplacement` — any ‘${boundary}’
+                      at the start of the replacement string will be replaced by a relative-path
+                      reference to the boundary-path directory, without a trailing ‘/’.
+                        / Relative, that is, to the parent directory of the source file in which
+                          the reference appears.
+                        - So it will be replaced by one of `.` or `..` or `../..` etc.
+                        : re `relative-path.+reference`s see
+                          https://www.rfc-editor.org/rfc/rfc3986#section-4.2
+                        : re `boundary path` see `^^<boundary path>$` @
+                          `^^- One positional argument is required:$`
         --quiet
             - Sets the verbosity to level 0.
                 : re `verbosity` see `^^--verbosity`
@@ -113,6 +145,15 @@
         • The `waycast-web-image` command.
             : see http://reluk.ca/project/wayic/Web/imager/bin/waycast-web-image.brec
             - For imaging a boundary path that might include a waycast.
+
+
+
+    ━━━━━━
+     Note
+    ──────
+     \\ [three separators]
+     \      - The initial separator serves to define the separator character in use.
+     \        while the final separator allows for later addition of match modifiers.
 
 
 
