@@ -13,7 +13,7 @@ public final class CleaningOptions extends Options {
 
     /** Whether to forcefully clean the Web image.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/web-image-clean.brec.xht#force'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#forcefully'>
       *         Command option `--forcefully`</a>
       */
     public boolean toForce() { return toForce; }

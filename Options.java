@@ -44,9 +44,9 @@ public abstract class Options {
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbosity,verbosity-0-'>
       *         Command option `--verbosity`</a>
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#quiet'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#quietly'>
       *         Command option `--quietly`</a>
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbose'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbosely'>
       *         Command option `--verbosely`</a>
       */
     public final int verbosity() { return verbosity; }

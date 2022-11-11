@@ -57,7 +57,7 @@ public class ImagingOptions extends Options {
     /** List of occurences of the `--reference-mapping` option, each itself a list
       * of reference translations.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#reference-ma,reference-ma,translation'>
       *         Command option `--reference-mapping`</a>
       */
     public final List<List<ReferenceTranslation>> referenceMappings() { return referenceMappings; }
@@ -66,7 +66,7 @@ public class ImagingOptions extends Options {
 
     /** Whether to forcefully remake the Web image.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#force'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#forcefully'>
       *         Command option `--forcefully`</a>
       */
     public final boolean toForce() { return toForce; }
@@ -169,7 +169,7 @@ public class ImagingOptions extends Options {
       * It captures as group (2) the translation pattern, and group (3) the replacement string.
       *
       *     @see java.util.regex.Matcher#find()
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#reference-ma,reference-ma,translation'>
       *         Command option `--reference-mapping`</a>
       */
     private static final Pattern referenceTranslationPattern = Pattern.compile(

@@ -290,7 +290,7 @@ public final class ImageMould<C extends ReusableCursor> {
       * Otherwise it returns `System.{@linkplain java.lang.System#out out}`.
       *
       *     @param v Either 1 or 2.
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbosity,verbosity-0-'>
       *         Command option `--verbosity`</a>
       *     @see #err()
       *     @see #wrn()
@@ -453,7 +453,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @param f The path of the referring source file, wherein `ref` is contained.
       *     @return The same `ref` if translation failed; otherwise the translated result in a new string
       *       of equal or different content.
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#reference-ma,reference-ma,translation'>
       *         Command option `--reference-mapping`</a>
       */
     String translate( final String ref, final Path f ) {

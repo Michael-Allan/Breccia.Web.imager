@@ -6,7 +6,7 @@
 
 
     :root { /*
-        --centre-column:   The value of the namesake imager option [BWI] is effectively written here. */
+        --centre-column:   The value of the namesake imager option [IO] is effectively written here. */
         --hyperlink-colour-H: 190/*∼cyan*/;
         --viewport-width: calc( 100vw - /*maximum expected width of vertical scroll bar*/9mm ); /*
             An estimate of the true viewport width, such that content this wide will not of itself
@@ -211,7 +211,7 @@
     brec|FileFractum {
         margin: /*top, bottom*/0  /*left, right*/auto/*centred*/;
         width: min( /*(a)*/var(--centre-column) * 2,  /*(b)*/var(--viewport-width) ); } /*
-          Value (a) sizes the file fractum to be centred as per imager option `--centre-column`. [BWI]
+          Value (a) sizes the file fractum to be centred as per imager option `--centre-column`. [IO]
           Value (b) defeats the effect in narrow viewports, where it might needlessly balloon the width
           and force the horizontal scroll bar to appear. */
 
@@ -351,18 +351,19 @@
 
 /* NOTES
  * ─────
- *   BWI  http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht
- *
  *   CB · Here establishing the containing block for absolutely positioned descendants.
  *        https://www.w3.org/TR/css-position/#def-cb
  *
  *   CSF  Class-selector fallback.  Class selectors fail on non-HTML elements under Chrome 98.0.
  *        Here the general attribute selector `[class~='CLASS']` is used as a fallback.
  *
- *   GTF  A font file marked for glyph testing.  See imager option `--glyph-test-font`.  [BWI]
+ *   GTF  A font file marked for glyph testing.  See imager option `--glyph-test-font`. [IO]
  *        The quoted file name (in single or double quotes) is directly followed by zero or more spaces,
  *        then a CSS comment that begins with zero or more spaces and ‘[GTF]’.  The file name itself
  *        must contain no whitespace.
+ *
+ *   IO   Imager options.
+ *        http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#positional,argument,arguments
  *
  *   T ·· Text properties are applicable within fractal heads alone, where all Breccian text is confined.
  */
