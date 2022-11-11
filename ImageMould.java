@@ -464,9 +464,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     final StringBuilder b = clear( stringBuilder );
                     final String r; {
                         if( t.isBounded() ) {
-                            assert f.startsWith( boundaryPath ); /* That ‘the boundary path itself
-                              will not appear in the replacement string that results.’
-                              http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht */
+                            assert f.startsWith( boundaryPath );
                             b.append( toRelativePathReference(
                               f.getParent().relativize( boundaryPathDirectory )));
                             if( b.length() == 0 ) b.append( '.' ); // `f` sits in `boundaryPathDirectory`
