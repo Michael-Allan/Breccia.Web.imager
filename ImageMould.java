@@ -345,7 +345,8 @@ public final class ImageMould<C extends ReusableCursor> {
                         return /*to continue parsing*/false; } // No point, the parser has halted.
                     if( mRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
                 final String sRefOriginal = mRef.text().toString(); // The reference in string form.
-                final String sRef = reRef( f, sRefOriginal ); // Applying any `--re-ref` translations.
+                final String sRef = translate( sRefOriginal, f );
+                  // Applying any `--reference-mapping` translations.
                 final URI uRef; { // The reference in parsed `URI` form.
                     try { uRef = new URI( sRef ); }
                     catch( final URISyntaxException x ) {
@@ -446,18 +447,18 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Applies any `--re-ref` translations that match the given reference and returns the result.
+    /** Applies any due `--reference-mapping` translations to the given reference and returns the result.
       *
-      *     @param f The path of a source file.
-      *     @param ref A URI reference from `f`.
+      *     @param ref A URI reference.
+      *     @param f The path of the referring source file, wherein `ref` is contained.
       *     @return The same `ref` if translation failed; otherwise the translated result in a new string
       *       of equal or different content.
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
-      *         Command option `--re-ref`</a>
+      *         Command option `--reference-mapping`</a>
       */
-    String reRef( final Path f, final String ref ) {
-        for( final var rr: opt.reRefs() ) { // For each `--re-ref` option given on the command line.
-            for( final ReRefTranslation t: rr ) { // For each translation given in the `--re-ref`.
+    String translate( final String ref, final Path f ) {
+        for( final var tt: opt.referenceMappings() ) { // For each mapping given on the command line.
+            for( final ReferenceTranslation t: tt ) { // For each translation given in the mapping.
                 final Matcher m = t.matcher().reset( ref );
                 if( m.find() ) {
                     final StringBuilder b = clear( stringBuilder );

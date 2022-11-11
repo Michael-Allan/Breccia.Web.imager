@@ -383,8 +383,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final Element eRef = e; // The reference encapsulated as an `Element`.
             final Text tRef = (Text)eRef.getFirstChild(); // The reference encapsulated as `Text`.
             final String sRefOriginal = tRef.getData(); // The reference in string form.
-            final String sRef = mould.reRef( sourceFile, sRefOriginal );
-              // Applying any `--re-ref` translations.
+            final String sRef = mould.translate( sRefOriginal, sourceFile );
+              // Applying any `--reference-mapping` translations.
             final URI uRef; { // The reference in parsed `URI` form.
                 try { uRef = new URI( sRef ); }
                 catch( final URISyntaxException x ) {

@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static Breccia.Web.imager.ReRefTranslation.newTranslation;
+import static Breccia.Web.imager.ReferenceTranslation.newTranslation;
 import static java.lang.Float.parseFloat;
 import static java.nio.file.Files.readString;
 import static Java.URI_References.enslash;
@@ -54,12 +54,13 @@ public class ImagingOptions extends Options {
 
 
 
-    /** List of occurences of the `--re-ref` option, each itself a list of translations.
+    /** List of occurences of the `--reference-mapping` option, each itself a list
+      * of reference translations.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
-      *         Command option `--re-ref`</a>
+      *         Command option `--reference-mapping`</a>
       */
-    public final List<List<ReRefTranslation>> reRefs() { return reRefs; }
+    public final List<List<ReferenceTranslation>> referenceMappings() { return referenceMappings; }
 
 
 
@@ -84,8 +85,8 @@ public class ImagingOptions extends Options {
                 if( glyphTestFont == null ) glyphTestFont = "none"; }
             else glyphTestFont = "none";
             out(2).println( "Glyph-test font: " + glyphTestFont ); }
-        assert reRefs instanceof ArrayList; // Yet to be initialized, that is.
-        reRefs = unmodifiableList( reRefs ); }
+        assert referenceMappings instanceof ArrayList; // Yet to be initialized, that is.
+        referenceMappings = unmodifiableList( referenceMappings ); }
 
 
 
@@ -160,19 +161,19 @@ public class ImagingOptions extends Options {
 
 
 
-    private List<List<ReRefTranslation>> reRefs = new ArrayList<>( /*initial capacity*/4 );
+    private List<List<ReferenceTranslation>> referenceMappings = new ArrayList<>( /*initial capacity*/4 );
 
 
 
-    /** A pattern to `find` the next translation within a `--re-ref` option.  It captures as group (2)
-      * the pattern, and group (3) the replacement string.
+    /** A pattern to `find` the next reference translation within a `--reference-mapping` option.
+      * It captures as group (2) the translation pattern, and group (3) the replacement string.
       *
       *     @see java.util.regex.Matcher#find()
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht'>
-      *         Command option `--re-ref`</a>
+      *         Command option `--reference-mapping`</a>
       */
-    private static final Pattern reRefTranslationPattern = Pattern.compile(
-        "(.)(.+?)\\1(.+?)\\1(?:\\|\\|)?" );
+    private static final Pattern referenceTranslationPattern = Pattern.compile(
+      "(.)(.+?)\\1(.+?)\\1(?:\\|\\|)?" );
 
 
 
@@ -191,12 +192,12 @@ public class ImagingOptions extends Options {
             coServiceDirectory = enslash( value( arg, s )); }
         else if( arg.equals( "--force" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
-        else if( arg.startsWith( s = "--re-ref=" )) {
-            final List<ReRefTranslation> reRef = new ArrayList<>( /*initial capacity*/8 );
-            final Matcher m = reRefTranslationPattern.matcher( value( arg, s ));
+        else if( arg.startsWith( s = "--reference-mapping=" )) {
+            final List<ReferenceTranslation> tt = new ArrayList<>( /*initial capacity*/8 );
+            final Matcher m = referenceTranslationPattern.matcher( value( arg, s ));
             while( m.find() ) {
-                reRef.add( newTranslation( Pattern.compile(m.group(2)), /*replacement*/m.group(3) )); }
-            reRefs.add( unmodifiableList( reRef )); }
+                tt.add( newTranslation( Pattern.compile(m.group(2)), /*replacement*/m.group(3) )); }
+            referenceMappings.add( unmodifiableList( tt )); }
         else isGo = super.initialize( arg );
         return isGo; }}
 

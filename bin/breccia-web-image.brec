@@ -87,14 +87,14 @@
                     : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
                 - The bundled style sheet gives a description and example of this mark.
                     : re `bundled style sheet` see ../image.css
-        --re-ref: --re-ref=<translation> [|| <translation>] ...
+        --reference-mapping: --reference-mapping=<translation> [|| <translation>] ...
             - A double-bar-separated list of translations to apply to URI references of the source text.
                 : re `URI references` see e.g. `─ (URI reference) ─` @ `^^ Resource indicant$` @
                   http://reluk.ca/project/Breccia/language_definition.brec
             - On each URI reference of the source text, the translations are attempted in the given order
               until one succeeds or the list is exhausted.
                 / At most one translation of the list will be applied to a reference;
-                  to apply multiple translations, use multiple `--re-ref` options.
+                  to apply multiple translations, use multiple `--reference-mapping` options.
             - Any translation that succeeds on a reference determines the referent for imaging purposes.
                 / For instance, although the image will still show the original reference,
                   any associated hyperlink will be formed using the translated reference.
