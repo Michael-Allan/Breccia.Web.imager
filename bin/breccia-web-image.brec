@@ -111,7 +111,7 @@
                       the reference that match the pattern are replaced by the given replacement string.
                 - The form of the given replacement string is defined by the `Matcher.appendReplacement`
                   method of Java.
-                    : see https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/util/regex/Matcher.html#appendReplacement(java.lang.StringBuffer,java.lang.String) :
+                    : see https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/util/regex/Matcher.html#appendReplacement(java.lang.StringBuffer,java.lang.String)
                     - In particular, the replacement string may contain references to groups
                       that were captured in the pattern match.
                         / ‘Each occurrence of `${<name>}` or `$<g>` will be replaced by the result of
