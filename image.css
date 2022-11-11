@@ -9,9 +9,9 @@
         --centre-column:   The value of the namesake imager option [BWI] is effectively written here. */
         --hyperlink-colour-H: 190/*∼cyan*/;
         --viewport-width: calc( 100vw - /*maximum expected width of vertical scroll bar*/9mm ); /*
-             An estimate of the true viewport width, such that content this wide will not of itself
-             cause the horizontal scroll bar to appear.  This is a work around for a fault in CSS.
-             https://www.w3.org/TR/css-values/#issue-56221f3d */
+            An estimate of the true viewport width, such that content this wide will not of itself
+            cause the horizontal scroll bar to appear.  This is a work around for a fault in CSS.
+            https://www.w3.org/TR/css-values/#issue-56221f3d */
         background-color: hsl( 0, 0%, 15% );
                    color: hsl( 0, 0%, 79% ); }
 
