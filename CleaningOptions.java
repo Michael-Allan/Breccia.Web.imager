@@ -14,7 +14,7 @@ public final class CleaningOptions extends Options {
     /** Whether to forcefully clean the Web image.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/web-image-clean.brec.xht#force'>
-      *         Command option `--force`</a>
+      *         Command option `--forcefully`</a>
       */
     public boolean toForce() { return toForce; }
 
@@ -33,7 +33,7 @@ public final class CleaningOptions extends Options {
     protected @Override boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
-        if( arg.equals( "--force" )) toForce = true;
+        if( arg.equals( "--forcefully" )) toForce = true;
         else isGo = super.initialize( arg );
         return isGo; }}
 

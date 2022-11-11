@@ -67,7 +67,7 @@
                 / Better not rely on it, however.  The files there may be incompatible
                   with your installation, or become so at any time, or be slow to serve.
                   Rather you should supply a directory under your own control.
-        --force
+        --forcefully
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.
         --glyph-test-font: --glyph-test-font=<local file path> | none
@@ -78,8 +78,8 @@
                   for any whose glyph is missing from the font.
             - The default value is either read from the style sheet, or it is `none`.
                 : re `style sheet` see @ `^^--co-service-directory`
-                - Use `--verbose` to report the actual default value in use.
-                    : re `--verbose` see
+                - Use `--verbosely` to report the actual default value in use.
+                    : re `--verbosely` see
                 - For the value to be read from the style sheet, CS must be a local directory
                   and the style sheet there (or one of its local imports) must contain
                   a font reference with a ‘[GTF]’ mark.
@@ -126,17 +126,17 @@
                           https://www.rfc-editor.org/rfc/rfc3986#section-4.2
                         : re `boundary path` see `^^<boundary path>$` @
                           `^^- One positional argument is required:$`
-        --quiet
+        --quietly
             - Sets the verbosity to level 0.
                 : re `verbosity` see `^^--verbosity`
-        --verbose
+        --verbosely
             - Sets the verbosity to level 2.
                 : re `verbosity` see `^^--verbosity`
         --verbosity: --verbosity=0|1|2
             - The allowed amount of user feedback on the standard output stream:
               0 none, 1 some, and 2 more.
-                : see also `^^--quiet$`
-                : see also `^^--verbose$`
+                : see also `^^--quietly$`
+                : see also `^^--verbosely$`
             - The default is 1.
 
 

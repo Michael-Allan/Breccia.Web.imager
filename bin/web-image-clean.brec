@@ -18,11 +18,11 @@
 
     - The positional argument may be preceded by one or more nominal arguments, aka options:
 
-        --force
+        --forcefully
             - Cleans the Web image without prompting for permission at each file deletion (the default).
-        --quiet
+        --quietly
             : see @ breccia-web-image.brec
-        --verbose
+        --verbosely
             : see @ breccia-web-image.brec
         --verbosity: --verbosity=0|1|2
             : see @ breccia-web-image.brec

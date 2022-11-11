@@ -115,9 +115,9 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
         sP.println( "Usage: " + commandName + " [<options>] <boundary path>" );
         sP.println( "       " + commandName + " --help | -?" );
         sP.println( "Options, one or more of:" );
-        sP.println( "    --force" );
-        sP.println( "    --quiet" );
-        sP.println( "    --verbose" );
+        sP.println( "    --forcefully" );
+        sP.println( "    --quietly" );
+        sP.println( "    --verbosely" );
         sP.println( "    --verbosity=0|1|2" );
         exit( status ); }
 
