@@ -370,72 +370,26 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** @param sourceFile The source of the file fractum.
       * @param fileFractum The unfinished image of the file fractum.
       */
-    protected void finish( Path sourceFile, final Element fileFractum ) {
+    protected void finish( final Path sourceFile, final Element fileFractum ) {
         final Document d = fileFractum.getOwnerDocument();
 
       // URI references each formed as a hyperlink
       // ──────────────
         for( Element e = successorElement(fileFractum);  e != null;  e = successorElement(e) ) {
             if( !hasName( "Reference", e )) continue;
-            assert hasName( "AssociativeReference", ownerFractum(e) ); /* Adding a hyperlink to other
-                  than an associative reference?  Then sync with `formalReferenceAt` above.
-            For what follows, cf. `ImageMould.formalResources_recordFrom`. [RC] */
-
+            assert hasName( "AssociativeReference", ownerFractum(e) ); /* Adding a hyperlink to
+              other than an associative reference?  Then sync with `formalReferenceAt` above. */
             final Element eRef = e; // The reference encapsulated as an `Element`.
             final Text tRef = (Text)eRef.getFirstChild(); // The reference encapsulated as `Text`.
             final String sRefOriginal = tRef.getData(); // The reference in string form.
             final String sRef = mould.translate( sRefOriginal, sourceFile );
               // Applying any `--reference-mapping` translations.
-            final URI uRef; { // The reference in parsed `URI` form.
-                try { uRef = new URI( sRef ); }
-                catch( final URISyntaxException x ) {
-                    final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
-                    wrn().println( wrnHead(sourceFile,p.lineNumber) + malformationMessage(x,p) );
-                    continue; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
-            final String hRef; // The target reference for the hyperlink `a` element.
-
-          // remote  [RC]
-          // ┈┈┈┈┈┈
-            if( isRemote( uRef )) { // Then the referent would be reachable through a network.
-                hRef = looksBreccian(sRef) ? imageSibling(sRef) : sRef; } // TEST
-
-          // local  [RC]
-          // ┈┈┈┈┈
-            else { /* The referent would be reachable through a file system, the reference
-                  being an absolute-path reference or relative-path reference [RR]. */
-                final Path pRef; { // The reference parsed and resolved as a local file path.
-                    try { pRef = sourceFile.resolveSibling( toPath( uRef )); }
-                    catch( final IllegalArgumentException x ) {
-                        final CharacterPointer p = characterPointer( eRef );
-                        wrn().println( wrnHead(sourceFile,p.lineNumber) + x.getMessage() + '\n'
-                          + p.markedLine() );
-                        continue; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
-                if( exists( pRef )) {
-                    if( !isDirectory(pRef) && looksBreccian(sRef) ) {
-                        final boolean sRefImageExists; { /* Whether this (Breccian) referent
-                              has an image file either (a) pre-existing or (b) newly formed. */
-                            final Path pRefImageSib = imageSibling( pRef );
-                            sRefImageExists = /*(a)*/isRegularFile( pRefImageSib )
-                              || /*(b)*/pRef.startsWith( mould.boundaryPathDirectory )
-                                   && isRegularFile( mould.outDirectory.resolve(
-                                        mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
-                        hRef = sRefImageExists ? imageSibling(sRef) : sRef; }
-                    else hRef = sRef; }
-                else {
-                    String message; {
-                        try {
-                            getPosixFilePermissions( pRef ); // Merely as an access test.
-                            assert false;                   // Always it should throw an exception.
-                            message = "No access to this file or directory, reason unknown"; }
-                        catch( AccessDeniedException x ) {
-                            if( isPrivatized( contextFractum( eRef ))) continue; // Without a hyperlink.
-                            message = "File access denied; consider marking this reference as private"; }
-                        catch( NoSuchFileException x ) { message = "No such file or directory"; }
-                        catch( IOException x ) { message = x.toString(); }}
-                    final CharacterPointer p = characterPointer( eRef );
-                    wrn().println( wrnHead(sourceFile,p.lineNumber) + message + ":\n" // Yet carry on
-                      + p.markedLine() ); // and form the hyperlink, for the fault could be a referent
-                    hRef = sRef; }} // misplaced or misconfigured as opposed to a reference malformed.
+            final boolean isAlteredRef = !sRef.equals( sRefOriginal );
+            final String hRef = hRef( sourceFile, eRef, sRef, isAlteredRef );
+            if( hRef == null ) { // Then `sRef` is not to be hyperlinked.
+                if( isAlteredRef ) hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false );
+                  // Ensuring as a lint check that at least `sRefOriginal` would be hyperlinked.
+                continue; }
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
             a.setAttribute( "href", hRef );
@@ -456,6 +410,83 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private Font glyphTestFont;
+
+
+
+    /** @param f The path of a source file.
+      * @param eRef The unfinished image from `f` of a URI reference.
+      * @param sRef The reference itself in string form, after any applicable translations.
+      * @param isAlteredRef Whether `sRef` was actually changed by such translation.
+      * @return The target reference for the hyperlink `a` element, or null to omit hyperlinking.
+      * @see ImageMould#translate(String,Path)
+      */
+    private String hRef( final Path f, final Element eRef, final String sRef,
+          final boolean isAlteredRef ) {
+        final URI uRef; { // The reference in parsed `URI` form.
+            try { uRef = new URI( sRef ); }
+            catch( final URISyntaxException x ) {
+                final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
+                wrn().println( wrnHead(f,p.lineNumber) + malformationMessage(x,p) );
+                return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
+
+      // remote  [RC]
+      // ┈┈┈┈┈┈
+        if( isRemote( uRef )) { // Then the referent would be reachable through a network.
+            return looksBreccian(sRef) ? imageSibling(sRef) : sRef; } // TEST
+
+      // local  [RC]
+      // ┈┈┈┈┈
+        else { /* The referent would be reachable through a file system, the reference
+              being an absolute-path reference or relative-path reference [RR]. */
+            final Path pRef; { // The reference parsed and resolved as a local file path.
+                try { pRef = f.resolveSibling( toPath( uRef )); }
+                catch( final IllegalArgumentException x ) {
+                    final CharacterPointer p = characterPointer( eRef );
+                    wrn().println( wrnHead(f,p.lineNumber) + x.getMessage() + '\n' + p.markedLine() );
+                    return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
+            if( exists( pRef )) {
+                if( !isDirectory(pRef) && looksBreccian(sRef) ) {
+                    final boolean sRefImageExists; { /* Whether this (Breccian) referent
+                          has an image file either (a) pre-existing or (b) newly formed. */
+                        final Path pRefImageSib = imageSibling( pRef );
+                        sRefImageExists = /*(a)*/isRegularFile( pRefImageSib )
+                          || /*(b)*/pRef.startsWith( mould.boundaryPathDirectory )
+                               && isRegularFile( mould.outDirectory.resolve(
+                                    mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
+                    return sRefImageExists ? imageSibling(sRef) : sRef; }
+                else return sRef; }
+            else {
+                String message;
+                boolean isKnownX; { // Whether the inaccessibility of `pRef` is of a type known to result
+                    try {          // from the `--reference-mapping` translation of a private reference.
+                        getPosixFilePermissions( pRef ); // Merely to learn the cause of inaccessibility.
+                        assert false;                   // Always it should throw an exception.
+                        message = "No access to this file or directory, reason unknown";
+                        isKnownX = false; }
+                    catch( AccessDeniedException x ) {
+                        message = "File access denied";
+                        isKnownX = true; }
+                    catch( NoSuchFileException x ) {
+                        message = "No such file or directory";
+                        isKnownX = true; }
+                    catch( IOException x ) {
+                        message = x.toString();
+                        isKnownX = false; }}
+                final boolean wouldPrivatizationSuppress = isAlteredRef && isKnownX;
+                if( wouldPrivatizationSuppress && isPrivatized(contextFractum(eRef)) ) return null; /*
+                  With neither hyperlink nor warning, because this type of inaccessibility is common
+                  when a private reference is altered by a `--reference-mapping` translation. */
+                final StringBuilder b = clear( stringBuilder );
+                final CharacterPointer p = characterPointer( eRef );
+                b.append( wrnHead( f, p.lineNumber ));
+                b.append( message );
+                if( wouldPrivatizationSuppress ) {
+                    b.append( "; consider marking this reference as private" ); }
+                b.append( ":\n" ).append( p.markedLine() );
+                wrn().println( b.toString() ); /* Yet carry on and form the hyperlink, for the cause
+                  of inaccessibility could be a misplacement or misconfiguration of the referent
+                  as opposed to a malformation of the reference. */
+                return sRef; }}}
 
 
 
