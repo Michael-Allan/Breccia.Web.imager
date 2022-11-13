@@ -367,7 +367,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param fileFractum The file fractal image in DOM form.
+    /** @param sourceFile The source of the file fractum.
+      * @param fileFractum The unfinished image of the file fractum.
       */
     protected void finish( Path sourceFile, final Element fileFractum ) {
         final Document d = fileFractum.getOwnerDocument();
