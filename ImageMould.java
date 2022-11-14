@@ -337,20 +337,20 @@ public final class ImageMould<C extends ReusableCursor> {
             in.perStateConditionally( f, state -> { /*
                 For what follows, cf. `BreccianFileTranslator.finish(Path,Element)`. [RC] */
 
-                final Granum mRef; { // The reference encapsulated as a `Granum`.
-                    try { mRef = translator.formalReferenceAt( in ); }
+                final Granum gRef; { // The reference encapsulated as a `Granum`.
+                    try { gRef = translator.formalReferenceAt( in ); }
                     catch( final ParseError x ) {
                         err().println( errMsg( f, x ));
                         iR.set( unimageable ); // The source fails to parse.
                         return /*to continue parsing*/false; } // No point, the parser has halted.
-                    if( mRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
-                final String sRefOriginal = mRef.text().toString(); // The reference in string form.
+                    if( gRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
+                final String sRefOriginal = gRef.text().toString(); // The reference in string form.
                 final String sRef = translate( sRefOriginal, f );
                   // Applying any `--reference-mapping` translations.
                 final URI uRef; { // The reference in parsed `URI` form.
                     try { uRef = new URI( sRef ); }
                     catch( final URISyntaxException x ) {
-                        final CharacterPointer p = mRef.characterPointer( malformationIndex( x ));
+                        final CharacterPointer p = gRef.characterPointer( malformationIndex( x ));
                         err().println( errHead(f,p.lineNumber) + malformationMessage(x,p) );
                         iR.set( unimageable ); // Do not image the file. [UFR]
                         return // Without mapping ∵ `x` leaves the intended resource unclear.
@@ -360,7 +360,7 @@ public final class ImageMould<C extends ReusableCursor> {
               // ┈┈┈┈┈┈
                 if( isRemote( uRef )) { // Then the resource would be reachable through a network.
                     if( !looksProbeable( uRef )) {
-                        imps.add( new Improbeable( mRef.characterPointer(), mRef.xuncFractalDescent() ));
+                        imps.add( new Improbeable( gRef.characterPointer(), gRef.xuncFractalDescent() ));
                         iR.set( unimageable ); // Do not image the file. [UFR]
                         return // Without mapping ∵ `formalResources.remote` forbids improbeables.
                           /*to continue parsing*/true; } // To report/detect any further errors.
@@ -374,7 +374,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     final Path pRef; { // The reference parsed and resolved as a local file path.
                         try { pRef = f.resolveSibling( toPath( uRef )); }
                         catch( final IllegalArgumentException x ) {
-                            final CharacterPointer p = mRef.characterPointer();
+                            final CharacterPointer p = gRef.characterPointer();
                             err().println( errHead(f,p.lineNumber) + x.getMessage() + '\n'
                               + p.markedLine() );
                             iR.set( unimageable ); // Do not image the file. [UFR]
