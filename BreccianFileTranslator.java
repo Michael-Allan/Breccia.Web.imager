@@ -48,7 +48,6 @@ import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.Project.malformationIndex;
-import static Breccia.Web.imager.Project.malformationMessage;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
@@ -309,7 +308,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // Form the pointer
       // ────────────────
         offset -= offsetRegional; // whole text → `textRegional`
-        final int column = GCC.clusterCount( textRegional, lineStart, offset );
+        final int column = mould.GCC.clusterCount( textRegional, lineStart, offset );
         return new CharacterPointer( line, lineLocator.number(), column ); }
 
 
@@ -405,17 +404,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private final GraphemeClusterCounter GCC = new GraphemeClusterCounter();
-
-
-
     private Font glyphTestFont;
 
 
 
     /** @param f The path of a source file.
       * @param eRef The unfinished image from `f` of a URI reference.
-      * @param sRef The reference itself in string form, after any applicable translations.
+      * @param sRef The reference itself in string form,
+      *   after any applicable `--reference-mapping` translations.
       * @param isAlteredRef Whether `sRef` was actually changed by such translation.
       * @return The target reference for the hyperlink `a` element, or null to omit hyperlinking.
       * @see ImageMould#translate(String,Path)
@@ -426,7 +422,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             try { uRef = new URI( sRef ); }
             catch( final URISyntaxException x ) {
                 final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
-                wrn().println( wrnHead(f,p.lineNumber) + malformationMessage(x,p) );
+                wrn().println( wrnHead(f,p.lineNumber) + mould.message(sRef,x,p,isAlteredRef) );
                 return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
 
       // remote  [RC]

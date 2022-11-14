@@ -26,7 +26,6 @@ import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.Project.malformationIndex;
-import static Breccia.Web.imager.Project.malformationMessage;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
 import static Breccia.Web.imager.RemoteChangeProbe.improbeableMessage;
@@ -347,11 +346,12 @@ public final class ImageMould<C extends ReusableCursor> {
                 final String sRefOriginal = gRef.text().toString(); // The reference in string form.
                 final String sRef = translate( sRefOriginal, f );
                   // Applying any `--reference-mapping` translations.
+                final boolean isAlteredRef = !sRef.equals( sRefOriginal );
                 final URI uRef; { // The reference in parsed `URI` form.
                     try { uRef = new URI( sRef ); }
                     catch( final URISyntaxException x ) {
                         final CharacterPointer p = gRef.characterPointer( malformationIndex( x ));
-                        err().println( errHead(f,p.lineNumber) + malformationMessage(x,p) );
+                        err().println( errHead(f,p.lineNumber) + message(sRef,x,p,isAlteredRef) );
                         iR.set( unimageable ); // Do not image the file. [UFR]
                         return // Without mapping ∵ `x` leaves the intended resource unclear.
                           /*to continue parsing*/true; }} // To report any further errors.
@@ -400,11 +400,43 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    final GraphemeClusterCounter GCC = new GraphemeClusterCounter();
+
+
+
     private boolean hasFailed;
 
 
 
     private final ArrayList<Improbeable> imps = new ArrayList<>();
+
+
+
+    /** Makes a message to describe a malformed URI reference.
+      *
+      *     @param ref The malformed URI reference.
+      *     @param x The detected malformation.
+      *     @param p A character pointer formed on the original source line.
+      *       The value of its `column` field will be ignored if `isAlteredRef`.
+      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
+      *       from the original reference given in source.
+      */
+    String message( final String ref, final URISyntaxException x, final CharacterPointer p,
+          final boolean isAlteredRef ) {
+        final StringBuilder b = clear( stringBuilder );
+        b.append( "Malformed URI reference: ");
+        b.append( x.getReason() );
+        b.append( '\n' );
+        if( isAlteredRef ) {
+            final String indent = "      ";
+            final String line = indent + ref;
+            final CharacterPointer q = new CharacterPointer( line, p.lineNumber, /*column*/
+              GCC.clusterCount( line, 0, /*character offset*/indent.length() + malformationIndex(x) ));
+            b.append( q.markedLine() );
+            b.append( "\n    Source line, with original reference:  (before `--reference-mapping` translation)\n" );
+            b.append( p.line ); }
+        else b.append( p.markedLine() );
+        return b.toString(); }
 
 
 
