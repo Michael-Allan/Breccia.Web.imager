@@ -117,7 +117,7 @@ public final class Project {
     /** Makes a message to describe a malformed URI reference.
       */
     static String malformationMessage( final URISyntaxException x, final CharacterPointer p ) {
-      return "Malformed URI reference: " + x.getReason() + '\n' + p.markedLine(); }}
+        return "Malformed URI reference: " + x.getReason() + '\n' + p.markedLine(); }}
 
 
 

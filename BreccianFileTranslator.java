@@ -2,6 +2,7 @@ package Breccia.Web.imager;
 
 import Breccia.parser.*;
 import Breccia.XML.translator.BrecciaXCursor;
+import Java.*;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.io.FileInputStream;
@@ -15,7 +16,6 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.OpenOption;
-import Java.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
