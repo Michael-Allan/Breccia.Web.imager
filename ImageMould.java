@@ -25,10 +25,11 @@ import static Breccia.Web.imager.Imageability.*;
 import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBreccian;
-import static Breccia.Web.imager.Project.malformationIndex;
+import static Breccia.Web.imager.Project.zeroBased;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
 import static Breccia.Web.imager.RemoteChangeProbe.improbeableMessage;
+import static Java.CharacterPointer.markedLine;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
 import static java.nio.file.Files.exists;
@@ -350,7 +351,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 final URI uRef; { // The reference in parsed `URI` form.
                     try { uRef = new URI( sRef ); }
                     catch( final URISyntaxException x ) {
-                        final CharacterPointer p = gRef.characterPointer( malformationIndex( x ));
+                        final CharacterPointer p = gRef.characterPointer( zeroBased( x.getIndex() ));
                         err().println( errHead(f,p.lineNumber) + message(sRef,x,p,isAlteredRef) );
                         iR.set( unimageable ); // Do not image the file. [UFR]
                         return // Without mapping ∵ `x` leaves the intended resource unclear.
@@ -400,7 +401,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    final GraphemeClusterCounter GCC = new GraphemeClusterCounter();
+    final GraphemeClusterCounter gcc = new GraphemeClusterCounter();
 
 
 
@@ -429,10 +430,7 @@ public final class ImageMould<C extends ReusableCursor> {
         b.append( '\n' );
         if( isAlteredRef ) {
             final String indent = "      ";
-            final String line = indent + ref;
-            final CharacterPointer q = new CharacterPointer( line, p.lineNumber, /*column*/
-              GCC.clusterCount( line, 0, /*character offset*/indent.length() + malformationIndex(x) ));
-            b.append( q.markedLine() );
+            b.append( markedLine( indent + ref, indent.length() + zeroBased(x.getIndex()), gcc ));
             b.append( "\n    Source line, with original reference:  (before `--reference-mapping` translation)\n" );
             b.append( p.line ); }
         else b.append( p.markedLine() );

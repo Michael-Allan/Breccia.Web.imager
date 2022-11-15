@@ -2,14 +2,19 @@ package Breccia.Web.imager;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import Java.GraphemeClusterCounter;
 import Java.Unhandled;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
+import static Breccia.Web.imager.Project.zeroBased;
 import static Breccia.Web.imager.ReferenceTranslation.newTranslation;
+import static Java.CharacterPointer.markedLine;
 import static java.lang.Float.parseFloat;
+import static java.lang.System.err;
 import static java.nio.file.Files.readString;
 import static Java.URI_References.enslash;
 import static Java.URI_References.isRemote;
@@ -187,7 +192,7 @@ public class ImagingOptions extends Options {
     protected @Override boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
-        if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
+        arg: if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
         else if( arg.startsWith( s = "--co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
         else if( arg.equals( "--forcefully" )) toForce = true;
@@ -196,7 +201,15 @@ public class ImagingOptions extends Options {
             final List<ReferenceTranslation> tt = new ArrayList<>( /*initial capacity*/8 );
             final Matcher m = referenceTranslationPattern.matcher( value( arg, s ));
             while( m.find() ) {
-                tt.add( newTranslation( Pattern.compile(m.group(2)), /*replacement*/m.group(3) )); }
+                final Pattern pattern; {
+                    try { pattern = Pattern.compile( m.group( 2 )); }
+                    catch( final PatternSyntaxException x ) {
+                        err.println( commandName + ": Malformed pattern: " + x.getDescription() + '\n'
+                          + markedLine( arg, s.length() + m.start(2) + zeroBased(x.getIndex()),
+                              new GraphemeClusterCounter() ) );
+                        isGo = false;
+                        break arg; }}
+                tt.add( newTranslation( pattern, /*replacement*/m.group(3) )); }
             referenceMappings.add( unmodifiableList( tt )); }
         else isGo = super.initialize( arg );
         return isGo; }}

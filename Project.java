@@ -107,9 +107,9 @@ public final class Project {
 
 
 
-    /** Returns `max( x.getIndex(), 0 )`, so translating to zero any index of -1.
+    /** Returns `max( index, 0 )`, so translating to zero any index of -1.
       */
-    static int malformationIndex( final URISyntaxException x ) { return max( x.getIndex(), 0 ); }}
+    static int zeroBased( final int index ) { return max( index, 0 ); }}
 
 
 

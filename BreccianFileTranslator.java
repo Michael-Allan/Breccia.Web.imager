@@ -47,7 +47,7 @@ import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.looksBreccian;
-import static Breccia.Web.imager.Project.malformationIndex;
+import static Breccia.Web.imager.Project.zeroBased;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
 import static java.lang.Character.charCount;
@@ -308,7 +308,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // Form the pointer
       // ────────────────
         offset -= offsetRegional; // whole text → `textRegional`
-        final int column = mould.GCC.clusterCount( textRegional, lineStart, offset );
+        final int column = mould.gcc.clusterCount( textRegional, lineStart, offset );
         return new CharacterPointer( line, lineLocator.number(), column ); }
 
 
@@ -421,7 +421,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final URI uRef; { // The reference in parsed `URI` form.
             try { uRef = new URI( sRef ); }
             catch( final URISyntaxException x ) {
-                final CharacterPointer p = characterPointer( eRef, malformationIndex(x) );
+                final CharacterPointer p = characterPointer( eRef, zeroBased(x.getIndex()) );
                 wrn().println( wrnHead(f,p.lineNumber) + mould.message(sRef,x,p,isAlteredRef) );
                 return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
 
