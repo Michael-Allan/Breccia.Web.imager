@@ -24,7 +24,7 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a message head for reporting an error in `file`.
+    /** Makes a report head for an error in `file`.
       *
       *     @see #wrnHead(Path)
       */
@@ -32,7 +32,7 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a message head for reporting an error in `file` at the given line number.
+    /** Makes a report head for an error in `file` at the given line number.
       *
       *     @see #wrnHead(Path,int)
       */
@@ -41,30 +41,30 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a message for reporting an error in `file` at the given line number,
-      * taking for the body of the message `t.getMessage`.
+    /** Makes a report of an error in `file` at the given line number,
+      * using `t.getMessage` as the message.
       *
-      *     @see #wrnMsg(Path,int,Throwable)
+      *     @see #wrnReport(Path,int,Throwable)
       */
-    public static String errMsg( final Path file, final int lineNumber, final Throwable t ) {
+    public static String errReport( final Path file, final int lineNumber, final Throwable t ) {
         return  errHead(file,lineNumber) + t.getMessage(); }
 
 
 
-    /** Makes a message for reporting a parse error associated with `file`.
+    /** Makes a report of a parse error associated with `file`.
       *
-      *     @see #wrnMsg(Path,ParseError)
+      *     @see #wrnReport(Path,ParseError)
       */
-    public static String errMsg( final Path file, final ParseError x ) {
+    public static String errReport( final Path file, final ParseError x ) {
         return errHead(file,x.lineNumber) + x.getMessage(); }
 
 
 
-    /** Makes a message for reporting an error at a file.
+    /** Makes a report of an error at a file.
       *
-      *     @see #wrnMsg()
+      *     @see #wrnReport()
       */
-    public static String errMsg( final ErrorAtFile x ) { return errHead(x.file) + x.getMessage(); }
+    public static String errReport( final ErrorAtFile x ) { return errHead(x.file) + x.getMessage(); }
 
 
 
@@ -74,7 +74,7 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a message head for warning about something in `file`.
+    /** Makes a report head for warning of something in `file`.
       *
       *     @see #errHead(Path)
       */
@@ -82,7 +82,7 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a message head for warning about something in `file` at the given line number.
+    /** Makes a report head for warning of something in `file` at the given line number.
       *
       *     @see #errHead(Path,int)
       */
@@ -91,30 +91,30 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a message for warning about something in `file` at the given line number,
-      * taking for the body of the message `t.getMessage`.
+    /** Makes a report to warn of something in `file` at the given line number,
+      * using `t.getMessage` as the message.
       *
-      *     @see #errMsg(Path,int,Throwable)
+      *     @see #errReport(Path,int,Throwable)
       */
-    public static String wrnMsg( final Path file, final int lineNumber, final Throwable t ) {
+    public static String wrnReport( final Path file, final int lineNumber, final Throwable t ) {
         return wrnHead(file,lineNumber) + t.getMessage(); }
 
 
 
-    /** Makes a message for warning about a parse error associated with `file`.
+    /** Makes a report to warn of a parse error associated with `file`.
       *
-      *     @see #errMsg(Path,ParseError)
+      *     @see #errReport(Path,ParseError)
       */
-    public static String wrnMsg( final Path file, final ParseError x ) {
+    public static String wrnReport( final Path file, final ParseError x ) {
         return wrnHead(file,x.lineNumber) + x.getMessage(); }
 
 
 
-    /** Makes a message for warning about an error at a file.
+    /** Makes a report to warn of an error at a file.
       *
-      *     @see #errMsg()
+      *     @see #errReport()
       */
-    public static String wrnMsg( final ErrorAtFile x ) { return wrnHead(x.file) + x.getMessage(); }
+    public static String wrnReport( final ErrorAtFile x ) { return wrnHead(x.file) + x.getMessage(); }
 
 
 

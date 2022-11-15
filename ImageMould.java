@@ -18,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
 import static Breccia.Web.imager.ErrorAtFile.errHead;
-import static Breccia.Web.imager.ErrorAtFile.errMsg;
+import static Breccia.Web.imager.ErrorAtFile.errReport;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
@@ -234,8 +234,8 @@ public final class ImageMould<C extends ReusableCursor> {
                       outDirectory.resolve(sourceFileRelative).getParent() );
                     ++count;
                     wasTranslated = true; }
-                catch( final ParseError x ) { err().println( errMsg( sourceFile, x )); }
-                catch( final ErrorAtFile x ) { err().println( errMsg( x )); }
+                catch( final ParseError x ) { err().println( errReport( sourceFile, x )); }
+                catch( final ErrorAtFile x ) { err().println( errReport( x )); }
                 iR.set( wasTranslated? imaged: unimageable ); }
             if( isFinalPass ) break;
             if( c > 0 ) continue; // One good turn deserves another by making it likelier.
@@ -265,7 +265,7 @@ public final class ImageMould<C extends ReusableCursor> {
             try {
                 translator.finish( sourceFile, outDirectory.resolve( imageFileRelative ));
                 ++count; }
-            catch( final ErrorAtFile x ) { err().println( errMsg( x )); }}
+            catch( final ErrorAtFile x ) { err().println( errReport( x )); }}
         if( count == 0 ) out(2).println( "    none finished" );
         return !hasFailed; }
 
@@ -340,7 +340,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 final Granum gRef; { // The reference encapsulated as a `Granum`.
                     try { gRef = translator.formalReferenceAt( in ); }
                     catch( final ParseError x ) {
-                        err().println( errMsg( f, x ));
+                        err().println( errReport( f, x ));
                         iR.set( unimageable ); // The source fails to parse.
                         return /*to continue parsing*/false; } // No point, the parser has halted.
                     if( gRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
@@ -392,7 +392,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 return true; });
             while( !in.state().isFinal() ) in.next(); } // API requirement of `isPrivatized`, below.
         catch( final ParseError x ) {
-            err().println( errMsg( f, x ));
+            err().println( errReport( f, x ));
             iR.set( unimageable );
             return; }
         for( final Improbeable imp: imps ) if( !in.isPrivatized( imp.xuncFractalDescent )) {
