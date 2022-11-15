@@ -43,7 +43,6 @@ import static Breccia.parser.Typestamp.empty;
 import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
-import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.looksBreccian;
@@ -471,14 +470,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( wouldPrivatizationSuppress && isPrivatized(contextFractum(eRef)) ) return null; /*
                   With neither hyperlink nor warning, because this type of inaccessibility is common
                   when a private reference is altered by a `--reference-mapping` translation. */
-                final StringBuilder b = clear( stringBuilder );
                 final CharacterPointer p = characterPointer( eRef );
-                b.append( wrnHead( f, p.lineNumber ));
-                b.append( message );
+                final StringBuilder b = clear(stringBuilder).append( message );
                 if( wouldPrivatizationSuppress ) {
                     b.append( "; consider marking this reference as private" ); }
                 b.append( ":\n" ).append( p.markedLine() );
-                mould.wrn().println( b.toString() ); /* Yet carry on and form the hyperlink,
+                mould.warn( f, p, b.toString() ); /* Yet carry on and form the hyperlink,
                   for the cause of inaccessibility could be a misplacement or misconfiguration
                   of the referent as opposed to a malformation of the reference. */
                 return sRef; }}}
