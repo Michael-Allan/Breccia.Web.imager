@@ -18,7 +18,6 @@ import java.util.regex.Matcher;
 import java.util.stream.Stream;
 
 import static Breccia.Web.imager.ErrorAtFile.errHead;
-import static Breccia.Web.imager.ErrorAtFile.errReport;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
@@ -234,8 +233,8 @@ public final class ImageMould<C extends ReusableCursor> {
                       outDirectory.resolve(sourceFileRelative).getParent() );
                     ++count;
                     wasTranslated = true; }
-                catch( final ParseError x ) { err().println( errReport( sourceFile, x )); }
-                catch( final ErrorAtFile x ) { err().println( errReport( x )); }
+                catch( final ParseError x ) { flag( sourceFile, x ); }
+                catch( final ErrorAtFile x ) { flag( x ); }
                 iR.set( wasTranslated? imaged: unimageable ); }
             if( isFinalPass ) break;
             if( c > 0 ) continue; // One good turn deserves another by making it likelier.
@@ -265,7 +264,7 @@ public final class ImageMould<C extends ReusableCursor> {
             try {
                 translator.finish( sourceFile, outDirectory.resolve( imageFileRelative ));
                 ++count; }
-            catch( final ErrorAtFile x ) { err().println( errReport( x )); }}
+            catch( final ErrorAtFile x ) { flag( x ); }}
         if( count == 0 ) out(2).println( "    none finished" );
         return !hasFailed; }
 
@@ -322,6 +321,53 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    /** Reports an error at a file.
+      *
+      *     @see #err()
+      *     @see #warn(ErrorAtFile)
+      */
+    void flag( final ErrorAtFile x ) { flag( x.file, x.getMessage() ); }
+
+
+
+    /** Reports an error in `file` at the line number of the given character pointer.
+      *
+      *     @see #err()
+      *     @see #warn(Path,CharacterPointer,String)
+      */
+    void flag( final Path file, final CharacterPointer p, final String message ) {
+        flag( file, p.lineNumber, message ); }
+
+
+
+    /** Reports an error in `file` at the given line number.
+      *
+      *     @see #err()
+      *     @see #warn(Path,int,String)
+      */
+    void flag( final Path file, final int lineNumber, final String message ) {
+        err().println( errHead(file,lineNumber) + message ); }
+
+
+
+    /** Reports an error in `file`.
+      *
+      *     @see #err()
+      *     @see #warn(Path,String)
+      */
+    void flag( final Path file, final String message ) { err().println( errHead(file) + message ); }
+
+
+
+    /** Reports a parse error associated with `file`.
+      *
+      *     @see #err()
+      *     @see #warn(Path,ParseError)
+      */
+    void flag( final Path file, final ParseError x ) { flag( file, x.lineNumber, x.getMessage() ); }
+
+
+
     /** Records all formal resources of source file `f`, provided `f` is of indeterminate imageability;
       * otherwise does nothing.
       *
@@ -340,7 +386,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 final Granum gRef; { // The reference encapsulated as a `Granum`.
                     try { gRef = translator.formalReferenceAt( in ); }
                     catch( final ParseError x ) {
-                        err().println( errReport( f, x ));
+                        flag( f, x );
                         iR.set( unimageable ); // The source fails to parse.
                         return /*to continue parsing*/false; } // No point, the parser has halted.
                     if( gRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
@@ -352,7 +398,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     try { uRef = new URI( sRef ); }
                     catch( final URISyntaxException x ) {
                         final CharacterPointer p = gRef.characterPointer( zeroBased( x.getIndex() ));
-                        err().println( errHead(f,p.lineNumber) + message(sRef,x,p,isAlteredRef) );
+                        flag( f, p, message( sRef, x, p,isAlteredRef ));
                         iR.set( unimageable ); // Do not image the file. [UFR]
                         return // Without mapping ∵ `x` leaves the intended resource unclear.
                           /*to continue parsing*/true; }} // To report any further errors.
@@ -376,8 +422,7 @@ public final class ImageMould<C extends ReusableCursor> {
                         try { pRef = f.resolveSibling( toPath( uRef )); }
                         catch( final IllegalArgumentException x ) {
                             final CharacterPointer p = gRef.characterPointer();
-                            err().println( errHead(f,p.lineNumber) + x.getMessage() + '\n'
-                              + p.markedLine() );
+                            flag( f, p, x.getMessage() + '\n' + p.markedLine() );
                             iR.set( unimageable ); // Do not image the file. [UFR]
                             return // Without mapping ∵ `x` leaves the intended resource unclear.
                               /*to continue parsing*/true; }} // To report any further errors.
@@ -392,12 +437,12 @@ public final class ImageMould<C extends ReusableCursor> {
                 return true; });
             while( !in.state().isFinal() ) in.next(); } // API requirement of `isPrivatized`, below.
         catch( final ParseError x ) {
-            err().println( errReport( f, x ));
+            flag( f, x );
             iR.set( unimageable );
             return; }
         for( final Improbeable imp: imps ) if( !in.isPrivatized( imp.xuncFractalDescent )) {
             final CharacterPointer p = imp.characterPointer;
-            err().println( errHead(f,p.lineNumber) + improbeableMessage(p) ); }}
+            flag( f, p, improbeableMessage( p )); }}
 
 
 
@@ -514,6 +559,53 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
     private FileTranslator<C> translator; // Do not modify after `initialize`.
+
+
+
+    /** Warns of an error at a file.
+      *
+      *     @see #wrn()
+      *     @see #flag(ErrorAtFile)
+      */
+    void warn( final ErrorAtFile x ) { warn( x.file, x.getMessage() ); }
+
+
+
+    /** Warns of something in `file` at the line number of the given character pointer.
+      *
+      *     @see #wrn()
+      *     @see #flag(Path,CharacterPointer,String)
+      */
+    void warn( final Path file, final CharacterPointer p, final String message ) {
+        warn( file, p.lineNumber, message ); }
+
+
+
+    /** Warns of something in `file` at the given line number.
+      *
+      *     @see #wrn()
+      *     @see #flag(Path,int,String)
+      */
+    void warn( final Path file, final int lineNumber, final String message ) {
+        wrn().println( errHead(file,lineNumber) + message ); }
+
+
+
+    /** Warns of something in `file`.
+      *
+      *     @see #wrn()
+      *     @see #flag(Path,String)
+      */
+    void warn( final Path file, final String message ) { wrn().println( errHead(file) + message ); }
+
+
+
+    /** Warns of a parse error associated with `file`.
+      *
+      *     @see #wrn()
+      *     @see #flag(Path,ParseError)
+      */
+    void warn( final Path file, final ParseError x ) { warn( file, x.lineNumber, x.getMessage() ); }
 
 
 

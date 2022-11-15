@@ -231,8 +231,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( !unsMap.isEmpty() ) {
                     final UnglyphedCharacter[] uns = unsMap.values().toArray( unArrayType );
                     sort( uns, unsComparator );
-                    for( final var un: uns ) {
-                        wrn().println( wrnHead(sourceFile,un.pointer.lineNumber) + un ); }}}
+                    for( final var un: uns ) mould.warn( sourceFile, un.pointer, un.toString() ); }}
 
           // XHTML DOM ← X-Breccia DOM
           // ─────────
@@ -422,7 +421,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             try { uRef = new URI( sRef ); }
             catch( final URISyntaxException x ) {
                 final CharacterPointer p = characterPointer( eRef, zeroBased(x.getIndex()) );
-                wrn().println( wrnHead(f,p.lineNumber) + mould.message(sRef,x,p,isAlteredRef) );
+                mould.warn( f, p, mould.message( sRef, x, p, isAlteredRef ));
                 return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
 
       // remote  [RC]
@@ -438,7 +437,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 try { pRef = f.resolveSibling( toPath( uRef )); }
                 catch( final IllegalArgumentException x ) {
                     final CharacterPointer p = characterPointer( eRef );
-                    wrn().println( wrnHead(f,p.lineNumber) + x.getMessage() + '\n' + p.markedLine() );
+                    mould.warn( f, p, x.getMessage() + '\n' + p.markedLine() );
                     return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
             if( exists( pRef )) {
                 if( !isDirectory(pRef) && looksBreccian(sRef) ) {
@@ -479,9 +478,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( wouldPrivatizationSuppress ) {
                     b.append( "; consider marking this reference as private" ); }
                 b.append( ":\n" ).append( p.markedLine() );
-                wrn().println( b.toString() ); /* Yet carry on and form the hyperlink, for the cause
-                  of inaccessibility could be a misplacement or misconfiguration of the referent
-                  as opposed to a malformation of the reference. */
+                mould.wrn().println( b.toString() ); /* Yet carry on and form the hyperlink,
+                  for the cause of inaccessibility could be a misplacement or misconfiguration
+                  of the referent as opposed to a malformation of the reference. */
                 return sRef; }}}
 
 
@@ -859,10 +858,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         try( final OutputStream imageWriter = newOutputStream​( imageFile, outputOptions )) {
             toImageFile.setOutputStream( imageWriter );
             identityTransformer.transform( fromDOM, toImageFile ); }}
-
-
-
-    private PrintWriter wrn() {  return mould.wrn(); }
 
 
 
