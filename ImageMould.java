@@ -542,9 +542,9 @@ public final class ImageMould<C extends ReusableCursor> {
         if( isReadable( p )) { // Herein cf. `formImage`.
             if( isDirectory( p )) {
                 if( isWritable( p )) pullDirectory( p );
-                else wrn().println( wrnHead(p) + "Skipping this unwritable directory" ); }
+                else warn( p, "Skipping this unwritable directory" ); }
             else pullFile( p ); }
-        else if( wouldRead( p )) wrn().println( wrnHead(p) + "Skipping this unreadable path" ); }
+        else if( wouldRead( p )) warn( p, "Skipping this unreadable path" ); }
 
 
 
