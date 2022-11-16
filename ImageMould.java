@@ -613,7 +613,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @see #flag(Path,int,String)
       */
     void warn( final Path file, final int lineNumber, final String message ) {
-        wrn().println( errHead(file,lineNumber) + message ); }
+        wrn().println( wrnHead(file,lineNumber) + message ); }
 
 
 
@@ -622,7 +622,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @see #wrn()
       *     @see #flag(Path,String)
       */
-    void warn( final Path file, final String message ) { wrn().println( errHead(file) + message ); }
+    void warn( final Path file, final String message ) { wrn().println( wrnHead(file) + message ); }
 
 
 
