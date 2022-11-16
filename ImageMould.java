@@ -28,7 +28,6 @@ import static Breccia.Web.imager.Project.zeroBased;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
 import static Breccia.Web.imager.RemoteChangeProbe.improbeableMessage;
-import static Java.CharacterPointer.markedLine;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
 import static java.nio.file.Files.exists;
@@ -422,7 +421,7 @@ public final class ImageMould<C extends ReusableCursor> {
                         try { pRef = f.resolveSibling( toPath( uRef )); }
                         catch( final IllegalArgumentException x ) {
                             final CharacterPointer p = gRef.characterPointer();
-                            flag( f, p, x.getMessage() + '\n' + p.markedLine() );
+                            flag( f, p, x.getMessage() + '\n' + markedLine(sRef,p,isAlteredRef) );
                             iR.set( unimageable ); // Do not image the file. [UFR]
                             return // Without mapping ∵ `x` leaves the intended resource unclear.
                               /*to continue parsing*/true; }} // To report any further errors.
@@ -458,6 +457,42 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    /** Returns a multi-line string comprising an echo of a URI reference together with a column marker.
+      *
+      *     @param ref The URI reference.
+      *     @param p A character pointer formed on the original source line of `ref`.
+      *       The value of its `column` field will be ignored if `isAlteredRef`.
+      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
+      *       from the original reference given in source.
+      */
+    String markedLine( String ref, CharacterPointer p, boolean isAlteredRef ) {
+        return markedLine( ref, p, isAlteredRef, 0 ); }
+
+
+
+    /** Returns a multi-line string comprising an echo of a URI reference together with a column marker.
+      *
+      *     @param ref The URI reference.
+      *     @param p A character pointer formed on the original source line of `ref`.
+      *       The value of its `column` field will be ignored if `isAlteredRef`.
+      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
+      *       from the original reference given in source.
+      *     @param c The zero-based offset of the character in `ref` whose column to mark.
+      *       Only if `isAlteredRef` will it be used.
+      */
+    String markedLine( final String ref, final CharacterPointer p, final boolean isAlteredRef,
+          final int c ) {
+        final StringBuilder b = clear( stringBuilder );
+        if( isAlteredRef ) {
+            final String indent = "      ";
+            b.append( CharacterPointer.markedLine( indent + ref, indent.length() + c, gcc ));
+            b.append( "\n    Source line, with original reference:  (before `--reference-mapping` translation)\n" );
+            b.append( p.line ); }
+        else b.append( p.markedLine() );
+        return b.toString(); }
+
+
+
     /** Returns a multi-line description of a malformed URI reference,
       * fit to include as the message of a user report.
       *
@@ -468,19 +503,9 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
       *       from the original reference given in source.
       */
-    String message( final String ref, final URISyntaxException x, final CharacterPointer p,
-          final boolean isAlteredRef ) {
-        final StringBuilder b = clear( stringBuilder );
-        b.append( "Malformed URI reference: ");
-        b.append( x.getReason() );
-        b.append( '\n' );
-        if( isAlteredRef ) {
-            final String indent = "      ";
-            b.append( markedLine( indent + ref, indent.length() + zeroBased(x.getIndex()), gcc ));
-            b.append( "\n    Source line, with original reference:  (before `--reference-mapping` translation)\n" );
-            b.append( p.line ); }
-        else b.append( p.markedLine() );
-        return b.toString(); }
+    String message( String ref, final URISyntaxException x, CharacterPointer p, boolean isAlteredRef ) {
+        return "Malformed URI reference: " + x.getReason() + '\n'
+          + markedLine( ref, p, isAlteredRef, zeroBased(x.getIndex()) ); }
 
 
 

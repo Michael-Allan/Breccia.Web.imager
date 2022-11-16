@@ -436,7 +436,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 try { pRef = f.resolveSibling( toPath( uRef )); }
                 catch( final IllegalArgumentException x ) {
                     final CharacterPointer p = characterPointer( eRef );
-                    mould.warn( f, p, x.getMessage() + '\n' + p.markedLine() );
+                    mould.warn( f, p, x.getMessage() + '\n' + mould.markedLine(sRef,p,isAlteredRef) );
                     return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
             if( exists( pRef )) {
                 if( !isDirectory(pRef) && looksBreccian(sRef) ) {
@@ -474,7 +474,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final StringBuilder b = clear(stringBuilder).append( message );
                 if( wouldPrivatizationSuppress ) {
                     b.append( "; consider marking this reference as private" ); }
-                b.append( ":\n" ).append( p.markedLine() );
+                b.append( ":\n" );
+                b.append( mould.markedLine( sRef, p, isAlteredRef ));
                 mould.warn( f, p, b.toString() ); /* Yet carry on and form the hyperlink,
                   for the cause of inaccessibility could be a misplacement or misconfiguration
                   of the referent as opposed to a malformation of the reference. */
