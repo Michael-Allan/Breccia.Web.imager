@@ -321,7 +321,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Reports an error at a file.
+    /** Reports to the user an error at a file.
       *
       *     @see #err()
       *     @see #warn(ErrorAtFile)
@@ -330,7 +330,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Reports an error in `file` at the line number of the given character pointer.
+    /** Reports to the user an error in `file` at the line number of the given character pointer.
       *
       *     @see #err()
       *     @see #warn(Path,CharacterPointer,String)
@@ -340,7 +340,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Reports an error in `file` at the given line number.
+    /** Reports to the user an error in `file` at the given line number.
       *
       *     @see #err()
       *     @see #warn(Path,int,String)
@@ -350,7 +350,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Reports an error in `file`.
+    /** Reports to the user an error in `file`.
       *
       *     @see #err()
       *     @see #warn(Path,String)
@@ -359,7 +359,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Reports a parse error associated with `file`.
+    /** Reports to the user a parse error associated with `file`.
       *
       *     @see #err()
       *     @see #warn(Path,ParseError)
@@ -458,11 +458,12 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Makes a message to describe a malformed URI reference.
+    /** Returns a multi-line description of a malformed URI reference,
+      * fit to include as the message of a user report.
       *
       *     @param ref The malformed URI reference.
-      *     @param x The detected malformation.
-      *     @param p A character pointer formed on the original source line.
+      *     @param x The malformation detected in `ref`.
+      *     @param p A character pointer formed on the original source line of `ref`.
       *       The value of its `column` field will be ignored if `isAlteredRef`.
       *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
       *       from the original reference given in source.
@@ -562,7 +563,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Warns of an error at a file.
+    /** Warns the user of an error at a file.
       *
       *     @see #wrn()
       *     @see #flag(ErrorAtFile)
@@ -571,7 +572,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Warns of something in `file` at the line number of the given character pointer.
+    /** Warns the user of something in `file` at the line number of the given character pointer.
       *
       *     @see #wrn()
       *     @see #flag(Path,CharacterPointer,String)
@@ -581,7 +582,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Warns of something in `file` at the given line number.
+    /** Warns the user of something in `file` at the given line number.
       *
       *     @see #wrn()
       *     @see #flag(Path,int,String)
@@ -591,7 +592,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Warns of something in `file`.
+    /** Warns the user of something in `file`.
       *
       *     @see #wrn()
       *     @see #flag(Path,String)
@@ -600,7 +601,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Warns of a parse error associated with `file`.
+    /** Warns the user of a parse error associated with `file`.
       *
       *     @see #wrn()
       *     @see #flag(Path,ParseError)

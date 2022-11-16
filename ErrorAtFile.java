@@ -23,7 +23,7 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a report head for an error in `file`.
+    /** Makes a user-report head to flag an error in `file`.
       *
       *     @see #wrnHead(Path)
       */
@@ -31,7 +31,7 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a report head for an error in `file` at the given line number.
+    /** Makes a user-report head to flag an error in `file` at the given line number.
       *
       *     @see #wrnHead(Path,int)
       */
@@ -46,7 +46,7 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a report head for warning of something in `file`.
+    /** Makes a report head to warn the user of something in `file`.
       *
       *     @see #errHead(Path)
       */
@@ -54,7 +54,7 @@ public class ErrorAtFile extends Exception {
 
 
 
-    /** Makes a report head for warning of something in `file` at the given line number.
+    /** Makes a report head to warn the user of something in `file` at the given line number.
       *
       *     @see #errHead(Path,int)
       */
