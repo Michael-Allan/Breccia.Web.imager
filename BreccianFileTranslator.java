@@ -43,8 +43,10 @@ import static Breccia.parser.Typestamp.empty;
 import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
+import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.imageSimpleName;
+import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.Project.zeroBased;
 import static java.awt.Font.createFont;
@@ -450,33 +452,35 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     return sRefImageExists ? imageSibling(sRef) : sRef; }
                 else return sRef; }
             else {
-                String message;
+                final CharacterPointer p = characterPointer( eRef );
+                final String markedLine = mould.markedLine( sRef, p, isAlteredRef );
+                final StringBuilder bMessage = clear( stringBuilder );
                 boolean isKnownX; { // Whether the inaccessibility of `pRef` is of a type known to result
                     try {          // from the `--reference-mapping` translation of a private reference.
                         getPosixFilePermissions( pRef ); // Merely to learn the cause of inaccessibility.
                         assert false;                   // Always it should throw an exception.
-                        message = "No access to this file or directory, reason unknown";
+                        bMessage.append( "No access to this file or directory, reason unknown" );
                         isKnownX = false; }
-                    catch( AccessDeniedException x ) {
-                        message = "File access denied";
+                    catch( final AccessDeniedException x ) {
+                        bMessage.append( "File access denied" );
                         isKnownX = true; }
-                    catch( NoSuchFileException x ) {
-                        message = "No such file or directory";
+                    catch( final NoSuchFileException x ) {
+                        bMessage.append( "No such file or directory" );
                         isKnownX = true; }
-                    catch( IOException x ) {
-                        message = x.toString();
+                    catch( final IOException x ) {
+                        bMessage.append( x.toString() );
                         isKnownX = false; }}
                 final boolean wouldPrivatizationSuppress = isAlteredRef && isKnownX;
-                if( wouldPrivatizationSuppress && isPrivatized(contextFractum(eRef)) ) return null; /*
-                  With neither hyperlink nor warning, because this type of inaccessibility is common
-                  when a private reference is altered by a `--reference-mapping` translation. */
-                final CharacterPointer p = characterPointer( eRef );
-                final StringBuilder b = clear(stringBuilder).append( message );
+                if( wouldPrivatizationSuppress && isPrivatized(contextFractum(eRef)) ) {
+                    logger.info( () -> wrnHead(f,p.lineNumber) + bMessage
+                      + ": Omitting a hyperlink for this private reference:\n" + markedLine );
+                    return null; } /* With neither hyperlink nor warning, because this type
+                      of inaccessibility is common when a private reference is altered
+                      by a `--reference-mapping` translation. */
                 if( wouldPrivatizationSuppress ) {
-                    b.append( "; consider marking this reference as private" ); }
-                b.append( ":\n" );
-                b.append( mould.markedLine( sRef, p, isAlteredRef ));
-                mould.warn( f, p, b.toString() ); /* Yet carry on and form the hyperlink,
+                    bMessage.append( "; consider marking this reference as private" ); }
+                bMessage.append( ":\n" ).append( markedLine );
+                mould.warn( f, p, bMessage.toString() ); /* Yet carry on and form the hyperlink,
                   for the cause of inaccessibility could be a misplacement or misconfiguration
                   of the referent as opposed to a malformation of the reference. */
                 return sRef; }}}
