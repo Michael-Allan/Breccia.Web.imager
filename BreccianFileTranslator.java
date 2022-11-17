@@ -387,7 +387,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final String hRef = hRef( sourceFile, eRef, sRef, isAlteredRef );
             if( hRef == null ) { // Then `sRef` is not to be hyperlinked.
                 if( isAlteredRef ) hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false );
-                  // Ensuring as a lint check that at least `sRefOriginal` would be hyperlinked.
+                  // Verifying that `sRefOriginal` would have been hyperlinked, else warning the user.
                 continue; }
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );

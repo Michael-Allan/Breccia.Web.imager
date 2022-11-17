@@ -393,6 +393,8 @@ public final class ImageMould<C extends ReusableCursor> {
                 final String sRef = translate( sRefOriginal, f );
                   // Applying any `--reference-mapping` translations.
                 final boolean isAlteredRef = !sRef.equals( sRefOriginal );
+
+
                 final URI uRef; { // The reference in parsed `URI` form.
                     try { uRef = new URI( sRef ); }
                     catch( final URISyntaxException x ) {
@@ -433,7 +435,7 @@ public final class ImageMould<C extends ReusableCursor> {
                         return // Without mapping ∵ `formalResources.local` forbids broken references.
                           /*to continue parsing*/true; } // For sake of reporting any further errors.
                     map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
-                return true; });
+                return /*to continue parsing*/true; }); // For sake of reporting any further errors.
             while( !in.state().isFinal() ) in.next(); } // API requirement of `isPrivatized`, below.
         catch( final ParseError x ) {
             flag( f, x );
