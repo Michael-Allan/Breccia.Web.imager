@@ -170,15 +170,14 @@ public class ImagingOptions extends Options {
 
 
 
-    /** A pattern to `find` the next reference translation within a `--reference-mapping` option.
+    /** A pattern for `lookingAt` a reference translation within a `--reference-mapping` option.
       * It captures as group (2) the translation pattern, and group (3) the replacement string.
       *
       *     @see java.util.regex.Matcher#find()
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#reference-ma,reference-ma,translation'>
       *         Command option `--reference-mapping`</a>
       */
-    private static final Pattern referenceTranslationPattern = Pattern.compile(
-      "(.)(.+?)\\1(.+?)\\1(?:\\|\\|)?" );
+    private static final Pattern referenceTranslationPattern = Pattern.compile( "(.)(.+?)\\1(.+?)\\1" );
 
 
 
@@ -199,17 +198,33 @@ public class ImagingOptions extends Options {
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
         else if( arg.startsWith( s = "--reference-mapping=" )) {
             final List<ReferenceTranslation> tt = new ArrayList<>( /*initial capacity*/8 );
-            final Matcher m = referenceTranslationPattern.matcher( value( arg, s ));
-            while( m.find() ) {
-                final Pattern pattern; {
-                    try { pattern = Pattern.compile( m.group( 2 )); }
-                    catch( final PatternSyntaxException x ) {
-                        err.println( commandName + ": Malformed pattern: " + x.getDescription() + '\n'
-                          + markedLine( arg, s.length() + m.start(2) + zeroBased(x.getIndex()),
-                              new GraphemeClusterCounter() ) );
-                        isGo = false;
-                        break arg; }}
-                tt.add( newTranslation( pattern, /*replacement*/m.group(3) )); }
+            tt: {
+                final String value = value( arg, s );
+                final Matcher m = referenceTranslationPattern.matcher( value );
+                final int vN = value.length();
+                int v = 0;
+                while( m.lookingAt() ) {
+                    final Pattern pattern; {
+                        try { pattern = Pattern.compile( m.group( 2 )); }
+                        catch( final PatternSyntaxException x ) {
+                            err.println( commandName + ": Malformed pattern: " + x.getDescription() + '\n'
+                              + markedLine( arg, s.length() + m.start(2) + zeroBased(x.getIndex()),
+                                  new GraphemeClusterCounter() ));
+                            isGo = false;
+                            break arg; }}
+                    tt.add( newTranslation( pattern, /*replacement*/m.group(3) ));
+                    v = m.end();
+                    if( value.startsWith( "||"/*separator*/, v )) {
+                        v += 2;
+                        if( v == vN ) break tt; } // Trailing separator, a trivial violation.  Allow it.
+                    else break;
+                    m.region( v, vN ); }
+                if( v < vN ) {
+                    err.println( commandName + ": Malformed translation: \n"
+                      + markedLine( arg, s.length() + v, new GraphemeClusterCounter() ));
+                    isGo = false;
+                    break arg; }
+                else assert v == vN; }
             referenceMappings.add( unmodifiableList( tt )); }
         else isGo = super.initialize( arg );
         return isGo; }}
