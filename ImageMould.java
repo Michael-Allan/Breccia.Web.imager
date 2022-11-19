@@ -529,11 +529,12 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
       *       from the original reference given in source.
       *     @param c The zero-based offset in `ref` of the character whose column to mark.
-      *       It will be used only if `isAlteredRef`.
+      *       It will be used only if `isAlteredRef`. *//*
+      *     @paramImplied #stringBuilder2
       */
     String markedLine( final String ref, final CharacterPointer p, final boolean isAlteredRef,
           final int c ) {
-        final StringBuilder b = clear( stringBuilder );
+        final StringBuilder b = clear( stringBuilder2 );
         if( isAlteredRef ) {
             b.append( IntralineCharacterPointer.markedLine( "      ", ref, c, gcc ));
             b.append( "\n    Source line, with original reference:  (before `--reference-mapping` translation)\n" );
