@@ -520,7 +520,7 @@ public final class ImageMould<C extends ReusableCursor> {
           final int c ) {
         final StringBuilder b = clear( stringBuilder );
         if( isAlteredRef ) {
-            b.append( CharacterPointer.markedLine( "      ", ref, c, gcc ));
+            b.append( IntralineCharacterPointer.markedLine( "      ", ref, c, gcc ));
             b.append( "\n    Source line, with original reference:  (before `--reference-mapping` translation)\n" );
             b.append( p.line ); }
         else b.append( p.markedLine() );

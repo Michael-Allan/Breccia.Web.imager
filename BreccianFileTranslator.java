@@ -309,7 +309,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // ────────────────
         offset -= offsetRegional; // whole text → `textRegional`
         final int column = mould.gcc.clusterCount( textRegional, lineStart, offset );
-        return new CharacterPointer( line, lineLocator.number(), column ); }
+        return new CharacterPointer( line, column, lineLocator.number() ); }
 
 
 
