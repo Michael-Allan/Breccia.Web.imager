@@ -377,7 +377,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
               other than an associative reference?  Then sync with `formalReferenceAt` above. */
             final Element eRef = e; // The reference encapsulated as an `Element`.
             final Text tRef = (Text)eRef.getFirstChild(); // The reference encapsulated as `Text`.
-            final String hRef; {
+            final String hRef; { /*
+                For what follows, cf. `ImageMould.formalResources_recordFrom`. */
                 final String sRefOriginal = tRef.getData(); // The reference in string form.
                 final String sRef = mould.translate( sRefOriginal, sourceFile );
                   // Applying any `--reference-mapping` translations.
@@ -416,7 +417,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       * @see ImageMould#translate(String,Path)
       */
     private String hRef( final Path f, final Element eRef, final String sRef,
-          final boolean isAlteredRef ) {
+          final boolean isAlteredRef ) { /* For what follows,
+        cf. the comparably structured code of `ImageMould.formalResources_record`. [RC] */
+
         final URI uRef; { // The reference in parsed `URI` form.
             try { uRef = new URI( sRef ); }
             catch( final URISyntaxException x ) {
@@ -873,7 +876,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //   MT · Mask trimming for ID stability.  The purpose is to omit any punctuation marks such as quote
 //        characters, commas or periods that might destabilize the ID as the source text is edited.
 //
-//   RC · Cf. the comparably structured referencing code @ `ImageMould.formalResources_recordFrom`.
+//   RC · Cf. the comparably structured code of `ImageMould.formalResources_record`.
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //

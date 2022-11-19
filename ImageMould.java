@@ -370,7 +370,9 @@ public final class ImageMould<C extends ReusableCursor> {
       * @see #formalResources
       */
     private boolean formalResources_record( final Path f, final Granum gRef, final String sRef,
-          final boolean isAlteredRef ) {
+          final boolean isAlteredRef ) { /* For what follows,
+        cf. the comparably structured code of `BreccianFileTranslator.href`. [RC] */
+
         final URI uRef; { // The reference in parsed `URI` form.
             try { uRef = new URI( sRef ); }
             catch( final URISyntaxException x ) {
@@ -440,16 +442,16 @@ public final class ImageMould<C extends ReusableCursor> {
         pendingWarnings.clear();
         final C in = translator.sourceCursor();
         try {
-            in.perStateConditionally( f, state -> { /*
-                For what follows, cf. `BreccianFileTranslator.finish(Path,Element)`. [RC] */
-
+            in.perStateConditionally( f, state -> {
                 final Granum gRef; { // The reference encapsulated as a `Granum`.
                     try { gRef = translator.formalReferenceAt( in ); }
                     catch( final ParseError x ) {
                         flag( f, x );
                         iR.set( unimageable ); // The source fails to parse.
                         return /*to continue parsing*/false; } // No point, the parser has halted.
-                    if( gRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; }
+                    if( gRef == null/*not a formal reference*/ ) return /*to continue parsing*/true; } /*
+
+                For what follows, cf. `BreccianFileTranslator.finish(Path,Element)`. */
                 final String sRefOriginal = gRef.text().toString(); // The reference in string form.
                 final String sRef = translate( sRefOriginal, f );
                   // Applying any `--reference-mapping` translations.
@@ -704,7 +706,7 @@ public final class ImageMould<C extends ReusableCursor> {
 //        on the `err` stream, these lines of code merely serve as examples (the only ones at present)
 //        of efficient report formation for logging purposes.
 //
-//   RC · Cf. the comparably structured referencing code @ `BreccianFileTranslator.finish(Path,Element)`.
+//   RC · Cf. the comparably structured code of `BreccianFileTranslator.href`.
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //
