@@ -12,7 +12,7 @@ import java.util.regex.PatternSyntaxException;
 
 import static Breccia.Web.imager.Project.zeroBased;
 import static Breccia.Web.imager.ReferenceTranslation.newTranslation;
-import static Java.CharacterPointer.markedLine;
+import static Java.IntralineCharacterPointer.markedLine;
 import static java.lang.Float.parseFloat;
 import static java.lang.System.err;
 import static java.nio.file.Files.readString;
@@ -166,7 +166,8 @@ public class ImagingOptions extends Options {
 
 
 
-    private List<List<ReferenceTranslation>> referenceMappings = new ArrayList<>( /*initial capacity*/4 );
+    private List<List<ReferenceTranslation>> referenceMappings = new ArrayList<>(
+      /*initial capacity*/4 );
 
 
 
@@ -207,9 +208,9 @@ public class ImagingOptions extends Options {
                     final Pattern pattern; {
                         try { pattern = Pattern.compile( m.group( 2 )); }
                         catch( final PatternSyntaxException x ) {
-                            err.println( commandName + ": Malformed pattern: " + x.getDescription() + '\n'
-                              + markedLine( "  ", arg, s.length() + m.start(2) + zeroBased(x.getIndex()),
-                                  new GraphemeClusterCounter() ));
+                            final int a = s.length() + m.start( 2 ) + zeroBased( x.getIndex() );
+                            err.println( commandName + ": Malformed pattern: " + x.getDescription()
+                              + '\n' + markedLine( "  ", arg, a, new GraphemeClusterCounter() ));
                             isGo = false;
                             break arg; }}
                     tt.add( newTranslation( pattern, /*replacement*/m.group(3) ));
