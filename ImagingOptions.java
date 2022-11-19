@@ -208,7 +208,7 @@ public class ImagingOptions extends Options {
                         try { pattern = Pattern.compile( m.group( 2 )); }
                         catch( final PatternSyntaxException x ) {
                             err.println( commandName + ": Malformed pattern: " + x.getDescription() + '\n'
-                              + markedLine( arg, s.length() + m.start(2) + zeroBased(x.getIndex()),
+                              + markedLine( "  ", arg, s.length() + m.start(2) + zeroBased(x.getIndex()),
                                   new GraphemeClusterCounter() ));
                             isGo = false;
                             break arg; }}
@@ -221,7 +221,7 @@ public class ImagingOptions extends Options {
                     m.region( v, vN ); }
                 if( v < vN ) {
                     err.println( commandName + ": Malformed translation: \n"
-                      + markedLine( arg, s.length() + v, new GraphemeClusterCounter() ));
+                      + markedLine( "  ", arg, s.length() + v, new GraphemeClusterCounter() ));
                     isGo = false;
                     break arg; }
                 else assert v == vN; }
