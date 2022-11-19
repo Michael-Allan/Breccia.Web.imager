@@ -386,7 +386,7 @@ public final class ImageMould<C extends ReusableCursor> {
             if( !looksProbeable( uRef )) {
                 final CharacterPointer p = gRef.characterPointer();
                 final String message = improbeableCause + '\n' + markedLine( sRef, p, isAlteredRef );
-                pots.add( new PotentialWarning( p.lineNumber, message, /*when private*/null, null,
+                pendingWarnings.add( new Warning( p.lineNumber, message, /*when private*/null, null,
                   gRef.xuncFractalDescent() ));
                 return false; } // Without mapping ∵ `formalResources.remote` forbids improbeables.
             map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(), /*dependant*/f ); }
@@ -418,7 +418,7 @@ public final class ImageMould<C extends ReusableCursor> {
                         bMessageWhenPrivate = bMessage;
                         level = null; }}
                 bMessage.append( ":\n" ).append( markedLine );
-                pots.add( new PotentialWarning( p.lineNumber, bMessage.toString(),
+                pendingWarnings.add( new Warning( p.lineNumber, bMessage.toString(),
                   bMessageWhenPrivate.toString(), level, gRef.xuncFractalDescent() ));
                 return false; } // Without mapping ∵ `formalResources.local` forbids broken references.
             map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
@@ -435,7 +435,7 @@ public final class ImageMould<C extends ReusableCursor> {
       */
     private void formalResources_recordFrom( final Path f, final ImageabilityReference iR ) {
         if( iR.get() != indeterminate ) return;
-        pots.clear(); // List of pending, potential warnings to the user.
+        pendingWarnings.clear();
         final C in = translator.sourceCursor();
         try {
             in.perStateConditionally( f, state -> { /*
@@ -462,12 +462,12 @@ public final class ImageMould<C extends ReusableCursor> {
             flag( f, x );
             iR.set( unimageable );
             return; }
-        for( final PotentialWarning pot: pots ) {
-            final boolean isPrivate = in.isPrivatized( pot.xuncFractalDescent );
-            final String m = isPrivate ? pot.messageWhenPrivate : pot.message;
+        for( final Warning w: pendingWarnings ) {
+            final boolean isPrivate = in.isPrivatized( w.xuncFractalDescent );
+            final String m = isPrivate ? w.messageWhenPrivate : w.message;
             if( m == null ) continue; // Suppress the warning.
-            if( isPrivate && pot.level != null ) logger.log( pot.level, wrnHead(f,pot.lineNumber) + m );
-            else warn( f, pot.lineNumber, m ); }}
+            if( isPrivate && w.level != null ) logger.log( w.level, wrnHead(f,w.lineNumber) + m );
+            else warn( f, w.lineNumber, m ); }}
 
 
 
@@ -555,7 +555,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    private final ArrayList<PotentialWarning> pots = new ArrayList<>();
+    private final ArrayList<Warning> pendingWarnings = new ArrayList<>();
 
 
 
@@ -681,7 +681,7 @@ public final class ImageMould<C extends ReusableCursor> {
    // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-    /** A pending potential warning to the user, apropos of a granum, whose issue depends on whether
+    /** A pending warning to the user, apropos of a granum, whose final issue depends on whether
       * the granum turns out to be private.
       *
       *     @param message Message in case of an unprivatized granum,
@@ -691,7 +691,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @param level Logging level in case of a privatized granum,
       *        or null to issue the report via `wrn` in this case.
       */
-    private static record PotentialWarning( int lineNumber, String message, String messageWhenPrivate,
+    private static record Warning( int lineNumber, String message, String messageWhenPrivate,
       Level level, int[] xuncFractalDescent ) {}}
 
 
