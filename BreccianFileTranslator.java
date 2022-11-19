@@ -377,16 +377,17 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
               other than an associative reference?  Then sync with `formalReferenceAt` above. */
             final Element eRef = e; // The reference encapsulated as an `Element`.
             final Text tRef = (Text)eRef.getFirstChild(); // The reference encapsulated as `Text`.
-            final String sRefOriginal = tRef.getData(); // The reference in string form.
-            final String sRef = mould.translate( sRefOriginal, sourceFile );
-              // Applying any `--reference-mapping` translations.
-            final boolean isAlteredRef = !sRef.equals( sRefOriginal );
-            final String hRef = hRef( sourceFile, eRef, sRef, isAlteredRef );
-            if( hRef == null ) { // Then `sRef` is not to be hyperlinked.
-                if( isAlteredRef ) hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false ); /*
-                  Falling back to `sRefOriginal`; so verifying that at least *it* would have
-                  been hyperlinked, else warning the user. */
-                continue; }
+            final String hRef; {
+                final String sRefOriginal = tRef.getData(); // The reference in string form.
+                final String sRef = mould.translate( sRefOriginal, sourceFile );
+                  // Applying any `--reference-mapping` translations.
+                final boolean isAlteredRef = !sRef.equals( sRefOriginal );
+                hRef = hRef( sourceFile, eRef, sRef, isAlteredRef );
+                if( hRef == null ) { // Then `sRef` is not to be hyperlinked.
+                    if( isAlteredRef ) hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false ); /*
+                      Falling back to `sRefOriginal`; so verifying that at least *it* would have
+                      been hyperlinked, else warning the user. */
+                    continue; }}
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
             a.setAttribute( "href", hRef );
