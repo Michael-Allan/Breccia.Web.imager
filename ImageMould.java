@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeoutException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -379,7 +380,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 final int c = isAlteredRef ? 0/*guaranteed within bounds of the unaltered `gRef`*/
                   : zeroBased( x.getIndex() );
                 final CharacterPointer p = gRef.characterPointer( c );
-                warn( f, p, message( sRef, x, p,isAlteredRef ));
+                warnOnce( f, p, message( sRef, x, p,isAlteredRef ));
                 return false; }} // Without mapping ∵ `x` leaves the intended resource unclear.
 
       // remote  [RC]
@@ -401,7 +402,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 try { pRef = f.resolveSibling( toPath( uRef )); }
                 catch( final IllegalArgumentException x ) {
                     final CharacterPointer p = gRef.characterPointer();
-                    warn( f, p, x.getMessage() + '\n' + markedLine(sRef,p,isAlteredRef) );
+                    warnOnce( f, p, x.getMessage() + '\n' + markedLine(sRef,p,isAlteredRef) );
                     return false; }} // Without mapping ∵ `x` leaves the intended resource unclear.
             if( !exists( pRef )) {
                 final StringBuilder bMessage = clear( stringBuilder );
@@ -471,7 +472,7 @@ public final class ImageMould<C extends ReusableCursor> {
             final String m = isPrivate ? w.messageWhenPrivate : w.message;
             if( m == null ) continue; // Suppress the warning.
             if( isPrivate && w.level != null ) logger.log( w.level, wrnHead(f,w.lineNumber) + m );
-            else warn( f, w.lineNumber, m ); }}
+            else warnOnce( f, w.lineNumber, m ); }}
 
 
 
@@ -674,6 +675,31 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @see #flag(Path,String)
       */
     void warn( final Path file, final String message ) { wrn().println( wrnHead(file) + message ); }
+
+
+
+    private final HashSet<String> warningsIssued = new HashSet<>();
+
+
+
+    /** Warns the user of something in `file` at the line number of the given character pointer,
+      * on condition the warning does not duplicate an earlier one.
+      *
+      *     @see #wrn()
+      */
+    void warnOnce( final Path file, final CharacterPointer p, final String message ) {
+        warnOnce( file, p.lineNumber, message ); }
+
+
+
+    /** Warns the user of something in `file` at the given line number,
+      * on condition the warning does not duplicate an earlier one.
+      *
+      *     @see #wrn()
+      */
+    void warnOnce( final Path file, final int lineNumber, final String message ) {
+        final String report = wrnHead(file,lineNumber) + message;
+        if( warningsIssued.add( report )) wrn().println( report ); }
 
 
 

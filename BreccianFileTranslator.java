@@ -426,7 +426,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final int c = isAlteredRef ? 0/*guaranteed within bounds of the unaltered `eRef`*/
                   : zeroBased( x.getIndex() );
                 final CharacterPointer p = characterPointer( eRef, c );
-                mould.warn( f, p, mould.message( sRef, x, p, isAlteredRef ));
+                mould.warnOnce( f, p, mould.message( sRef, x, p, isAlteredRef ));
                 return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
 
       // remote  [RC]
@@ -442,7 +442,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 try { pRef = f.resolveSibling( toPath( uRef )); }
                 catch( final IllegalArgumentException x ) {
                     final CharacterPointer p = characterPointer( eRef );
-                    mould.warn( f, p, x.getMessage() + '\n' + mould.markedLine(sRef,p,isAlteredRef) );
+                    mould.warnOnce( f, p, x.getMessage() + '\n'
+                      + mould.markedLine( sRef, p, isAlteredRef ));
                     return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
             if( exists( pRef )) {
                 if( !isDirectory(pRef) && looksBreccian(sRef) ) {
@@ -470,7 +471,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( wouldPrivatizationSuppress ) {
                     bMessage.append( "; consider marking this reference as private" ); }
                 bMessage.append( ":\n" ).append( markedLine );
-                mould.warn( f, p, bMessage.toString() ); /* Yet carry on and form the hyperlink,
+                mould.warnOnce( f, p, bMessage.toString() ); /* Yet carry on and form the hyperlink,
                   for the cause of inaccessibility could be a misplacement or misconfiguration
                   of the referent as opposed to a malformation of the reference. */
                 return sRef; }}}
