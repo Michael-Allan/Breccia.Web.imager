@@ -7,12 +7,15 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.TimeoutException;
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.stream.Stream;
@@ -27,11 +30,12 @@ import static Breccia.Web.imager.Project.looksBreccian;
 import static Breccia.Web.imager.Project.zeroBased;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
-import static Breccia.Web.imager.RemoteChangeProbe.improbeableMessage;
+import static Breccia.Web.imager.RemoteChangeProbe.improbeableCause;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.getLastModifiedTime;
+import static java.nio.file.Files.getPosixFilePermissions;
 import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isReadable;
 import static java.nio.file.Files.isWritable;
@@ -42,6 +46,7 @@ import static Java.StringBuilding.clear;
 import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.logging.Level.CONFIG;
 
 
 /** A frame in which to form or reform a Web image.
@@ -182,7 +187,7 @@ public final class ImageMould<C extends ReusableCursor> {
                   Therefore any failure to read the timestamp of `res` below is unexpected. */
                 try { t = getLastModifiedTime( res ); }
                 catch( final IOException x ) {
-                    logger.warning( () -> "Forcefully reimaging the dependants of resource `" + res
+                    logger.warning( () -> "Forcefully re-imaging the dependants of resource `" + res
                       + "` its timestamp being unreadable: " + x ); } // [LUR]
                 resTime = t; }
             dependants.forEach( dep -> {
@@ -323,19 +328,8 @@ public final class ImageMould<C extends ReusableCursor> {
     /** Reports to the user an error at a file.
       *
       *     @see #err()
-      *     @see #warn(ErrorAtFile)
       */
     void flag( final ErrorAtFile x ) { flag( x.file, x.getMessage() ); }
-
-
-
-    /** Reports to the user an error in `file` at the line number of the given character pointer.
-      *
-      *     @see #err()
-      *     @see #warn(Path,CharacterPointer,String)
-      */
-    void flag( final Path file, final CharacterPointer p, final String message ) {
-        flag( file, p.lineNumber, message ); }
 
 
 
@@ -361,9 +355,88 @@ public final class ImageMould<C extends ReusableCursor> {
     /** Reports to the user a parse error associated with `file`.
       *
       *     @see #err()
-      *     @see #warn(Path,ParseError)
       */
     void flag( final Path file, final ParseError x ) { flag( file, x.lineNumber, x.getMessage() ); }
+
+
+
+    /** @param f The path of a source file.
+      * @param gRef A reference from `f` to a formal resource, encapsulated as a `Granum`.
+      * @param sRef The reference in string form, after any applicable `--reference-mapping`
+      *   translations.
+      * @param isAlteredRef Whether `sRef` was actually changed by such translation.
+      * @return Whether the present method call actually recorded the resource (by its `sRef`),
+      *   deeming it eligible for inclusion in one of the `formalResources` maps.
+      * @see #formalResources
+      */
+    private boolean formalResources_record( final Path f, final Granum gRef, final String sRef,
+          final boolean isAlteredRef ) {
+        final URI uRef; { // The reference in parsed `URI` form.
+            try { uRef = new URI( sRef ); }
+            catch( final URISyntaxException x ) {
+                final int c = isAlteredRef ? 0/*guaranteed within bounds of the unaltered `gRef`*/
+                  : zeroBased( x.getIndex() );
+                final CharacterPointer p = gRef.characterPointer( c );
+                warn( f, p, message( sRef, x, p,isAlteredRef ));
+                return false; }} // Without mapping ∵ `x` leaves the intended resource unclear.
+
+      // remote  [RC]
+      // ┈┈┈┈┈┈
+        if( isRemote( uRef )) { // Then the resource would be reachable through a network.
+            if( !looksProbeable( uRef )) {
+                final CharacterPointer p = gRef.characterPointer();
+                final String message = improbeableCause + '\n' + markedLine( sRef, p, isAlteredRef );
+                pots.add( new PotentialWarning( p.lineNumber, message, /*when private*/null, null,
+                  gRef.xuncFractalDescent() ));
+                return false; } // Without mapping ∵ `formalResources.remote` forbids improbeables.
+            map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(), /*dependant*/f ); }
+
+      // local  [RC]
+      // ┈┈┈┈┈
+        else { /* The resource would be reachable through a file system, the reference being
+              an absolute-path reference or relative-path reference [RR]. */
+            final Path pRef; { // The reference parsed and resolved as a local file path.
+                try { pRef = f.resolveSibling( toPath( uRef )); }
+                catch( final IllegalArgumentException x ) {
+                    final CharacterPointer p = gRef.characterPointer();
+                    warn( f, p, x.getMessage() + '\n' + markedLine(sRef,p,isAlteredRef) );
+                    return false; }} // Without mapping ∵ `x` leaves the intended resource unclear.
+            if( !exists( pRef )) {
+                final CharacterPointer p = gRef.characterPointer();
+                final String markedLine = markedLine( sRef, p, isAlteredRef );
+                final StringBuilder bMessage = clear( stringBuilder );
+                boolean isKnownX; { // Whether the inaccessibility of `pRef` is of a type known to result
+                    try {          // from the `--reference-mapping` translation of a private reference.
+                        getPosixFilePermissions( pRef ); // Merely to learn the cause of inaccessibility.
+                        assert false;                   // Always it should throw an exception.
+                        bMessage.append( "No access to this file or directory, reason unknown" );
+                        isKnownX = false; }
+                    catch( final AccessDeniedException x ) {
+                        bMessage.append( "File access denied" );
+                        isKnownX = true; }
+                    catch( final NoSuchFileException x ) {
+                        bMessage.append( "No such file or directory" );
+                        isKnownX = true; }
+                    catch( final IOException x ) {
+                        bMessage.append( x.toString() );
+                        isKnownX = false; }}
+                final boolean wouldPrivatizationSuppress = isAlteredRef && isKnownX;
+                final StringBuilder bMessageWhenPrivate;
+                final Level level;
+                if( wouldPrivatizationSuppress ) {
+                    bMessageWhenPrivate = clear( stringBuilder2 ).append( bMessage ).append( ":\n" )
+                      .append( markedLine ).append( "\n    Falling back to the original reference");
+                    bMessage.append( "; consider marking this reference as private" );
+                    level = CONFIG; }
+                else {
+                    bMessageWhenPrivate = bMessage;
+                    level = null; }
+                bMessage.append( ":\n" ).append( markedLine );
+                pots.add( new PotentialWarning( p.lineNumber, bMessage.toString(),
+                  bMessageWhenPrivate.toString(), level, gRef.xuncFractalDescent() ));
+                return false; } // Without mapping ∵ `formalResources.local` forbids broken references.
+            map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
+        return true; }
 
 
 
@@ -376,7 +449,7 @@ public final class ImageMould<C extends ReusableCursor> {
       */
     private void formalResources_recordFrom( final Path f, final ImageabilityReference iR ) {
         if( iR.get() != indeterminate ) return;
-        imps.clear(); // List of improbeable-reference occurences.
+        pots.clear(); // List of pending, potential warnings to the user.
         final C in = translator.sourceCursor();
         try {
             in.perStateConditionally( f, state -> { /*
@@ -393,57 +466,22 @@ public final class ImageMould<C extends ReusableCursor> {
                 final String sRef = translate( sRefOriginal, f );
                   // Applying any `--reference-mapping` translations.
                 final boolean isAlteredRef = !sRef.equals( sRefOriginal );
-
-
-                final URI uRef; { // The reference in parsed `URI` form.
-                    try { uRef = new URI( sRef ); }
-                    catch( final URISyntaxException x ) {
-                        final CharacterPointer p = gRef.characterPointer( zeroBased( x.getIndex() ));
-                        flag( f, p, message( sRef, x, p,isAlteredRef ));
-                        iR.set( unimageable ); // Do not image the file. [UFR]
-                        return // Without mapping ∵ `x` leaves the intended resource unclear.
-                          /*to continue parsing*/true; }} // To report any further errors.
-
-              // remote  [RC]
-              // ┈┈┈┈┈┈
-                if( isRemote( uRef )) { // Then the resource would be reachable through a network.
-                    if( !looksProbeable( uRef )) {
-                        imps.add( new Improbeable( gRef.characterPointer(), gRef.xuncFractalDescent() ));
-                        iR.set( unimageable ); // Do not image the file. [UFR]
-                        return // Without mapping ∵ `formalResources.remote` forbids improbeables.
-                          /*to continue parsing*/true; } // To report/detect any further errors.
-                    map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(),
-                      /*dependant*/f ); }
-
-              // local  [RC]
-              // ┈┈┈┈┈
-                else { /* The resource would be reachable through a file system, the reference
-                      being an absolute-path reference or relative-path reference [RR]. */
-                    final Path pRef; { // The reference parsed and resolved as a local file path.
-                        try { pRef = f.resolveSibling( toPath( uRef )); }
-                        catch( final IllegalArgumentException x ) {
-                            final CharacterPointer p = gRef.characterPointer();
-                            flag( f, p, x.getMessage() + '\n' + markedLine(sRef,p,isAlteredRef) );
-                            iR.set( unimageable ); // Do not image the file. [UFR]
-                            return // Without mapping ∵ `x` leaves the intended resource unclear.
-                              /*to continue parsing*/true; }} // To report any further errors.
-                    if( !exists( pRef )) { /* Then let the translator warn of it.  Unlike the present
-                          code, the translator tests the existence of all referents, whether formal or
-                          informal, making it a better place to issue reports of broken references. */
-                     // iR.set( imageable ); // Therefore force imaging of this file.
-                    //// Overkill, `err` says warnings need not ‘repeat with each imaging command’.
-                        return // Without mapping ∵ `formalResources.local` forbids broken references.
-                          /*to continue parsing*/true; } // For sake of reporting any further errors.
-                    map( formalResources.local, /*resource*/pRef.normalize(), /*dependant*/f ); }
-                return /*to continue parsing*/true; }); // For sake of reporting any further errors.
+                if( !formalResources_record( f, gRef, sRef, isAlteredRef )  &&  isAlteredRef ) {
+                    formalResources_record( f, gRef, sRefOriginal, /*isAlteredRef*/false ); } /*
+                      Falling back to `sRefOriginal` (assuming it is equivalent for the purpose);
+                      so verifying that at least *it* gets recorded, else warning the user. */
+                return /*to continue parsing*/true; });
             while( !in.state().isFinal() ) in.next(); } // API requirement of `isPrivatized`, below.
         catch( final ParseError x ) {
             flag( f, x );
             iR.set( unimageable );
             return; }
-        for( final Improbeable imp: imps ) if( !in.isPrivatized( imp.xuncFractalDescent )) {
-            final CharacterPointer p = imp.characterPointer;
-            flag( f, p, improbeableMessage( p )); }}
+        for( final PotentialWarning pot: pots ) {
+            final boolean isPrivate = in.isPrivatized( pot.xuncFractalDescent );
+            final String m = isPrivate ? pot.messageWhenPrivate : pot.message;
+            if( m == null ) continue; // Suppress the warning.
+            if( isPrivate && pot.level != null ) logger.log( pot.level, wrnHead(f,pot.lineNumber) + m );
+            else warn( f, pot.lineNumber, m ); }}
 
 
 
@@ -452,10 +490,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
     private boolean hasFailed;
-
-
-
-    private final ArrayList<Improbeable> imps = new ArrayList<>();
 
 
 
@@ -480,7 +514,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
       *       from the original reference given in source.
       *     @param c The zero-based offset of the character in `ref` whose column to mark.
-      *       Only if `isAlteredRef` will it be used.
+      *       It will be used only if `isAlteredRef`.
       */
     String markedLine( final String ref, final CharacterPointer p, final boolean isAlteredRef,
           final int c ) {
@@ -508,6 +542,10 @@ public final class ImageMould<C extends ReusableCursor> {
     String message( String ref, final URISyntaxException x, CharacterPointer p, boolean isAlteredRef ) {
         return "Malformed URI reference: " + x.getReason() + '\n'
           + markedLine( ref, p, isAlteredRef, zeroBased(x.getIndex()) ); }
+
+
+
+    private final ArrayList<PotentialWarning> pots = new ArrayList<>();
 
 
 
@@ -582,7 +620,13 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    private final StringBuilder stringBuilder = new StringBuilder( /*initial capacity*/0x100/*or 256*/ );
+    private final StringBuilder stringBuilder = new StringBuilder(
+      /*initial capacity*/0x200/*or 512*/ );
+
+
+
+    private final StringBuilder stringBuilder2 = new StringBuilder(
+      /*initial capacity*/0x200/*or 512*/ );
 
 
 
@@ -590,19 +634,9 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Warns the user of an error at a file.
-      *
-      *     @see #wrn()
-      *     @see #flag(ErrorAtFile)
-      */
-    void warn( final ErrorAtFile x ) { warn( x.file, x.getMessage() ); }
-
-
-
     /** Warns the user of something in `file` at the line number of the given character pointer.
       *
       *     @see #wrn()
-      *     @see #flag(Path,CharacterPointer,String)
       */
     void warn( final Path file, final CharacterPointer p, final String message ) {
         warn( file, p.lineNumber, message ); }
@@ -628,15 +662,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Warns the user of a parse error associated with `file`.
-      *
-      *     @see #wrn()
-      *     @see #flag(Path,ParseError)
-      */
-    void warn( final Path file, final ParseError x ) { warn( file, x.lineNumber, x.getMessage() ); }
-
-
-
     /** Whether path `p` would be read during image formation if it were readable.
       */
     private static boolean wouldRead( final Path p ) { return isDirectory(p) || looksBreccian(p); }
@@ -646,11 +671,18 @@ public final class ImageMould<C extends ReusableCursor> {
    // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-    /** An occurence of an improbeable remote reference.
+    /** A pending potential warning to the user, apropos of a granum, whose issue depends on whether
+      * the granum turns out to be private.
       *
-      *     @see RemoteChangeProbe#looksProbeable(URI)
+      *     @param message Message in case of an unprivatized granum,
+      *        or null to suppress the warning in this case.
+      *     @param messageWhenPrivate Message in case of a privatized granum,
+      *        or null to suppress the warning in this case.
+      *     @param level Logging level in case of a privatized granum,
+      *        or null to issue the report via `wrn` in this case.
       */
-    private static record Improbeable( CharacterPointer characterPointer, int[] xuncFractalDescent ) {}}
+    private static record PotentialWarning( int lineNumber, String message, String messageWhenPrivate,
+      Level level, int[] xuncFractalDescent ) {}}
 
 
 
@@ -666,18 +698,6 @@ public final class ImageMould<C extends ReusableCursor> {
 //
 //   SM · Structural modification of a `HashMap` defined.
 //        https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/HashMap.html
-//
-//   UFR  Marking a source file as `unimageable` after encountering a bad or unsupported form of reference
-//        (and reporting it as an error).  Neither of the alternatives seems adequate.
-//
-//           a) Marking the file as `imageable` would cause the preceding error report to be repeated
-//              when the translator prepares to probe the same reference.  Attempting to remedy
-//              that repetition by omitting (here) the initial report would risk the greater fault
-//              of leaving the error unreported.
-//           b) Leaving the imageability as `indeterminate` would risk the foregoing (a)
-//              because the file might subsequently be marked as `imageable`.
-//
-//        Rather leave the file `unimageable` and let the author repair the reference.
 
 
 

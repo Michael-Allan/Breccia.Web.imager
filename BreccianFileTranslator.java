@@ -386,8 +386,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final boolean isAlteredRef = !sRef.equals( sRefOriginal );
             final String hRef = hRef( sourceFile, eRef, sRef, isAlteredRef );
             if( hRef == null ) { // Then `sRef` is not to be hyperlinked.
-                if( isAlteredRef ) hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false );
-                  // Verifying that `sRefOriginal` would have been hyperlinked, else warning the user.
+                if( isAlteredRef ) hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false ); /*
+                  Falling back to `sRefOriginal`; so verifying that at least *it* would have
+                  been hyperlinked, else warning the user. */
                 continue; }
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
@@ -421,7 +422,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final URI uRef; { // The reference in parsed `URI` form.
             try { uRef = new URI( sRef ); }
             catch( final URISyntaxException x ) {
-                final CharacterPointer p = characterPointer( eRef, zeroBased(x.getIndex()) );
+                final int c = isAlteredRef ? 0/*guaranteed within bounds of the unaltered `eRef`*/
+                  : zeroBased( x.getIndex() );
+                final CharacterPointer p = characterPointer( eRef, c );
                 mould.warn( f, p, mould.message( sRef, x, p, isAlteredRef ));
                 return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
 
@@ -838,7 +841,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     /** A comparator based on linear order of occurrence in the Breccian source file.
       */
-    public static final Comparator<UnglyphedCharacter> unsComparator = new Comparator<>() {
+    private static final Comparator<UnglyphedCharacter> unsComparator = new Comparator<>() {
         public @Override int compare( final UnglyphedCharacter c, final UnglyphedCharacter d ) {
             final CharacterPointer p = c.pointer;
             final CharacterPointer q = d.pointer;
@@ -854,7 +857,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    protected void write( final Document document, final Path imageFile,
+    private void write( final Document document, final Path imageFile,
           final OpenOption... outputOptions ) throws IOException, TransformerException {
         fromDOM.setNode( document );
         try( final OutputStream imageWriter = newOutputStream​( imageFile, outputOptions )) {
