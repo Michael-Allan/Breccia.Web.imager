@@ -412,8 +412,10 @@ public final class ImageMould<C extends ReusableCursor> {
                     if( wouldPrivatizationSuppress ) {
                         bMessageWhenPrivate = clear( stringBuilder2 ).append( bMessage ).append( ":\n" )
                           .append( markedLine ).append( "\n    Falling back to the original reference");
-                        bMessage.append( "; consider marking this reference as private" );
-                        level = CONFIG; }
+                        level = CONFIG;  /* Merely logging in the private case, because this type
+                          of inaccessibility is common when a private reference is altered
+                          by a `--reference-mapping` translation. */
+                        bMessage.append( "; consider marking this reference as private" ); }
                     else {
                         bMessageWhenPrivate = bMessage;
                         level = null; }}
