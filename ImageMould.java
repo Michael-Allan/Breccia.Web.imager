@@ -408,15 +408,15 @@ public final class ImageMould<C extends ReusableCursor> {
                 final CharacterPointer p = gRef.characterPointer();
                 final String markedLine = markedLine( sRef, p, isAlteredRef );
                 final StringBuilder bMessageWhenPrivate;
-                final Level level;
-                if( wouldPrivatizationSuppress ) {
-                    bMessageWhenPrivate = clear( stringBuilder2 ).append( bMessage ).append( ":\n" )
-                      .append( markedLine ).append( "\n    Falling back to the original reference");
-                    bMessage.append( "; consider marking this reference as private" );
-                    level = CONFIG; }
-                else {
-                    bMessageWhenPrivate = bMessage;
-                    level = null; }
+                final Level level; {
+                    if( wouldPrivatizationSuppress ) {
+                        bMessageWhenPrivate = clear( stringBuilder2 ).append( bMessage ).append( ":\n" )
+                          .append( markedLine ).append( "\n    Falling back to the original reference");
+                        bMessage.append( "; consider marking this reference as private" );
+                        level = CONFIG; }
+                    else {
+                        bMessageWhenPrivate = bMessage;
+                        level = null; }}
                 bMessage.append( ":\n" ).append( markedLine );
                 pots.add( new PotentialWarning( p.lineNumber, bMessage.toString(),
                   bMessageWhenPrivate.toString(), level, gRef.xuncFractalDescent() ));
