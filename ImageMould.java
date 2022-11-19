@@ -402,25 +402,11 @@ public final class ImageMould<C extends ReusableCursor> {
                     warn( f, p, x.getMessage() + '\n' + markedLine(sRef,p,isAlteredRef) );
                     return false; }} // Without mapping ∵ `x` leaves the intended resource unclear.
             if( !exists( pRef )) {
+                final StringBuilder bMessage = clear( stringBuilder );
+                final boolean isTransX = isTransX( pRef, bMessage );
+                final boolean wouldPrivatizationSuppress = isAlteredRef && isTransX;
                 final CharacterPointer p = gRef.characterPointer();
                 final String markedLine = markedLine( sRef, p, isAlteredRef );
-                final StringBuilder bMessage = clear( stringBuilder );
-                boolean isKnownX; { // Whether the inaccessibility of `pRef` is of a type known to result
-                    try {          // from the `--reference-mapping` translation of a private reference.
-                        getPosixFilePermissions( pRef ); // Merely to learn the cause of inaccessibility.
-                        assert false;                   // Always it should throw an exception.
-                        bMessage.append( "No access to this file or directory, reason unknown" );
-                        isKnownX = false; }
-                    catch( final AccessDeniedException x ) {
-                        bMessage.append( "File access denied" );
-                        isKnownX = true; }
-                    catch( final NoSuchFileException x ) {
-                        bMessage.append( "No such file or directory" );
-                        isKnownX = true; }
-                    catch( final IOException x ) {
-                        bMessage.append( x.toString() );
-                        isKnownX = false; }}
-                final boolean wouldPrivatizationSuppress = isAlteredRef && isKnownX;
                 final StringBuilder bMessageWhenPrivate;
                 final Level level;
                 if( wouldPrivatizationSuppress ) {
@@ -490,6 +476,31 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
     private boolean hasFailed;
+
+
+
+    /** Whether the inaccessibility of `file` is of a type known to result
+      * from the `--reference-mapping` translation of a private reference.
+      *
+      *     @param file A file that `{@linkplain java.nio.file.Files#exists(Path) exists}` not.
+      *     @param b Where to append a description of the type of inaccessibility in terms of its
+      *       intermediate cause, e.g. ‘No such file or directory’ or ‘File access denied’.
+      */
+    boolean isTransX( final Path file, final StringBuilder b ) {
+        try {
+            getPosixFilePermissions( file ); // Merely to learn the cause of inaccessibility.
+            assert false;                   // Always it should throw an exception.
+            b.append( "No access to this file or directory, cause unknown" );
+            return false; }
+        catch( final AccessDeniedException x ) {
+            b.append( "File access denied" );
+            return true; }
+        catch( final NoSuchFileException x ) {
+            b.append( "No such file or directory" );
+            return true; }
+        catch( final IOException x ) {
+            b.append( x.toString() );
+            return false; }}
 
 
 

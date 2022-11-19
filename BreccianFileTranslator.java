@@ -12,8 +12,6 @@ import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.OpenOption;
 import java.util.ArrayList;
@@ -59,7 +57,6 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
 import static java.nio.file.Files.createDirectories;
 import static java.nio.file.Files.exists;
-import static java.nio.file.Files.getPosixFilePermissions;
 import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.newBufferedReader;
@@ -455,25 +452,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     return sRefImageExists ? imageSibling(sRef) : sRef; }
                 else return sRef; }
             else {
+                final StringBuilder bMessage = clear( stringBuilder );
+                final boolean isTransX = mould.isTransX( pRef, bMessage );
+                final boolean wouldPrivatizationSuppress = isAlteredRef && isTransX;
                 final CharacterPointer p = characterPointer( eRef );
                 final String markedLine = mould.markedLine( sRef, p, isAlteredRef );
-                final StringBuilder bMessage = clear( stringBuilder );
-                boolean isKnownX; { // Whether the inaccessibility of `pRef` is of a type known to result
-                    try {          // from the `--reference-mapping` translation of a private reference.
-                        getPosixFilePermissions( pRef ); // Merely to learn the cause of inaccessibility.
-                        assert false;                   // Always it should throw an exception.
-                        bMessage.append( "No access to this file or directory, reason unknown" );
-                        isKnownX = false; }
-                    catch( final AccessDeniedException x ) {
-                        bMessage.append( "File access denied" );
-                        isKnownX = true; }
-                    catch( final NoSuchFileException x ) {
-                        bMessage.append( "No such file or directory" );
-                        isKnownX = true; }
-                    catch( final IOException x ) {
-                        bMessage.append( x.toString() );
-                        isKnownX = false; }}
-                final boolean wouldPrivatizationSuppress = isAlteredRef && isKnownX;
                 if( wouldPrivatizationSuppress && isPrivatized(contextFractum(eRef)) ) {
                     logger.info( () -> wrnHead(f,p.lineNumber) + bMessage
                       + ": Omitting a hyperlink for this private reference:\n" + markedLine );
