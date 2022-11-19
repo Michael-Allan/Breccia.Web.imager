@@ -1,13 +1,12 @@
 package Breccia.Web.imager;
 
 import Java.Async;
-import Java.CharacterPointer;
 import Java.UnsourcedInterrupt;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Set;
 
-import static Breccia.Web.imager.Imageability.*;
+import static Breccia.Web.imager.Imageability.indeterminate;
 import static Java.Collections.forEachRemaining;
 import static java.lang.Thread.sleep;
 import static Java.URI_References.isRemote;
