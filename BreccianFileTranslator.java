@@ -69,7 +69,6 @@ import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
-import static Java.Paths.toPath;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static Java.URI_References.isRemote;
@@ -439,7 +438,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         else { /* The referent would be reachable through a file system, the reference
               being an absolute-path reference or relative-path reference [RR]. */
             final Path pRef; { // The reference parsed and resolved as a local file path.
-                try { pRef = f.resolveSibling( toPath( uRef, f )); }
+                try { pRef = f.resolveSibling( mould.toPath( uRef, f )); }
                 catch( final IllegalArgumentException x ) {
                     final CharacterPointer p = characterPointer( eRef );
                     mould.warnOnce( f, p, x.getMessage() + '\n'

@@ -78,6 +78,7 @@ public final class BrecciaWebImageCommand implements AutoCloseable { // [AFN]
         sP.println( "Usage: " + commandName + " [<options>] <boundary path>" );
         sP.println( "       " + commandName + " --help | -?" );
         sP.println( "Options, one or more of:" );
+        sP.println( "    --author-home-directory=<file path>" );
         sP.println( "    --centre-column=<number>" );
         sP.println( "    --co-service-directory=<URI reference>" );
         sP.println( "    --forcefully" );

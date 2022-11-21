@@ -41,7 +41,6 @@ import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isReadable;
 import static java.nio.file.Files.isWritable;
 import static java.nio.file.Files.list;
-import static Java.Paths.toPath;
 import static Java.Paths.toRelativePathReference;
 import static Java.StringBuilding.clear;
 import static Java.URI_References.isRemote;
@@ -611,6 +610,25 @@ public final class ImageMould<C extends ReusableCursor> {
 
     private final StringBuilder stringBuilder2 = new StringBuilder(
       /*initial capacity*/0x200/*or 512*/ );
+
+
+
+    /** Translates to a `Path` instance the given URI reference.
+      * Any tilde prefix is taken to represent the author’s home directory.
+      *
+      *     @see Java.Paths#toPath(URI,Path)
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#author-home-,author-home-,file'>
+      *         Command option `--author-home-directory`</a>
+      */
+    Path toPath( final URI reference, final Path referrer ) {
+        Path p = Paths.toPath( reference, referrer );
+        if( !p.isAbsolute() ) {
+            final int n = p.getNameCount();
+            assert n != 0; // Guaranteed for a relative path, even if empty.
+            if( p.getName(0).toString().equals( "~" )) {
+                if( n == 1 ) p = opt.authorHomeDirectory();
+                else p = opt.authorHomeDirectory().resolve( p.subpath( 1, n )); }}
+        return p; }
 
 
 

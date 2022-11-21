@@ -1,8 +1,8 @@
 package Breccia.Web.imager;
 
+import Java.GraphemeClusterCounter;
 import java.io.IOException;
 import java.nio.file.Path;
-import Java.GraphemeClusterCounter;
 import Java.Unhandled;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +15,7 @@ import static Breccia.Web.imager.ReferenceTranslation.newTranslation;
 import static Java.IntralineCharacterPointer.markedLine;
 import static java.lang.Float.parseFloat;
 import static java.lang.System.err;
+import static java.lang.System.getProperty;
 import static java.nio.file.Files.readString;
 import static Java.URI_References.enslash;
 import static Java.URI_References.isRemote;
@@ -28,6 +29,15 @@ public class ImagingOptions extends Options {
 
 
     public ImagingOptions( String commandName ) { super( commandName ); } // [SLA]
+
+
+
+    /** The home directory of the source author.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#author-home-,author-home-,file'>
+      *         Command option `--author-home-directory`</a>
+      */
+    public final Path authorHomeDirectory() { return authorHomeDirectory; }
 
 
 
@@ -83,6 +93,7 @@ public class ImagingOptions extends Options {
 
     public @Override void initialize( final List<String> args ) {
         super.initialize( args );
+        if( authorHomeDirectory == null ) authorHomeDirectory = Path.of( getProperty( "user.home" ));
         if( glyphTestFont == null ) {
             if( !isRemote( coServiceDirectory )) {
                 glyphTestFont = glyphTestFont( Path.of(
@@ -96,6 +107,10 @@ public class ImagingOptions extends Options {
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    private Path authorHomeDirectory;
+
 
 
     private float centreColumn = 52.5f;
@@ -192,7 +207,9 @@ public class ImagingOptions extends Options {
     protected @Override boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
-        arg: if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
+        arg:if( arg.startsWith( s = "--author-home-directory=" )) {
+            authorHomeDirectory = Path.of( value( arg, s )); }
+        else if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
         else if( arg.startsWith( s = "--co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
         else if( arg.equals( "--forcefully" )) toForce = true;
