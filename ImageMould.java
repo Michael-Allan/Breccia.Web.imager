@@ -619,7 +619,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 final Matcher m = t.matcher().reset( ref );
                 if( m.find() ) {
                     final StringBuilder b = clear( stringBuilder );
-                    final String r; {
+                    final String r; { // The effective replacement string.
                         if( t.isBounded() ) {
                             assert f.startsWith( boundaryPath );
                             b.append( toRelativePathReference(
