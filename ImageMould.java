@@ -617,7 +617,7 @@ public final class ImageMould<C extends ReusableCursor> {
       * Any tilde prefix is taken to represent the author’s home directory.
       *
       *     @see Java.Paths#toPath(URI,Path)
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#author-home-,author-home-,file'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#author-home-,author-home-,path'>
       *         Command option `--author-home-directory`</a>
       */
     Path toPath( final URI reference, final Path referrer ) {

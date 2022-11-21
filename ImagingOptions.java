@@ -34,7 +34,7 @@ public class ImagingOptions extends Options {
 
     /** The home directory of the source author.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#author-home-,author-home-,file'>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#author-home-,author-home-,path'>
       *         Command option `--author-home-directory`</a>
       */
     public final Path authorHomeDirectory() { return authorHomeDirectory; }
