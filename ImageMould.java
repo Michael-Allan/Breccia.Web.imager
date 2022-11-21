@@ -604,6 +604,16 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    private final StringBuilder stringBuilder = new StringBuilder(
+      /*initial capacity*/0x200/*or 512*/ );
+
+
+
+    private final StringBuilder stringBuilder2 = new StringBuilder(
+      /*initial capacity*/0x200/*or 512*/ );
+
+
+
     /** Applies any due `--reference-mapping` translations to the given reference and returns the result.
       *
       *     @param ref A URI reference.
@@ -633,16 +643,6 @@ public final class ImageMould<C extends ReusableCursor> {
                     m.appendTail( b );
                     return b.toString(); }}} // Translation succeeded.
         return ref; } // Translation failed.
-
-
-
-    private final StringBuilder stringBuilder = new StringBuilder(
-      /*initial capacity*/0x200/*or 512*/ );
-
-
-
-    private final StringBuilder stringBuilder2 = new StringBuilder(
-      /*initial capacity*/0x200/*or 512*/ );
 
 
 
