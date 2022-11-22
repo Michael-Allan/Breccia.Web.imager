@@ -122,12 +122,15 @@
                       that were captured in the pattern match.
                         / ‘Each occurrence of `${<name>}` or `$<g>` will be replaced by the result of
                           evaluating the corresponding `group(<name>)` or `group(<g>)` respectively.’
-                    - Further — in extension of `Matcher.appendReplacement` — any ‘${boundary}’
-                      at the start of the replacement string will be replaced by a relative-path
-                      reference to the boundary-path directory, without a trailing ‘/’.
+                    - Further — in extension of `Matcher.appendReplacement` — any ‘${boundary}’ at the
+                      start of the replacement string will be replaced by a relative-path reference
+                      to the boundary-path directory, without a trailing ‘/’. \ [relative replacement]
                         / Relative, that is, to the parent directory of the source file in which
                           the reference appears.
                         - So it will be replaced by one of `.` or `..` or `../..` etc.
+                            \ While the result may be abnormally long, e.g. when referring to a sibling,
+                            \ it abides by the user expectation of a simple string replacement,
+                            \ which the addition of a normalization step would defy.
                         : re `relative-path.+reference`s see
                           https://www.rfc-editor.org/rfc/rfc3986#section-4.2
                         : re `boundary path` see `^^<boundary path>$` @
@@ -155,9 +158,13 @@
 
 
 
-    ━━━━━━
-     Note
-    ──────
+    ━━━━━━━
+     Notes
+    ───────
+     \\ [relative replacement]
+     \      - A relative replacement is wanted for sake of image portability.  The image might be copied
+     \        elsewhere (e.g. to a Web server), or it might lie in a local mount of a foreign file system
+     \        (e.g. that of a Web server) that operates independently.
      \\ [three separators]
      \      - The initial separator serves to define the separator character in use.
      \        while the final separator allows for later addition of match modifiers.
