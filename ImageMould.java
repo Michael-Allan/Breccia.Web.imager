@@ -634,25 +634,26 @@ public final class ImageMould<C extends ReusableCursor> {
 
     /** Applies any due `--reference-mapping` translations to the given reference and returns the result.
       *
-      *     @param ref A URI reference.
-      *     @param f The path of the referring source file, wherein `ref` is contained.
-      *     @return The same `ref` if translation failed; otherwise the translated result in a new string
-      *       of equal or different content.
+      *     @param reference A URI reference.
+      *     @param referrer The referring source file, wherein the reference is contained.
+      *     @return The same `reference` instance if translation failed; otherwise the translated result
+      *       in the form of a new string of equal or different content.
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#reference-ma,reference-ma,translation'>
       *         Command option `--reference-mapping`</a>
       */
-    String translate( final String ref, final Path f ) {
+    String translate( final String reference, final Path referrer ) {
         for( final var tt: opt.referenceMappings() ) { // For each mapping given on the command line.
             for( final ReferenceTranslation t: tt ) { // For each translation given in the mapping.
-                final Matcher m = t.matcher().reset( ref );
+                final Matcher m = t.matcher().reset( reference );
                 if( m.find() ) {
                     final StringBuilder b = clear( stringBuilder );
                     final String r; { // The effective replacement string.
                         if( t.isBounded() ) {
-                            assert f.startsWith( boundaryPath );
+                            assert referrer.startsWith( boundaryPath );
                             b.append( toRelativePathReference(
-                              f.getParent().relativize( boundaryPathDirectory )));
-                            if( b.length() == 0 ) b.append( '.' ); // `f` sits in `boundaryPathDirectory`
+                              referrer.getParent().relativize( boundaryPathDirectory )));
+                            if( b.length() == 0 ) b.append( '.' ); /* When the `referrer`
+                              sits directly in the `boundaryPathDirectory`. */
                             b.append( t.replacement() );
                             r = b.toString();
                             clear( b ); }
@@ -660,7 +661,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     do m.appendReplacement( b, r ); while( m.find() );
                     m.appendTail( b );
                     return b.toString(); }}} // Translation succeeded.
-        return ref; } // Translation failed.
+        return reference; } // Translation failed.
 
 
 
