@@ -57,7 +57,8 @@ final @Async class ExternalResources {
       * mapped to the set (value) of source files whose images depend on that resource.
       *
       *     @see RemoteChangeProbe#looksProbeable(ava.net.URI)
-      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>URI reference</a> *//*
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
+      *       URI generic syntax §4.1, URI reference</a> *//*
       *
       * Apparent probeability is required up front for sake of clarity of user feedback.  It allows
       * improbeable references to be reported in the context of their source text while that text

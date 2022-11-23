@@ -98,10 +98,10 @@ public final class Project {
 
 
 
-    /** Whether `ref` appears to refer to a Breccian file.
+    /** Whether URI reference `ref` appears to refer to a Breccian file.
       *
-      *     @param ref A <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
-      *       URI reference</a>.
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
+      *       URI generic syntax §4.1, URI reference</a>
       */
     static boolean looksBreccian( final String ref ) { return ref.endsWith( ".brec" ); }
 

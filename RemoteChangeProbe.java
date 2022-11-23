@@ -49,8 +49,10 @@ final class RemoteChangeProbe implements Runnable {
 
     /** Whether it appears possible to access the referent of the given reference.
       *
-      *     @param ref A <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
-      *       URI reference</a> to a remote resource.
+      *     @param ref A URI reference to a remote resource.
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
+      *       URI generic syntax §4.1, URI reference</a>
+      *     @see Java.URI_References#isRemote()
       */
     static boolean looksProbeable( final URI ref ) {
         if( !isRemote( ref )) throw new IllegalArgumentException();
