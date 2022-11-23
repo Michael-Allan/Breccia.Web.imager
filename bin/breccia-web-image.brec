@@ -152,7 +152,10 @@
     ━━━━━━━━━━
      See also
     ──────────
-        • The `waycast-web-image` command.
+        • Working example
+            : e.g. `alias breccia-web-image` @ non-fractal http://reluk.ca/.bashrc : as called from:
+                : see `^^testing$` @ http://reluk.ca/project/Breccia/Web/imager/working_notes.brec
+        • The `waycast-web-image` command
             : see http://reluk.ca/project/wayic/Web/imager/bin/waycast-web-image.brec
             - For imaging a boundary path that might include a waycast.
 
