@@ -17,7 +17,7 @@
     - One positional argument is required:
 
         <boundary path>
-            / The path of a local file or directory.
+            / The path of a file or directory.
             - Sets the bounds of the Web image: any Breccian source file stored at or under this path
               is eligible for imaging.
 
@@ -35,18 +35,23 @@
                   Columnar offsets are zero based.
                 - In wide viewports, this column of the source file will appear at centre.
             - The default is 52.5.
-        --co-service-directory: --co-service-directory=<URI reference>
+        --co-service-directory: --co-service-directory=<URI reference CS>
                 : re `URI reference` see https://www.rfc-editor.org/rfc/rfc3986#section-4.1
             - The location of the co-service directory.
                 - It may be given with or without a trailing ‘/’.
+                - It must not be be given as a relative-path reference.
+                    : re `relative-path reference` see https://www.rfc-editor.org/rfc/rfc3986#section-4.2
             - The co-service directory contains the auxiliary files of the Web image.
                 - Its given location (CS) is written verbatim into the HTML files of the Web image
                   and must therefore be accessible to Web clients.
-                - If CS has the form of a file path (as opposed to a URI, for instance)
-                  then it might be made accessible both to Web clients and the local computer.
-                  This can be useful when it comes to debugging the Web image.
-                        : re `form of a file path` e.g. `--co-service-directory=/_/Web_service/` @
+                - If CS is given as an absolute-path reference or network-path reference (as opposed to
+                  a URI), then it might be made accessible not only to Web clients but also the local
+                  computer.  This can be useful when it comes to debugging the Web image.
+                        : re `(absolute-path reference) or (network-path reference)` see
+                          https://www.rfc-editor.org/rfc/rfc3986#section-4.2
+                        : re `absolute-path reference` e.g. `--co-service-directory=/_/Web_service/` @
                           non-fractal http://reluk.ca/.bashrc
+                        : re `URI` see https://www.rfc-editor.org/rfc/rfc3986#section-3
                     a) Image files loaded directly into a Web browser from the local file system
                       (under a `file:` scheme) may be viewed without CORS errors.
                         : re `.file:. scheme` see https://datatracker.ietf.org/doc/html/rfc8089
@@ -55,7 +60,6 @@
                     b) Glyph testing may work by default.
                         : see `^^--glyph-test-font`
             - The co-service directory must contain the following auxiliary files at a minimum.
-                    / In what follows, ‘<CS>’ stands for the given location of the co-service directory.
 
                     style sheet: `<CS>/Breccia/Web/imager/image.css`
                         - Typically this is a copy of the bundled sheet, or a custom sheet
@@ -76,7 +80,7 @@
         --forcefully
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.
-        --glyph-test-font: --glyph-test-font=<local file path> | none
+        --glyph-test-font: --glyph-test-font=<file path> | none
             - The font file for glyph tests.
             - If the value is `none`, then no glyph tests are performed.
             - Otherwise the file must contain an OpenType font
@@ -86,12 +90,12 @@
                 : re `style sheet` see @ `^^--co-service-directory`
                 - Use `--verbosely` to report the actual default value in use.
                     : re `--verbosely` see
-                - For the value to be read from the style sheet, CS must be a local directory
-                  and the style sheet there (or one of its local imports) must contain
-                  a font reference with a ‘[GTF]’ mark.
-                    : re `CS` see `CS.+stands for` @ `^^--co-service-directory`
+                - For the value to be read from the style sheet, the co-service directory must exist
+                  locally and the style sheet there (or one of its locally reachable imports) must
+                  contain a font reference with a ‘[GTF]’ mark.
+                    : re `co-service directory` see `^^--co-service-directory`
                     : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
-                - The bundled style sheet gives a description and example of this mark.
+                - The bundled style sheet describes and gives an example of this mark.
                     : re `bundled style sheet` see ../image.css
         --reference-mapping: --reference-mapping=<translation> [|| <translation>] ...
             - A list of translations to apply to URI references of the source text,
