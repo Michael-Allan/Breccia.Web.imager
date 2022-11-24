@@ -2,6 +2,8 @@ package Breccia.Web.imager;
 
 import Java.GraphemeClusterCounter;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import Java.Unhandled;
 import java.util.ArrayList;
@@ -17,6 +19,7 @@ import static java.lang.Float.parseFloat;
 import static java.lang.System.err;
 import static java.lang.System.getProperty;
 import static java.nio.file.Files.readString;
+import static Java.Paths.toPath;
 import static Java.URI_References.enslash;
 import static Java.URI_References.isRemote;
 import static java.util.Collections.unmodifiableList;
@@ -96,8 +99,14 @@ public class ImagingOptions extends Options {
         if( authorHomeDirectory == null ) authorHomeDirectory = Path.of( getProperty( "user.home" ));
         if( glyphTestFont == null ) {
             if( !isRemote( coServiceDirectory )) {
-                glyphTestFont = glyphTestFont( Path.of(
-                  coServiceDirectory + "Breccia/Web/imager/image.css" ));
+                final Path styleSheet; {
+                    final URI uCSD; { /* Expose any syntax error in the value of `--coServiceDirectory`
+                          before complicating the error message by involvingthe style sheet. */
+                        try { uCSD = new URI( coServiceDirectory ); }
+                        catch( URISyntaxException x ) { throw new Unhandled( x ); }
+                        toPath( uCSD ); } // May throw `IllegalArgumentException`.
+                    styleSheet = toPath( uCSD.resolve( "Breccia/Web/imager/image.css" )); }
+                glyphTestFont = glyphTestFont( styleSheet );
                 if( glyphTestFont == null ) glyphTestFont = "none"; }
             else glyphTestFont = "none";
             out(2).println( "Glyph-test font: " + glyphTestFont ); }
