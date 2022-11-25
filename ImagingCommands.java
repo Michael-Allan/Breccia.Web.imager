@@ -41,7 +41,7 @@ public final class ImagingCommands {
             return false; }
         final Path mouldOutputDirectory; {
             try { mouldOutputDirectory = emptyDirectory( createDirectories(
-              projectOutputDirectory.resolve( Path.of( "mould" )))); }
+              projectOutputDirectory.resolve( "mould" ))); }
             catch( IOException x ) { throw new Unhandled( x ); }} // Unexpected here.
         boolean hasFailed;
         final StringWriter errHolder = new StringWriter();
