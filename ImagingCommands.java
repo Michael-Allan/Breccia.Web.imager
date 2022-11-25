@@ -29,29 +29,32 @@ public final class ImagingCommands {
       *     @param <C> The type of source cursor to use.
       *     @param name The name of the shell command.
       *     @see ImageMould#boundaryPath
-      *     @param outProject The output directory of the project that owns the shell command.
+      *     @param projectOutputDirectory The output directory of the project that owns
+      *       the shell command.
       *     @return True on success; false on failure.
       */
     public static <C extends ReusableCursor> boolean image( final String name,  final Path boundaryPath,
-          final ImagingOptions opt, final FileTranslator.Maker<C> tMaker, final Path outProject ) {
+          final ImagingOptions opt, final FileTranslator.Maker<C> tMaker,
+          final Path projectOutputDirectory ) {
         if( !exists( boundaryPath )) {
             err.println( name + ": No such file or directory: " + boundaryPath );
             return false; }
-        final Path out;
-        try { out = emptyDirectory( createDirectories( outProject.resolve( Path.of( "mould" )))); }
-        catch( IOException x ) { throw new Unhandled( x ); } // Unexpected for `outDirectory`.
+        final Path mouldOutputDirectory; {
+            try { mouldOutputDirectory = emptyDirectory( createDirectories(
+              projectOutputDirectory.resolve( Path.of( "mould" )))); }
+            catch( IOException x ) { throw new Unhandled( x ); }} // Unexpected here.
         boolean hasFailed;
         final StringWriter errHolder = new StringWriter();
         final ImageMould<C> mould;
         try( final PrintWriter errWriter = new PrintWriter( errHolder )) {
-            mould = new ImageMould<>( boundaryPath, opt, out, errWriter );
+            mould = new ImageMould<>( boundaryPath, opt, mouldOutputDirectory, errWriter );
             mould.initialize( tMaker.newTranslator( mould ));
             try { hasFailed = mould.formImage(); }
             catch( final UserError x ) {
                 err.println( name + ": " + x.getMessage() );
                 hasFailed = true; }
             errWriter.flush(); }
-        try { placeImageFiles( /*from*/out, /*to*/mould.boundaryPathDirectory ); }
+        try { placeImageFiles( /*from*/mouldOutputDirectory, /*to*/mould.boundaryPathDirectory ); }
         catch( IOException x ) { throw new Unhandled( x ); } /* Failure might occur owing to an
           unwritable directory, but this is unlikely; the mould images only writeable directories. */
         err.print( errHolder.toString() );

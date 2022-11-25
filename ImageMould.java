@@ -59,26 +59,26 @@ public final class ImageMould<C extends ReusableCursor> {
     /** Partly makes a mould for `initialize` to finish.
       *
       *     @see #boundaryPath
-      *     @see #outDirectory
+      *     @see #outputDirectory
       *     @param errorWriter Where to report any warnings or survivable errors that occur
       *       during image formation.
       *     @throws IllegalArgumentException If `boundaryPath` is relative or non-existent.
-      *     @throws IllegalArgumentException If `outDirectory` is not an empty directory.
+      *     @throws IllegalArgumentException If `outputDirectory` is not an empty directory.
       */
-    public ImageMould( final Path boundaryPath, ImagingOptions opt, final Path outDirectory,
+    public ImageMould( final Path boundaryPath, ImagingOptions opt, final Path outputDirectory,
           final PrintWriter errorWriter ) {
         /* Sanity tests */ {
             Path p = boundaryPath;
             if( !exists( p )) throw new IllegalArgumentException( "No such file or directory: " + p );
             if( !p.isAbsolute() ) throw new IllegalArgumentException( "Not an absolute path: " + p );
             try {
-                if( !( isDirectory(p = outDirectory) && isDirectoryEmpty(p) )) {
+                if( !( isDirectory(p = outputDirectory) && isDirectoryEmpty(p) )) {
                     throw new IllegalArgumentException( "Not an empty directory: " + p ); }}
             catch( IOException x ) { throw new Unhandled( x ); }}
         boundaryPathDirectory = isDirectory(boundaryPath)?  boundaryPath : boundaryPath.getParent();
         this.boundaryPath = boundaryPath;
         this.opt = opt;
-        this.outDirectory = outDirectory;
+        this.outputDirectory = outputDirectory;
         this.errorWriter = errorWriter; }
 
 
@@ -126,7 +126,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
     /** Forms or reforms any new files that are required to update the image,
-      * writing each to the {@linkplain #outDirectory output directory}.  Call once only.
+      * writing each to the {@linkplain #outputDirectory output directory}.  Call once only.
       *
       *     @return True on success; false if a survivable error was reported to the error stream
       *       given in the constructor, in which case the image may be incomplete.
@@ -234,7 +234,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 out(1).println( "  ↶ " + sourceFileRelative );
                 try {
                     translator.translate( sourceFile,
-                      outDirectory.resolve(sourceFileRelative).getParent() );
+                      outputDirectory.resolve(sourceFileRelative).getParent() );
                     ++count;
                     wasTranslated = true; }
                 catch( final ParseError x ) { flag( sourceFile, x ); }
@@ -266,7 +266,7 @@ public final class ImageMould<C extends ReusableCursor> {
             final Path imageFileRelative = imageSibling( boundaryPathDirectory.relativize( sourceFile ));
             out(1).println( "  → " + imageFileRelative );
             try {
-                translator.finish( sourceFile, outDirectory.resolve( imageFileRelative ));
+                translator.finish( sourceFile, outputDirectory.resolve( imageFileRelative ));
                 ++count; }
             catch( final ErrorAtFile x ) { flag( x ); }}
         if( count == 0 ) out(2).println( "    none finished" );
@@ -304,7 +304,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
     /** The directory in which to write any newly formed image files.
       */
-    public final Path outDirectory;
+    public final Path outputDirectory;
 
 
 

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static Breccia.Web.imager.ImagingCommands.image;
-import static Breccia.Web.imager.Project.outDirectory;
+import static Breccia.Web.imager.Project.projectOutputDirectory;
 import static java.lang.System.err;
 import static java.lang.System.exit;
 
@@ -98,7 +98,7 @@ public final class BrecciaWebImageCommand implements AutoCloseable { // [AFN]
     /** @return True on success, false on failure.
       */
     private boolean run() {
-        return image( commandName, boundaryPath, opt, new TranslatorMaker(), outDirectory ); }
+        return image( commandName, boundaryPath, opt, new TranslatorMaker(), projectOutputDirectory ); }
 
 
 

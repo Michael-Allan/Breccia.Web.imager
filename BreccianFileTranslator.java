@@ -451,7 +451,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         final Path pRefImageSib = imageSibling( pRef );
                         sRefImageExists = /*(a)*/isRegularFile( pRefImageSib )
                           || /*(b)*/pRef.startsWith( mould.boundaryPathDirectory )
-                               && isRegularFile( mould.outDirectory.resolve(
+                               && isRegularFile( mould.outputDirectory.resolve(
                                     mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
                     return sRefImageExists ? imageSibling(sRef) : sRef; }
                 else return sRef; }
