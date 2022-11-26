@@ -118,13 +118,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** A record of the formal imaging resources for source files whose imageability
-      * is initally indeterminate.  Here ‘formal’ means determining of image form.
-      */
-    final ExternalResources formalResources = new ExternalResources();
-
-
-
     /** Forms or reforms any new files that are required to update the image,
       * writing each to the {@linkplain #outputDirectory output directory}.  Call once only.
       *
@@ -274,16 +267,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Source files (keys) mapped each to the present state of its imageability determination (value).
-      * The map is thread safe on condition of no concurrent structural modification,
-      * structural modification being defined as for `{@linkplain HashMap HashMap}`.
-      *
-      */ @Async // See `start` of remote probe threads in `formImage`.
-    final Map<Path,ImageabilityReference> imageabilityDeterminations = new HashMap<>(
-      initialCapacity( 8192/*source files*/ ));
-
-
-
     public final ImagingOptions opt;
 
 
@@ -357,6 +340,13 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @see #err()
       */
     void flag( final Path file, final ParseError x ) { flag( file, x.lineNumber, x.getMessage() ); }
+
+
+
+    /** A record of the formal imaging resources for source files whose imageability
+      * is initally indeterminate.  Here ‘formal’ means determining of image form.
+      */
+    final ExternalResources formalResources = new ExternalResources();
 
 
 
@@ -480,6 +470,16 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
     private boolean hasFailed;
+
+
+
+    /** Source files (keys) mapped each to the present state of its imageability determination (value).
+      * The map is thread safe on condition of no concurrent structural modification,
+      * structural modification being defined as for `{@linkplain HashMap HashMap}`.
+      *
+      */ @Async // See `start` of remote probe threads in `formImage`.
+    final Map<Path,ImageabilityReference> imageabilityDeterminations = new HashMap<>(
+      initialCapacity( 8192/*source files*/ ));
 
 
 
