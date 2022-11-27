@@ -21,7 +21,7 @@ Installation instructions for the Breccia Web imager
         4+ Test your access to the `breccia-web-image` command.
             >+ Breccia/Web/imager/bin/breccia-web-image --help
             /
-            ⇒  Usage: waycast-web-image [<options>] <boundary path>
+            ⇒  Usage: breccia-web-image [<options>] <boundary path>
            
                         ⋮
 
