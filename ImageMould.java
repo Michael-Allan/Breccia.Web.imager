@@ -41,7 +41,7 @@ import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isReadable;
 import static java.nio.file.Files.isWritable;
 import static java.nio.file.Files.list;
-import static Java.Paths.toRelativePathReference;
+import static Java.Paths.to_URI_relativePathReference;
 import static Java.StringBuilding.clear;
 import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
@@ -83,8 +83,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    public final void initialize( final FileTranslator<C> translator ) {
-        this.translator = translator; }
+    public void initialize( final FileTranslator<C> translator ) { this.translator = translator; }
 
 
 
@@ -115,6 +114,43 @@ public final class ImageMould<C extends ReusableCursor> {
     public PrintWriter err() {
         hasFailed = true;
         return errorWriter; }
+
+
+
+    /** Reports to the user an error at a file.
+      *
+      *     @see #err()
+      */
+    public void flag( final ErrorAtFile x ) { flag( x.file, x.getMessage() ); }
+
+
+
+    /** Reports to the user an error in `file` at the given line number.
+      *
+      *     @see #err()
+      *     @see #warn(Path,int,String)
+      */
+    public void flag( final Path file, final int lineNumber, final String message ) {
+        err().println( errHead(file,lineNumber) + message ); }
+
+
+
+    /** Reports to the user an error in `file`.
+      *
+      *     @see #err()
+      *     @see #warn(Path,String)
+      */
+    public void flag( final Path file, final String message ) {
+        err().println( errHead(file) + message ); }
+
+
+
+    /** Reports to the user a parse error associated with `file`.
+      *
+      *     @see #err()
+      */
+    public void flag( final Path file, final ParseError x ) {
+        flag( file, x.lineNumber, x.getMessage() ); }
 
 
 
@@ -267,6 +303,42 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    /** Returns a multi-line string comprising an echo of a URI reference together with a column marker.
+      *
+      *     @param ref The URI reference.
+      *     @param p A character pointer formed on the original source line of `ref`.
+      *       The value of its `column` field will be ignored if `isAlteredRef`.
+      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
+      *       from the original reference given in source.
+      */
+    public String markedLine( String ref, CharacterPointer p, boolean isAlteredRef ) {
+        return markedLine( ref, p, isAlteredRef, 0 ); }
+
+
+
+    /** Returns a multi-line string comprising an echo of a URI reference together with a column marker.
+      *
+      *     @param ref The URI reference.
+      *     @param p A character pointer formed on the original source line of `ref`.
+      *       The value of its `column` field will be ignored if `isAlteredRef`.
+      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
+      *       from the original reference given in source.
+      *     @param c The zero-based offset in `ref` of the character whose column to mark.
+      *       It will be used only if `isAlteredRef`. *//*
+      *     @paramImplied #stringBuilder2
+      */
+    public String markedLine( final String ref, final CharacterPointer p, final boolean isAlteredRef,
+          final int c ) {
+        final StringBuilder b = clear( stringBuilder2 );
+        if( isAlteredRef ) {
+            b.append( IntralineCharacterPointer.markedLine( "      ", ref, c, gcc ));
+            b.append( "\n    Source line, with original reference:  (before `--reference-mapping` translation)\n" );
+            b.append( p.line ); }
+        else b.append( p.markedLine() );
+        return b.toString(); }
+
+
+
     public final ImagingOptions opt;
 
 
@@ -291,6 +363,56 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    /** Warns the user of something in `file` at the line number of the given character pointer.
+      *
+      *     @see #wrn()
+      */
+    public void warn( final Path file, final CharacterPointer p, final String message ) {
+        warn( file, p.lineNumber, message ); }
+
+
+
+    /** Warns the user of something in `file` at the given line number.
+      *
+      *     @see #wrn()
+      *     @see #flag(Path,int,String)
+      */
+    public void warn( final Path file, final int lineNumber, final String message ) {
+        wrn().println( wrnHead(file,lineNumber) + message ); }
+
+
+
+    /** Warns the user of something in `file`.
+      *
+      *     @see #wrn()
+      *     @see #flag(Path,String)
+      */
+    public void warn( final Path file, final String message ) {
+        wrn().println( wrnHead(file) + message ); }
+
+
+
+    /** Warns the user of something in `file` at the line number of the given character pointer,
+      * on condition the warning does not duplicate an earlier one.
+      *
+      *     @see #wrn()
+      */
+    public void warnOnce( final Path file, final CharacterPointer p, final String message ) {
+        warnOnce( file, p.lineNumber, message ); }
+
+
+
+    /** Warns the user of something in `file` at the given line number,
+      * on condition the warning does not duplicate an earlier one.
+      *
+      *     @see #wrn()
+      */
+    public void warnOnce( final Path file, final int lineNumber, final String message ) {
+        final String report = wrnHead(file,lineNumber) + message;
+        if( warningsIssued.add( report )) wrn().println( report ); }
+
+
+
     /** Where to report any warnings in the process of image formation.
       *
       *     @see #err()
@@ -305,41 +427,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
     private final PrintWriter errorWriter; /* Do not write to it directly through this field.
       Instead write to it through the wrapper methods `err` and `wrn`. */
-
-
-
-    /** Reports to the user an error at a file.
-      *
-      *     @see #err()
-      */
-    void flag( final ErrorAtFile x ) { flag( x.file, x.getMessage() ); }
-
-
-
-    /** Reports to the user an error in `file` at the given line number.
-      *
-      *     @see #err()
-      *     @see #warn(Path,int,String)
-      */
-    void flag( final Path file, final int lineNumber, final String message ) {
-        err().println( errHead(file,lineNumber) + message ); }
-
-
-
-    /** Reports to the user an error in `file`.
-      *
-      *     @see #err()
-      *     @see #warn(Path,String)
-      */
-    void flag( final Path file, final String message ) { err().println( errHead(file) + message ); }
-
-
-
-    /** Reports to the user a parse error associated with `file`.
-      *
-      *     @see #err()
-      */
-    void flag( final Path file, final ParseError x ) { flag( file, x.lineNumber, x.getMessage() ); }
 
 
 
@@ -374,8 +461,8 @@ public final class ImageMould<C extends ReusableCursor> {
 
       // remote  [RC]
       // ┈┈┈┈┈┈
-        if( isRemote( uRef )) { // Then the resource would be reachable through a network.
-            if( !looksProbeable( uRef )) {
+        if( isRemote( uRef )) {             // Then the resource would be reachable through a network,
+            if( !looksProbeable( uRef )) { // the reference being a URI or network-path reference. [RR]
                 final CharacterPointer p = gRef.characterPointer();
                 final String message = improbeableCause + '\n' + markedLine( sRef, p, isAlteredRef );
                 pendingWarnings.add( new Warning( p.lineNumber, message, /*when private*/null, null,
@@ -386,7 +473,7 @@ public final class ImageMould<C extends ReusableCursor> {
       // local  [RC]
       // ┈┈┈┈┈
         else { /* The resource would be reachable through a file system, the reference being
-              an absolute-path reference or relative-path reference [RR]. */
+              an absolute-path reference or relative-path reference. [RR] */
             final Path pRef; { // The reference parsed and resolved as a local file path.
                 try { pRef = f.resolveSibling( toPath( uRef, f )); }
                 catch( final IllegalArgumentException x ) {
@@ -508,42 +595,6 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Returns a multi-line string comprising an echo of a URI reference together with a column marker.
-      *
-      *     @param ref The URI reference.
-      *     @param p A character pointer formed on the original source line of `ref`.
-      *       The value of its `column` field will be ignored if `isAlteredRef`.
-      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
-      *       from the original reference given in source.
-      */
-    String markedLine( String ref, CharacterPointer p, boolean isAlteredRef ) {
-        return markedLine( ref, p, isAlteredRef, 0 ); }
-
-
-
-    /** Returns a multi-line string comprising an echo of a URI reference together with a column marker.
-      *
-      *     @param ref The URI reference.
-      *     @param p A character pointer formed on the original source line of `ref`.
-      *       The value of its `column` field will be ignored if `isAlteredRef`.
-      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
-      *       from the original reference given in source.
-      *     @param c The zero-based offset in `ref` of the character whose column to mark.
-      *       It will be used only if `isAlteredRef`. *//*
-      *     @paramImplied #stringBuilder2
-      */
-    String markedLine( final String ref, final CharacterPointer p, final boolean isAlteredRef,
-          final int c ) {
-        final StringBuilder b = clear( stringBuilder2 );
-        if( isAlteredRef ) {
-            b.append( IntralineCharacterPointer.markedLine( "      ", ref, c, gcc ));
-            b.append( "\n    Source line, with original reference:  (before `--reference-mapping` translation)\n" );
-            b.append( p.line ); }
-        else b.append( p.markedLine() );
-        return b.toString(); }
-
-
-
     /** Returns a multi-line description of a malformed URI reference,
       * fit to include as the message of a user report.
       *
@@ -650,7 +701,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     final String r; { // The effective replacement string.
                         if( t.isBounded() ) {
                             assert referrer.startsWith( boundaryPath );
-                            b.append( toRelativePathReference(
+                            b.append( to_URI_relativePathReference(
                               referrer.getParent().relativize( boundaryPathDirectory )));
                             if( b.length() == 0 ) b.append( '.' ); /* When the `referrer`
                               sits directly in the `boundaryPathDirectory`. */
@@ -669,56 +720,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Warns the user of something in `file` at the line number of the given character pointer.
-      *
-      *     @see #wrn()
-      */
-    void warn( final Path file, final CharacterPointer p, final String message ) {
-        warn( file, p.lineNumber, message ); }
-
-
-
-    /** Warns the user of something in `file` at the given line number.
-      *
-      *     @see #wrn()
-      *     @see #flag(Path,int,String)
-      */
-    void warn( final Path file, final int lineNumber, final String message ) {
-        wrn().println( wrnHead(file,lineNumber) + message ); }
-
-
-
-    /** Warns the user of something in `file`.
-      *
-      *     @see #wrn()
-      *     @see #flag(Path,String)
-      */
-    void warn( final Path file, final String message ) { wrn().println( wrnHead(file) + message ); }
-
-
-
     private final HashSet<String> warningsIssued = new HashSet<>();
-
-
-
-    /** Warns the user of something in `file` at the line number of the given character pointer,
-      * on condition the warning does not duplicate an earlier one.
-      *
-      *     @see #wrn()
-      */
-    void warnOnce( final Path file, final CharacterPointer p, final String message ) {
-        warnOnce( file, p.lineNumber, message ); }
-
-
-
-    /** Warns the user of something in `file` at the given line number,
-      * on condition the warning does not duplicate an earlier one.
-      *
-      *     @see #wrn()
-      */
-    void warnOnce( final Path file, final int lineNumber, final String message ) {
-        final String report = wrnHead(file,lineNumber) + message;
-        if( warningsIssued.add( report )) wrn().println( report ); }
 
 
 

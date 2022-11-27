@@ -69,6 +69,7 @@ import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
+import static Java.Paths.to_URI_relativeReference;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static Java.URI_References.isRemote;
@@ -268,14 +269,17 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private CharacterPointer characterPointer( Element granum ) { return characterPointer( granum, 0 ); }
+    /** @param granum A granal element other than `FileFractum`.
+      */
+    protected final CharacterPointer characterPointer( Element granum ) {
+        return characterPointer( granum, 0 ); }
 
 
 
     /** @param granum A granal element other than `FileFractum`.
       * @param c The offset in `granum` context of the character to point to.
       */
-    private CharacterPointer characterPointer( final Element granum, final int c ) {
+    protected final CharacterPointer characterPointer( final Element granum, final int c ) {
         final String textRegional;
         final IntArrayExtensor endsRegional = lineLocator.endsRegional;
         final int offsetRegional;
@@ -314,7 +318,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @return The same `e` if it is a fractum, otherwise `ownerFractum(e)`.
       *     @see #ownerFractum(Node)
       */
-    private static Element contextFractum( final Element e ) {
+    protected static Element contextFractum( final Element e ) {
         return isFractum(e) ? e : ownerFractum(e); }
 
 
@@ -324,7 +328,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @return The same `e` if it is a fractal head, otherwise `ownerHead(e)`.
       *     @see #ownerHead(Node)
       */
-    private static Element contextHead( final Element e ) {
+    protected static Element contextHead( final Element e ) {
         return hasName("Head",e) ? e : ownerHead(e); }
 
 
@@ -362,8 +366,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param sourceFile The source of the file fractum.
-      * @param fileFractum The unfinished image of the file fractum.
+    /** @param sourceFile The absolute path of a source file.
+      * @param fileFractum The unfinished image of its file fractum.
       */
     protected void finish( final Path sourceFile, final Element fileFractum ) {
         final Document d = fileFractum.getOwnerDocument();
@@ -407,13 +411,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param f The path of a source file.
-      * @param eRef The unfinished image from `f` of a URI reference.
-      * @param sRef The reference itself in string form,
-      *   after any applicable `--reference-mapping` translations.
-      * @param isAlteredRef Whether `sRef` was actually changed by such translation.
-      * @return The target reference for the hyperlink `a` element, or null to omit hyperlinking.
-      * @see ImageMould#translate(String,Path)
+    /** Returns the hyperlink target reference (`href` attribute of `a` element) to use for `eRef`,
+      * or null to omit hyperlinking.
+      *
+      *     @param f The absolute path of a source file.
+      *     @param eRef The unfinished image from `f` of a URI reference.
+      *     @param sRef The reference itself in string form, after any applicable
+      *       {@linkplain ImageMould#translate(String,Path) `--reference-mapping` translations}.
+      *     @param isAlteredRef Whether `sRef` was actually changed by such translation.
       */
     private String hRef( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef ) { /* For what follows,
@@ -430,50 +435,96 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
       // remote  [RC]
       // ┈┈┈┈┈┈
-        if( isRemote( uRef )) { // Then the referent would be reachable through a network.
-            return looksBreccian(sRef) ? imageSibling(sRef) : sRef; } // TEST
+        if( isRemote( uRef )) return hRefRemote( f, eRef, sRef, isAlteredRef, uRef );  /*
+          The referent would be reachable through a network, the reference
+          being a URI or network-path reference. [RR] */
 
       // local  [RC]
-      // ┈┈┈┈┈
-        else { /* The referent would be reachable through a file system, the reference
-              being an absolute-path reference or relative-path reference [RR]. */
-            final Path pRef; { // The reference parsed and resolved as a local file path.
-                try { pRef = f.resolveSibling( mould.toPath( uRef, f )); }
-                catch( final IllegalArgumentException x ) {
-                    final CharacterPointer p = characterPointer( eRef );
-                    mould.warnOnce( f, p, x.getMessage() + '\n'
-                      + mould.markedLine( sRef, p, isAlteredRef ));
-                    return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
-            if( exists( pRef )) {
-                if( !isDirectory(pRef) && looksBreccian(sRef) ) {
-                    final boolean sRefImageExists; { /* Whether this (Breccian) referent
-                          has an image file either (a) pre-existing or (b) newly formed. */
-                        final Path pRefImageSib = imageSibling( pRef );
-                        sRefImageExists = /*(a)*/isRegularFile( pRefImageSib )
-                          || /*(b)*/pRef.startsWith( mould.boundaryPathDirectory )
-                               && isRegularFile( mould.outputDirectory.resolve(
-                                    mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
-                    return sRefImageExists ? imageSibling(sRef) : sRef; }
-                else return sRef; }
-            else {
-                final StringBuilder bMessage = clear( stringBuilder );
-                final boolean isTransX = mould.isTransX( pRef, bMessage );
-                final boolean wouldPrivatizationSuppress = isAlteredRef && isTransX;
+      /* ┈┈┈┈┈
+          The referent would be reachable through a file system, the reference
+          being an absolute-path reference or relative-path reference. [RR] */
+        final Path pRef; // The reference parsed as a local file path.
+        final Path pRefAbsolute; { // `pRef` resolved against the parent directory of `f`.
+            try { pRef = mould.toPath( uRef, f ); }
+            catch( final IllegalArgumentException x ) {
                 final CharacterPointer p = characterPointer( eRef );
-                final String markedLine = mould.markedLine( sRef, p, isAlteredRef );
-                if( wouldPrivatizationSuppress && isPrivatized(contextFractum(eRef)) ) {
-                    logger.info( () -> wrnHead(f,p.lineNumber) + bMessage
-                      + ": Omitting a hyperlink for this private reference:\n" + markedLine );
-                    return null; } /* With neither hyperlink nor warning, because this type
-                      of inaccessibility is common when a private reference is altered
-                      by a `--reference-mapping` translation. */
-                if( wouldPrivatizationSuppress ) {
-                    bMessage.append( "; consider marking this reference as private" ); }
-                bMessage.append( ":\n" ).append( markedLine );
-                mould.warnOnce( f, p, bMessage.toString() ); /* Yet carry on and form the hyperlink,
-                  for the cause of inaccessibility could be a misplacement or misconfiguration
-                  of the referent as opposed to a malformation of the reference. */
-                return sRef; }}}
+                mould.warnOnce( f, p, x.getMessage() + '\n' + mould.markedLine( sRef, p, isAlteredRef ));
+                return null; } // Without a hyperlink ∵ `x` leaves the intended referent unclear.
+            pRefAbsolute = f.resolveSibling( pRef ); }
+        if( !exists( pRefAbsolute )) {
+            final StringBuilder bMessage = clear( stringBuilder );
+            final boolean isTransX = mould.isTransX( pRefAbsolute, bMessage );
+            final boolean wouldPrivatizationSuppress = isAlteredRef && isTransX;
+            final CharacterPointer p = characterPointer( eRef );
+            final String markedLine = mould.markedLine( sRef, p, isAlteredRef );
+            if( wouldPrivatizationSuppress && isPrivatized(contextFractum(eRef)) ) {
+                logger.info( () -> wrnHead(f,p.lineNumber) + bMessage
+                  + ": Omitting a hyperlink for this private reference:\n" + markedLine );
+                return null; } /* With neither hyperlink nor warning, because this type
+                  of inaccessibility is common when a private reference is altered
+                  by a `--reference-mapping` translation. */
+            if( wouldPrivatizationSuppress ) {
+                bMessage.append( "; consider marking this reference as private" ); }
+            bMessage.append( ":\n" ).append( markedLine );
+            mould.warnOnce( f, p, bMessage.toString() ); } /* Yet carry on and form the hyperlink,
+              for the cause of inaccessibility could be a misplacement or misconfiguration
+              of the referent as opposed to a malformation of the reference. */
+        return hRefLocal( f, eRef, sRef, isAlteredRef, uRef, pRef, pRefAbsolute ); }
+
+
+
+    /** Returns the hyperlink target reference (`href` attribute of `a` element) to use for `eRef`,
+      * the referent of which is known to exist locally at `pRefAbsolute`, or null to omit hyperlinking.
+      *
+      *     @param f The absolute path of a source file.
+      *     @param eRef The unfinished image from `f` of an absolute-path reference
+      *       or relative-path reference.
+      *     @param sRef The reference itself in string form, after any applicable
+      *       {@linkplain ImageMould#translate(String,Path) `--reference-mapping` translations}.
+      *     @param isAlteredRef Whether `sRef` was actually changed by such translation.
+      *     @param uRef The reference in parsed `URI` form.
+      *     @param pRef The reference translated to a local file path by way of
+      *       `{@linkplain ImageMould#toPath(URI,Path) ImageMould.toPath}`.
+      *     @param pRefAbsolute `pRef`resolved against the parent directory of `f`.
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.2'>
+      *       URI generic syntax §4.2, ‘absolute-path reference’ and ‘relative-path reference’</a>
+      */
+    protected String hRefLocal( final Path f, final Element eRef, final String sRef,
+          final boolean isAlteredRef, final URI uRef, final Path pRef, final Path pRefAbsolute ) {
+        final String hRef = to_URI_relativeReference( pRef );
+          // Effectively `sRef` with tilde expansion, as per `ImageMould.toPath`.
+        if( isDirectory(pRefAbsolute) || !looksBreccian(hRef) ) return hRef;
+        final boolean sRefImageExists; { /* Whether this (Breccian) referent has an image file
+              either (a) pre-existing or (b) newly formed. */
+            final Path pRefImageSib = imageSibling( pRefAbsolute );
+            sRefImageExists = /*(a)*/isRegularFile( pRefImageSib )
+              || /*(b)*/pRefAbsolute.startsWith( mould.boundaryPathDirectory )
+                   && isRegularFile( mould.outputDirectory.resolve(
+                        mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
+        return sRefImageExists ? imageSibling(hRef) : hRef; }
+
+
+
+    /** Returns the hyperlink target reference (`href` attribute of `a` element) to use for `eRef`,
+      * or null to omit hyperlinking.
+      *
+      *     @param f The absolute path of a source file.
+      *     @param eRef The unfinished image from `f` of a URI reference in the form of a URI
+      *       or network-path reference.
+      *     @param sRef The reference itself in string form, after any applicable
+      *       {@linkplain ImageMould#translate(String,Path) `--reference-mapping` translations}.
+      *     @param isAlteredRef Whether `sRef` was actually changed by such translation.
+      *     @param uRef The reference in parsed `URI` form.
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
+      *       URI generic syntax §4.1, URI reference</a>
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-3'>
+      *       URI generic syntax §3, ‘URI’</a>
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.2'>
+      *       URI generic syntax §4.2, ‘network-path reference’</a>
+      */
+    protected String hRefRemote( final Path f, final Element eRef, final String sRef,
+          final boolean isAlteredRef, final URI uRef ) {
+        return looksBreccian(sRef) ? imageSibling(sRef) : sRef; }
 
 
 
@@ -510,7 +561,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *
       *     @see Cursor#isPrivatized(int[])
       */
-    private static boolean isPrivatized( Element fractum ) {
+    protected static boolean isPrivatized( Element fractum ) {
         assert isFractum( fractum ); // Else the call is needlessly slower.
         if( isPrivatizedDirectly( fractum )) return true;
         if( hasName( "FileFractum", fractum )) return false; // End of ancestral line.
@@ -558,7 +609,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private final ImageMould<?> mould;
+    protected final ImageMould<?> mould;
 
 
 
@@ -583,7 +634,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @return The nearest ancestor of `node` that is a fractum, or null if there is none.
       *     @see #contextFractum(Element)
       */
-    private static Element ownerFractum( final Node node ) {
+    protected static Element ownerFractum( final Node node ) {
         Element a = parentElement( node );
         while( a != null && !isFractum(a) ) a = parentElement( a );
         return a; }
@@ -594,7 +645,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *
       *     @see #contextHead(Node)
       */
-    private static Element ownerHead( Node node ) {
+    protected static Element ownerHead( Node node ) {
         do node = node.getParentNode(); while( node != null && !hasName("Head",node) );
         return (Element)node; }
 

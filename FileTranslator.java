@@ -14,6 +14,8 @@ public interface FileTranslator<C extends ReusableCursor> {
     /** Finishes an image file that was newly translated from source.  This method is to be called
       * only after all image files have been translated from source.
       *
+      *     @param sourceFile The absolute path of a source file.
+      *     @param imageFile The absolute path of its image.
       *     @see #translate(Path,Path)
       */
     public void finish( Path sourceFile, Path imageFile ) throws ErrorAtFile;
@@ -43,6 +45,7 @@ public interface FileTranslator<C extends ReusableCursor> {
     /** Translates a Breccian source file into its namesake image file, forming or reforming
       * part of a Web image.  If the source file is empty, then an empty image file results.
       *
+      *     @param sourceFile The absolute path of a source file.
       *     @param imageDirectory The directory in which to write the image file.
       *       If no such directory exists, then one is formed.
       */
