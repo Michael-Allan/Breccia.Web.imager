@@ -965,7 +965,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //   MT · Mask trimming for ID stability.  The purpose is to omit any punctuation marks such as quote
 //        characters, commas or periods that might destabilize the ID as the source text is edited.
 //
-//   RC · Cf. the comparably structured code of `ImageMould.formalResources_record`.
+//   RC · Referencing code.  Cf. the comparably structured code of `ImageMould.formalResources_record`.
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //

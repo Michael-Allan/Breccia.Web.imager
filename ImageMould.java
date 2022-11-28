@@ -754,7 +754,7 @@ public final class ImageMould<C extends ReusableCursor> {
 //        on the `err` stream, these lines of code merely serve as examples (the only ones at present)
 //        of efficient report formation for logging purposes.
 //
-//   RC · Cf. the comparably structured code of `BreccianFileTranslator.href`.
+//   RC · Referencing code.  Cf. the comparably structured code of `BreccianFileTranslator.href`.
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //
