@@ -27,7 +27,7 @@ import static Breccia.Web.imager.ExternalResources.map;
 import static Breccia.Web.imager.Imageability.*;
 import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.logger;
-import static Breccia.Web.imager.Project.looksBreccian;
+import static Breccia.Web.imager.Project.looksFractal;
 import static Breccia.Web.imager.Project.zeroBased;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
@@ -166,8 +166,8 @@ public final class ImageMould<C extends ReusableCursor> {
         /* Sanity tests on boundary path */ {
             Path p = boundaryPath;
             if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
-            if( !isDirectory(p) && !looksBreccian(p) ) {
-                throw new UserError( "File looks un-Breccian: " + p ); }
+            if( !isDirectory(p) && !looksFractal(p) ) {
+                throw new UserError( "File looks non-fractal, not a Breccian source file: " + p ); }
             if( !isWritable(p = boundaryPathDirectory) ) {
                 throw new UserError( "Directory is unwritable: " + p ); }} /* While writing in itself
               is no responsibility of the mould, skipping unwritable directories is, and the gaurd
@@ -627,7 +627,7 @@ public final class ImageMould<C extends ReusableCursor> {
     /** @param f The path of a potential source file to pull into the mould.
       */
     private void pullFile( final Path f ) {
-        if( !looksBreccian( f )) return;
+        if( !looksFractal( f )) return;
         imageabilityDeterminations.computeIfAbsent( f, f_ -> {
             final Imageability i;
             if( opt.toForce() ) i = imageable;
@@ -726,7 +726,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
     /** Whether path `p` would be read during image formation if it were readable.
       */
-    private static boolean wouldRead( final Path p ) { return isDirectory(p) || looksBreccian(p); }
+    private static boolean wouldRead( final Path p ) { return isDirectory(p) || looksFractal(p); }
 
 
 

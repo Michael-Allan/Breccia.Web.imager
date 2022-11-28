@@ -1,11 +1,14 @@
 package Breccia.Web.imager;
 
-import java.net.URISyntaxException;
+import java.net.URI;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
 import static java.lang.Math.max;
 import static java.lang.System.getProperty;
+import static java.nio.file.Files.isDirectory;
+import static Java.Paths.hasExtension;
+import static Java.URI_References.hasExtension;
 
 
 /** The present project.  Included is a medley of resources,
@@ -90,20 +93,43 @@ public final class Project {
 
 
 
-    /** Whether `f` appears to be the path of a Breccian file.
+    /** Whether the given file path appears to refer to a Breccian source file.
       *
-      *     @param f The path of a file.
+      *     @param file The path of a file.
+      *     @throws AssertionError If assertions are enabled and `f` is a directory.
       */
-    static boolean looksBreccian( final Path f ) { return looksBreccian( f.getFileName().toString() ); }
+    static boolean looksFractal( final Path file ) {
+        assert !isDirectory( file );
+        return hasExtension( ".brec", file ); }
 
 
 
-    /** Whether URI reference `ref` appears to refer to a Breccian file.
+    /** Whether the given URI reference appears to refer to a Breccian source file.
       *
       *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
       *       URI generic syntax §4.1, URI reference</a>
       */
-    static boolean looksBreccian( final String ref ) { return ref.endsWith( ".brec" ); }
+    static boolean looksFractal( final URI ref ) { return hasExtension( ".brec", ref ); }
+
+
+
+    /** Whether the given file path appears to refer to a Breccian Web image file.
+      *
+      *     @param file The path of a file.
+      *     @throws AssertionError If assertions are enabled and `file` is a directory.
+      */
+    static boolean looksImageLike( final Path file ) {
+        assert !isDirectory( file );
+        return hasExtension( ".brec.xht", file ); }
+
+
+
+    /** Whether the given URI reference appears to refer to a Breccian Web image file.
+      *
+      *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
+      *       URI generic syntax §4.1, URI reference</a>
+      */
+    static boolean looksImageLike( final URI ref ) { return hasExtension( ".brec.xht", ref ); }
 
 
 

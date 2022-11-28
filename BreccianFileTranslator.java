@@ -45,7 +45,8 @@ import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
-import static Breccia.Web.imager.Project.looksBreccian;
+import static Breccia.Web.imager.Project.looksFractal;
+import static Breccia.Web.imager.Project.looksImageLike;
 import static Breccia.Web.imager.Project.zeroBased;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
@@ -491,17 +492,22 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       */
     protected String hRefLocal( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef, final URI uRef, final Path pRef, final Path pRefAbsolute ) {
-        final String hRef = to_URI_relativeReference( pRef );
-          // Effectively `sRef` with tilde expansion, as per `ImageMould.toPath`.
-        if( isDirectory(pRefAbsolute) || !looksBreccian(hRef) ) return hRef;
-        final boolean sRefImageExists; { /* Whether this (Breccian) referent has an image file
-              either (a) pre-existing or (b) newly formed. */
-            final Path pRefImageSib = imageSibling( pRefAbsolute );
-            sRefImageExists = /*(a)*/isRegularFile( pRefImageSib )
-              || /*(b)*/pRefAbsolute.startsWith( mould.boundaryPathDirectory )
-                   && isRegularFile( mould.outputDirectory.resolve(
-                        mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
-        return sRefImageExists ? imageSibling(hRef) : hRef; }
+        String hRef = to_URI_relativeReference( pRef ); /* Effectively `sRef` with tilde expansion,
+          as per `ImageMould.toPath`. */
+        if( !isDirectory( pRefAbsolute )) {
+            if( looksFractal( pRef )) {
+                final boolean sRefImageExists; { /* Whether this referent (a Breccian source file
+                      it appears) has an image file either (a) pre-existing or (b) newly formed. */
+                    final Path pRefImageSib = imageSibling( pRefAbsolute );
+                    sRefImageExists = /*(a)*/isRegularFile( pRefImageSib )
+                      || /*(b)*/pRefAbsolute.startsWith( mould.boundaryPathDirectory )
+                           && isRegularFile( mould.outputDirectory.resolve(
+                                mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
+                if( sRefImageExists ) hRef = imageSibling( hRef ); }
+            else if( looksImageLike(pRef) && !isNonFractal(eRef) ) {
+                warn_imageFileReference( f, eRef, sRef, isAlteredRef ); }} /* Yet carry on and form
+                  the hyperlink, for the purpose here is satified by flagging the fault in the source. */
+        return hRef; }
 
 
 
@@ -524,7 +530,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       */
     protected String hRefRemote( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef, final URI uRef ) {
-        return looksBreccian(sRef) ? imageSibling(sRef) : sRef; }
+        String hRef = sRef;
+        if( looksFractal( uRef )) hRef = imageSibling( hRef );
+        else if( looksImageLike(uRef) && !isNonFractal(eRef) ) {
+            warn_imageFileReference( f, eRef, sRef, isAlteredRef ); } /* Yet carry on and form
+              the hyperlink, for the purpose here is satified by flagging the fault in the source. */
+        return hRef; }
 
 
 
@@ -553,6 +564,20 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private static boolean isFractum( final Element e ) { return e.hasAttribute( "typestamp" ); }
+
+
+
+    /** Whether the given image of a URI reference is marked `non-fractal`.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/language_definition.brec.xht#-,resource,indicant'>
+      *       Breccia language definition § Resource indicant, `non-fractal` qualifier</a>
+      */
+    protected boolean isNonFractal( final Element eRef ) {
+        final Element iR = parentElement( eRef );
+        if( !hasName( "ResourceIndicant", iR )) {
+            assert false : "URI references occur as the direct content of resource indicants alone";
+            return false; }
+        return iR.getAttribute("qualifiers").contains( "non-fractal" ); }
 
 
 
@@ -895,6 +920,16 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    private void warn_imageFileReference/*[IFR]*/( final Path f, final Element eRef, final String sRef,
+          final boolean isAlteredRef ) {
+        final CharacterPointer p = characterPointer( eRef );
+        mould.warn( f, p, """
+          Reference to an image file; consider qualifying the reference as `non-fractal`, \
+          or referring instead to the source file (`.brec`):\n"""
+            + mould.markedLine( sRef, p, isAlteredRef )); }
+
+
+
     private void write( final Document document, final Path imageFile,
           final OpenOption... outputOptions ) throws IOException, TransformerException {
         fromDOM.setNode( document );
@@ -923,6 +958,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   DTR  ‘A `DOCTYPE` is a required preamble’ in HTML.
 //        https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
+//
+//   IFR  Image-file reference.  Breccia Mode for Emacs plans a remedy for such malformed references.
+//        http://reluk.ca/project/Breccia/Emacs/working_notes.brec.xht#substitution,source-file,references
 //
 //   MT · Mask trimming for ID stability.  The purpose is to omit any punctuation marks such as quote
 //        characters, commas or periods that might destabilize the ID as the source text is edited.
