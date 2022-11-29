@@ -33,9 +33,9 @@
      See also
     ──────────
         • Working examples
-            : e.g. `alias web-image-clean` @ non-fractal http://reluk.ca/.bashrc : as called from:
+            : e.g. http://reluk.ca/.bashrc : `alias web-image-clean`, as called from:
                 : see `^^testing$` @ http://reluk.ca/project/Breccia/Web/imager/working_notes.brec
-            : e.g. `web-image-clean` @ non-fractal http://reluk.ca/sys/bin/publish-files
+            : e.g. http://reluk.ca/sys/bin/publish-files : `web-image-clean`
 
 
 

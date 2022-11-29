@@ -157,7 +157,7 @@
      See also
     ──────────
         • Working example
-            : e.g. `alias breccia-web-image` @ non-fractal http://reluk.ca/.bashrc : as called from:
+            : e.g. http://reluk.ca/.bashrc : `alias breccia-web-image`, as called from:
                 : see `^^testing$` @ http://reluk.ca/project/Breccia/Web/imager/working_notes.brec
         • The `waycast-web-image` command
             : see http://reluk.ca/project/wayic/Web/imager/bin/waycast-web-image.brec
