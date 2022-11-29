@@ -509,7 +509,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                            && isRegularFile( mould.outputDirectory.resolve(
                                 mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
                 if( sRefImageExists ) hRef = imageSibling( hRef ); }
-            else if( looksImageLike(pRef) && !isNonFractal(eRef) ) {
+            else if( !isAlteredRef/*[LC]*/  &&  looksImageLike(pRef)  &&  !isNonFractal(eRef) ) {
                 warn_imageFileReference( f, eRef, sRef, isAlteredRef ); }} /* Yet carry on and form
                   the hyperlink, for the purpose here is satified by flagging the fault in the source. */
         return hRef; }
@@ -543,7 +543,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         if( looksBrecciaLike( uRef )) hRef = imageSibling( hRef ); /* Without accessing the referent,
           e.g. to parse out and precisely target any fractum indicant, for HTTP access is deferred.
           http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches */
-        else if( looksImageLike(uRef) && !isNonFractal(eRef) ) {
+        else if( !isAlteredRef/*[LC]*/  &&  looksImageLike(uRef)  &&  !isNonFractal(eRef) ) {
             warn_imageFileReference( f, eRef, sRef, isAlteredRef ); } /* Yet carry on and form
               the hyperlink, for the purpose here is satified by flagging the fault in the source. */
         return hRef; }
@@ -972,6 +972,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   IFR  Image-file reference.  Breccia Mode for Emacs plans a remedy for such malformed references.
 //        http://reluk.ca/project/Breccia/Emacs/working_notes.brec.xht#substitution,source-file,references
+//
+//   LC · A lint check on the original source only.
 //
 //   MT · Mask trimming for ID stability.  The purpose is to omit any punctuation marks such as quote
 //        characters, commas or periods that might destabilize the ID as the source text is edited.
