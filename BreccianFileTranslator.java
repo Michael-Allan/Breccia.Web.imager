@@ -531,7 +531,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     protected String hRefRemote( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef, final URI uRef ) {
         String hRef = sRef;
-        if( looksBrecciaLike( uRef )) hRef = imageSibling( hRef );
+        if( looksBrecciaLike( uRef )) hRef = imageSibling( hRef ); /* Without accessing the referent,
+          e.g. to parse out and precisely target any fractum indicant, for HTTP access is deferred.
+          http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches */
         else if( looksImageLike(uRef) && !isNonFractal(eRef) ) {
             warn_imageFileReference( f, eRef, sRef, isAlteredRef ); } /* Yet carry on and form
               the hyperlink, for the purpose here is satified by flagging the fault in the source. */

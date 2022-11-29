@@ -122,9 +122,9 @@ final class RemoteChangeProbe implements Runnable {
         if( !toProbe ) return;
 
       // Probe the resource
-      // ──────────────────
-     // System.err.println( " ——— probe TEST: " + ref );
-        /* TODO, the actual probe */; }}
+      /* ──────────────────
+        Deferred, as per
+        `http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches`. */; }}
 
 
 
