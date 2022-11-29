@@ -98,7 +98,7 @@ public final class Project {
       *     @param file The path of a file.
       *     @throws AssertionError If assertions are enabled and `f` is a directory.
       */
-    static boolean looksFractal( final Path file ) {
+    static boolean looksBrecciaLike( final Path file ) {
         assert !isDirectory( file );
         return hasExtension( ".brec", file ); }
 
@@ -109,7 +109,7 @@ public final class Project {
       *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>
       *       URI generic syntax §4.1, URI reference</a>
       */
-    static boolean looksFractal( final URI ref ) { return hasExtension( ".brec", ref ); }
+    static boolean looksBrecciaLike( final URI ref ) { return hasExtension( ".brec", ref ); }
 
 
 

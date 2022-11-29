@@ -45,7 +45,7 @@ import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
-import static Breccia.Web.imager.Project.looksFractal;
+import static Breccia.Web.imager.Project.looksBrecciaLike;
 import static Breccia.Web.imager.Project.looksImageLike;
 import static Breccia.Web.imager.Project.zeroBased;
 import static java.awt.Font.createFont;
@@ -495,7 +495,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         String hRef = to_URI_relativeReference( pRef ); /* Effectively `sRef` with tilde expansion,
           as per `ImageMould.toPath`. */
         if( !isDirectory( pRefAbsolute )) {
-            if( looksFractal( pRef )) {
+            if( looksBrecciaLike( pRef )) {
                 final boolean sRefImageExists; { /* Whether this referent (a Breccian source file
                       it appears) has an image file either (a) pre-existing or (b) newly formed. */
                     final Path pRefImageSib = imageSibling( pRefAbsolute );
@@ -531,7 +531,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     protected String hRefRemote( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef, final URI uRef ) {
         String hRef = sRef;
-        if( looksFractal( uRef )) hRef = imageSibling( hRef );
+        if( looksBrecciaLike( uRef )) hRef = imageSibling( hRef );
         else if( looksImageLike(uRef) && !isNonFractal(eRef) ) {
             warn_imageFileReference( f, eRef, sRef, isAlteredRef ); } /* Yet carry on and form
               the hyperlink, for the purpose here is satified by flagging the fault in the source. */
