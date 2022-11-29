@@ -46,7 +46,7 @@ import static Java.StringBuilding.clear;
 import static Java.URI_References.isRemote;
 import static Java.URIs.unfragmented;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.logging.Level.CONFIG;
+import static java.util.logging.Level.FINER;
 
 
 /** A frame in which to form or reform a Web image.
@@ -491,7 +491,7 @@ public final class ImageMould<C extends ReusableCursor> {
                     if( wouldPrivatizationSuppress ) {
                         bMessageWhenPrivate = clear( stringBuilder2 ).append( bMessage ).append( ":\n" )
                           .append( markedLine ).append( "\n    Falling back to the original reference");
-                        level = CONFIG;  /* Merely logging in the private case, because this type
+                        level = FINER;  /* Merely logging in the private case, because this type
                           of inaccessibility is common when a private reference is altered
                           by a `--reference-mapping` translation. */
                         bMessage.append( "; consider marking this reference as private" ); }

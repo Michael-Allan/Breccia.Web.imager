@@ -43,13 +43,10 @@ Installation instructions for the Breccia Web imager
                Nov. 07, 2020 9:46:47 P.M. Java.LoggingTestCommand test
                FINE: Testing at level FINE
 
-            - The location of the log depends on your logger configuration,
+            - Where the log output appears (e.g. in which file) depends on your logger configuration,
               as does the number of levels that appear.
-                : re `logger configuration` see `^^working example$`
-            + Ensure the test messages extend down to level `FINE` at least.
-                >+ grep --fixed-strings --recursive 'logging.Level' Breccia/Web/imager/
-        working example
-            : see http://reluk.ca/sys/computer/workstation/opt/_/java-logging.properties
+                : see e.g. http://reluk.ca/sys/computer/workstation/opt/_/java-logging.properties
+            + Ensure the test messages extend down to level `CONFIG` at least.
 
     rebuild script
         - If you expect to modify the source code of dependencies (direct or indirect),

@@ -460,7 +460,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final CharacterPointer p = characterPointer( eRef );
             final String markedLine = mould.markedLine( sRef, p, isAlteredRef );
             if( wouldPrivatizationSuppress && isPrivatized(contextFractum(eRef)) ) {
-                logger.info( () -> wrnHead(f,p.lineNumber) + bMessage
+                logger.fine( () -> wrnHead(f,p.lineNumber) + bMessage
                   + ": Omitting a hyperlink for this private reference:\n" + markedLine );
                 return null; } /* With neither hyperlink nor warning, because this type
                   of inaccessibility is common when a private reference is altered
