@@ -387,11 +387,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final String sRef = mould.translate( sRefOriginal, sourceFile );
                   // Applying any `--reference-mapping` translations.
                 final boolean isAlteredRef = !sRef.equals( sRefOriginal );
-                if( isAlteredRef ) hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false ); /*
-                  Always testing `sRefOriginal`, so verifying that it would have been hyperlinked,
-                  else warning the user.  For there are types of warning that are issued only
-                  against `sRefOriginal`, which might otherwise be lost.  See for instance,
-                  `wayic.Web.imager.WaybreccianFileTranslator.hRefLocal` and `hRefRemote`. */
+                if( isAlteredRef ) {
+                    final String test = hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false ); /*
+                      Always testing `sRefOriginal`, so verifying that it would have been hyperlinked,
+                      else warning the user.  For there are types of warning that are issued only
+                      against `sRefOriginal`, which might otherwise be lost.  See for instance,
+                      `wayic.Web.imager.WaybreccianFileTranslator.hRefLocal` and `hRefRemote`. */
+                    if( test == null ) continue; } /* Let the user correct the source first,
+                      as this would likely reduce noise on the console. */
                 hRef = hRef( sourceFile, eRef, sRef, isAlteredRef );
                 if( hRef == null ) continue; } // For then `sRef` is not to be hyperlinked.
             final Element a = d.createElementNS( nsHTML, "html:a" );
