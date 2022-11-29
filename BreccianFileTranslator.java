@@ -387,12 +387,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final String sRef = mould.translate( sRefOriginal, sourceFile );
                   // Applying any `--reference-mapping` translations.
                 final boolean isAlteredRef = !sRef.equals( sRefOriginal );
+                if( isAlteredRef ) hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false ); /*
+                  Always testing `sRefOriginal`, so verifying that it would have been hyperlinked,
+                  else warning the user.  For there are types of warning that are issued only
+                  against `sRefOriginal`, which might otherwise be lost.  See for instance,
+                  `wayic.Web.imager.WaybreccianFileTranslator.hRefLocal` and `hRefRemote`. */
                 hRef = hRef( sourceFile, eRef, sRef, isAlteredRef );
-                if( hRef == null ) { // Then `sRef` is not to be hyperlinked.
-                    if( isAlteredRef ) hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false ); /*
-                      Falling back to `sRefOriginal`; so verifying that at least *it* would have
-                      been hyperlinked, else warning the user. */
-                    continue; }}
+                if( hRef == null ) continue; } // For then `sRef` is not to be hyperlinked.
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
             a.setAttribute( "href", hRef );
@@ -477,6 +478,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** Returns the hyperlink target reference (`href` attribute of `a` element) to use for `eRef`,
       * the referent of which is known to exist locally at `pRefAbsolute`, or null to omit hyperlinking.
       *
+      * <p>Where {@linkplain ImageMould#translate(String,Path) `--reference-mapping`}
+      * alters a reference, this method is called twice: first with the original reference,
+      * then with the altered reference.</p>
+      *
       *     @param f The absolute path of a source file.
       *     @param eRef The unfinished image from `f` of an absolute-path reference
       *       or relative-path reference.
@@ -513,6 +518,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     /** Returns the hyperlink target reference (`href` attribute of `a` element) to use for `eRef`,
       * or null to omit hyperlinking.
+      *
+      * <p>Where {@linkplain ImageMould#translate(String,Path) `--reference-mapping`}
+      * alters a reference, this method is called twice: first with the original reference,
+      * then with the altered reference.</p>
       *
       *     @param f The absolute path of a source file.
       *     @param eRef The unfinished image from `f` of a URI reference in the form of a URI
