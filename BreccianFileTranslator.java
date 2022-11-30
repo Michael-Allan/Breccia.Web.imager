@@ -499,22 +499,22 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       */
     protected String hRefLocal( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef, final URI uRef, final Path pRef, final Path pRefAbsolute ) {
-        String hRef = to_URI_relativeReference( pRef ); /* Effectively `sRef` with tilde expansion,
-          as per `ImageMould.toPath`. */
+        Path p = pRef; // Either `pRef` or its image sibling.
         if( !isDirectory( pRefAbsolute )) {
             if( looksBrecciaLike( pRef )) {
-                final boolean sRefImageExists; { /* Whether this referent (a Breccian source file
+                final boolean imageExists; { /* Whether this referent (a Breccian source file
                       it appears) has an image file either (a) pre-existing or (b) newly formed. */
                     final Path pRefImageSib = imageSibling( pRefAbsolute );
-                    sRefImageExists = /*(a)*/isRegularFile( pRefImageSib )
+                    imageExists = /*(a)*/isRegularFile( pRefImageSib )
                       || /*(b)*/pRefAbsolute.startsWith( mould.boundaryPathDirectory )
                            && isRegularFile( mould.outputDirectory.resolve(
                                 mould.boundaryPathDirectory.relativize( pRefImageSib ))); }
-                if( sRefImageExists ) hRef = imageSibling( hRef ); }
+                if( imageExists ) p = imageSibling( p ); }
             else if( !isAlteredRef/*[LC]*/  &&  looksImageLike(pRef)  &&  !isNonFractal(eRef) ) {
                 warn_imageFileReference( f, eRef, sRef, isAlteredRef ); }} /* Yet carry on and form
                   the hyperlink, for the purpose here is satified by flagging the fault in the source. */
-        return hRef; }
+        return to_URI_relativeReference( p ); /* Effectively `sRef` (or its image sibling)
+          after tilde expansion as per `ImageMould.toPath`. */ }
 
 
 
@@ -541,14 +541,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       */
     protected String hRefRemote( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef, final URI uRef ) {
-        String hRef = sRef;
-        if( looksBrecciaLike( uRef )) hRef = imageSibling( hRef ); /* Without accessing the referent,
+        URI u = uRef; // Either `uRef` or its image sibling.
+        if( looksBrecciaLike( uRef )) u = imageSibling( u ); /* Without accessing the referent,
           e.g. to parse out and precisely target any fractum indicant, for HTTP access is deferred.
           http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches */
         else if( !isAlteredRef/*[LC]*/  &&  looksImageLike(uRef)  &&  !isNonFractal(eRef) ) {
             warn_imageFileReference( f, eRef, sRef, isAlteredRef ); } /* Yet carry on and form
               the hyperlink, for the purpose here is satified by flagging the fault in the source. */
-        return hRef; }
+        return u.toASCIIString(); }
 
 
 

@@ -1,7 +1,9 @@
 package Breccia.Web.imager;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
+import Java.Unhandled;
 import java.util.logging.Logger;
 
 import static java.lang.Math.max;
@@ -21,18 +23,23 @@ public final class Project {
 
 
 
-    /** Returns for the given source file its image file: a sibling namesake with a `.xht` extension.
-      * The image file of `dir/foo.brec`, for example, is `dir/foo.brec.xht`.
+    /** Returns for the given source path its image sibling: a namesake with a `.xht` extension.
+      * Assuming a path {@linkplain java.nio.file.FileSystem#getSeparator name separator} of ‘/’,
+      * the image sibling of `dir/foo.brec`, for example, is `dir/foo.brec.xht`.
+      *
+      *     @param s A path to a source file.
       */
-    public static Path imageSibling( final Path sourceFile ) {
-        return sourceFile.resolveSibling( imageSibling( sourceFile.getFileName().toString() )); }
+    public static Path imageSibling( final Path s ) {
+        return s.resolveSibling( imageSibling( s.getFileName().toString() )); }
 
 
 
-    /** Returns for the given source file its image file: a sibling namesake with a `.xht` extension.
-      * The image file of `dir/foo.brec`, for example, is `dir/foo.brec.xht`.
+    /** Returns for the given source reference its image sibling: a namesake with a `.xht` extension.
+      * The image sibling of `dir/foo.brec`, for example, is `dir/foo.brec.xht`.
+      *
+      *     @param s A URI reference to a source file.
       */
-    public static String imageSibling( final String sourceFile ) { return sourceFile + ".xht"; }
+    public static URI imageSibling( final URI s ) { return repath( s, imageSibling( s.getPath() )); }
 
 
 
@@ -43,30 +50,41 @@ public final class Project {
 
 
 
-    /** Returns for the given image file its source file: a sibling namesake without a `.xht` extension.
-      * The source file of `dir/foo.brec.xht`, for example, is `dir/foo.brec`.
+    /** Returns for the given image path its source sibling: a namesake without a `.xht` extension.
+      * Assuming a path {@linkplain java.nio.file.FileSystem#getSeparator name separator} of ‘/’,
+      * the source sibling of `dir/foo.brec.xht`, for example, is `dir/foo.brec`.
       *
-      *     @throws IllegalArgumentException If the last four characters
-      *       of `imageFile.getFileName` are not ‘.xht’.
+      *     @param i A path to an image file.
+      *     @throws IllegalArgumentException If the image path itself has no `.xht` extension.
       */
-    public static Path sourceSibling( final Path imageFile ) {
-        return imageFile.resolveSibling( sourceSibling( imageFile.getFileName().toString() )); }
+    public static Path sourceSibling( final Path i ) {
+        return i.resolveSibling( sourceSibling( i.getFileName().toString() )); }
 
 
 
-    /** Returns for the given image file its source file: a sibling namesake without a `.xht` extension.
-      * The source file of `dir/foo.brec.xht`, for example, is `dir/foo.brec`.
+    /** Returns for the given image reference its source sibling: a namesake without a `.xht` extension.
+      * The source sibling of `dir/foo.brec.xht`, for example, is `dir/foo.brec`.
       *
-      *     @throws IllegalArgumentException If the last four characters
-      *       of `imageFile.getFileName` are not ‘.xht’.
+      *     @param i A URI reference to an image file.
+      *     @throws IllegalArgumentException If the image reference itself has no `.xht` extension.
       */
-    public static String sourceSibling( final String imageFile ) {
-        if( !imageFile.endsWith( ".xht" )) throw new IllegalArgumentException();
-        return imageFile.substring( 0, imageFile.length() - ".xht".length() ); }
+    public static URI sourceSibling( final URI i ) { return repath( i, sourceSibling( i.getPath() )); }
 
 
 
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    /** Returns the image sibling of `s`, a namesake with a `.xht` extension.
+      * The image sibling of `dir/foo.brec`, for example, is `dir/foo.brec.xht`.
+      *
+      *     @param s A URI reference or local file path to a source file. *//*
+      *
+      * Unreliable for general exposure because `s` might be given in the form of a URI reference
+      * that has a query or fragment component.
+      */
+    private static String imageSibling( final String s ) { return s + ".xht"; }
+
 
 
     /** The logger proper to the present project.
@@ -112,6 +130,33 @@ public final class Project {
       *       URI generic syntax §4.1, URI reference</a>
       */
     static boolean looksImageLike( final URI ref ) { return hasExtension( ".brec.xht", ref ); }
+
+
+
+    /** Returns the source sibling of `i`, a namesake without a `.xht` extension.
+      * The source sibling of `dir/foo.brec.xht`, for example, is `dir/foo.brec`.
+      *
+      *     @param i A URI reference or local file path to an image file. *//*
+      *     @throws IllegalArgumentException If `i` itself has no `.xht` extension.
+      *
+      * Unreliable for general exposure because `i` might be given in the form of a URI reference
+      * that has a query or fragment component.
+      */
+    private static String sourceSibling( final String i ) {
+        if( !i.endsWith( ".xht" )) throw new IllegalArgumentException();
+        return i.substring( 0, i.length() - ".xht".length() ); }
+
+
+
+    /** Swaps into `u` the given path and returns the result.
+      */
+    private static URI repath( final URI u, final String path ) {
+        try {
+            return new URI( u.getScheme(), u.getAuthority(), path, u.getQuery(), u.getFragment() ); } /*
+              With decoding (as opposed to raw) getters, as stipulated in (and above) § Identities:
+              `https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/net/URI.html` */
+        catch( URISyntaxException x ) { throw new Unhandled( x ); }}
+          // Unexpected with a reconstruction of this sort.
 
 
 
