@@ -937,10 +937,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     private void warn_imageFileReference/*[IFR]*/( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef ) {
         final CharacterPointer p = characterPointer( eRef );
-        mould.warn( f, p, """
-          Reference to an image file; consider qualifying the reference as `non-fractal`, \
-          or referring instead to the source file (`.brec`):\n"""
-            + mould.markedLine( sRef, p, isAlteredRef )); }
+        mould.warn( f, p, "Reference to an image file; consider qualifying the reference "
+          + "as `non-fractal` or referring instead to the source file (`.brec`):\n"
+          + mould.markedLine( sRef, p, isAlteredRef )); }
 
 
 
