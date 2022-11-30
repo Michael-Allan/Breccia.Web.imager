@@ -25,7 +25,7 @@ public final class Project {
       * The image file of `dir/foo.brec`, for example, is `dir/foo.brec.xht`.
       */
     public static Path imageSibling( final Path sourceFile ) {
-        return sourceFile.resolveSibling( imageSimpleName( sourceFile )); }
+        return sourceFile.resolveSibling( imageSibling( sourceFile.getFileName().toString() )); }
 
 
 
@@ -33,13 +33,6 @@ public final class Project {
       * The image file of `dir/foo.brec`, for example, is `dir/foo.brec.xht`.
       */
     public static String imageSibling( final String sourceFile ) { return sourceFile + ".xht"; }
-
-
-
-    /** Returns the result of `sourceFile.{@linkplain Path#getFileName() getFileName}() + ".xht"`.
-      */
-    public static String imageSimpleName( final Path sourceFile ) {
-        return imageSibling( sourceFile.getFileName().toString() ); }
 
 
 
@@ -57,7 +50,7 @@ public final class Project {
       *       of `imageFile.getFileName` are not ‘.xht’.
       */
     public static Path sourceSibling( final Path imageFile ) {
-        return imageFile.resolveSibling( sourceSimpleName( imageFile )); }
+        return imageFile.resolveSibling( sourceSibling( imageFile.getFileName().toString() )); }
 
 
 
@@ -70,17 +63,6 @@ public final class Project {
     public static String sourceSibling( final String imageFile ) {
         if( !imageFile.endsWith( ".xht" )) throw new IllegalArgumentException();
         return imageFile.substring( 0, imageFile.length() - ".xht".length() ); }
-
-
-
-    /** Returns `imageFile.{@linkplain Path#getFileName() getFileName}`
-      * bereft of its last four characters.
-      *
-      *     @throws IllegalArgumentException If the last four characters
-      *       of `imageFile.getFileName` are not ‘.xht’.
-      */
-    public static String sourceSimpleName( final Path imageFile ) {
-        return sourceSibling( imageFile.getFileName().toString() ); }
 
 
 

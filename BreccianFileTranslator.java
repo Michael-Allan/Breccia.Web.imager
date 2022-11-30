@@ -43,7 +43,6 @@ import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.Project.imageSibling;
-import static Breccia.Web.imager.Project.imageSimpleName;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBrecciaLike;
 import static Breccia.Web.imager.Project.looksImageLike;
@@ -178,7 +177,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     public @Override void translate( final Path sourceFile, final Path imageDirectory )
           throws ParseError, ErrorAtFile {
-        final Path imageFile = imageDirectory.resolve( imageSimpleName( sourceFile ));
+        final Path imageFile = imageDirectory.resolve( imageSibling( sourceFile.getFileName() ));
         try {
             createDirectories( imageFile.getParent() ); // Ensure the parent exists.
             try( final Reader sourceReader = newSourceReader​( sourceFile )) {
