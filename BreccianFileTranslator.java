@@ -110,7 +110,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
    // ━━━  F i l e   T r a n s l a t o r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    public @Override void finish( Path sourceFile, final Path imageFile ) throws ErrorAtFile {
+    public @Override void finish( Path sourceFile, final Path imageFile ) throws ErrorAtFile { // [F]
         try {
 
           // XHTML DOM ← XHTML image file
@@ -372,7 +372,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     protected void finish( final Path sourceFile, final Element fileFractum ) {
         final Document d = fileFractum.getOwnerDocument();
 
-      // URI references each formed as a hyperlink
+      // URI references each formed as a hyperlink  [F, HF]
       // ──────────────
         for( Element e = successorElement(fileFractum);  e != null;  e = successorElement(e) ) {
             if( !hasName( "Reference", e )) continue;
@@ -973,6 +973,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   IFR  Image-file reference.  Breccia Mode for Emacs plans a remedy for such malformed references.
 //        http://reluk.ca/project/Breccia/Emacs/working_notes.brec.xht#substitution,source-file,references
+//
+//   F ·· Method `finish` itself, or code that must execute in unison with it.
+//
+//   HF · Hyperlink formation.  Done late (in the `finish` cycle) that hyperlink `href` attributes may
+//        incorporate any body-fractum identifiers newly formed earlier (in the `translate` cycle).
 //
 //   LC · A lint check on the original source only.
 //
