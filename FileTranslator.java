@@ -22,11 +22,11 @@ public interface FileTranslator<C extends ReusableCursor> {
 
 
 
-    /** From the present position of the given source cursor, this method returns any nominal
-      * URI reference to an external imaging resource that would be formal were it obtained by
-      * this translator.  ‘Nominal’ here means that what is returned ought to be a URI reference
+    /** From the present position of the given source cursor, this method returns any nominal URI
+      * reference to an external imaging resource that would be formal were the reference imaged
+      * by this translator.  ‘Nominal’ here means that what is returned ought to be a URI reference
       * and so forth, e.g. based on where it occurs in the text, though actually it might not be.
-      * ‘Formal’ means determining of image form.
+      * ‘Formal’ means determining of image form, as explained at `ImageMould.formalResources`.
       *
       *     @see ImageMould#formalResources
       *     @return The formal reference, or null if there is none.

@@ -430,8 +430,9 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** A record of the formal imaging resources for source files whose imageability
-      * is initally indeterminate.  Here ‘formal’ means determining of image form.
+    /** A record of the formal imaging resources of source files whose imageability is initally
+      * indeterminate.  Here ‘formal’ means that the content of the resource determines the form
+      * of the image of the source file that refers to (or otherwise makes use of) that resource.
       */
     final ExternalResources formalResources = new ExternalResources();
 
