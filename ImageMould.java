@@ -666,12 +666,13 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Translates to a `Path` instance the given URI reference.
+    /** Translates to a `Path` instance the given URI reference, with support for tilde expansion.
       * Any tilde prefix is taken to represent the author’s home directory.
       *
       *     @see Java.Paths#toPath(URI,Path)
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#author-home-,author-home-,path'>
       *         Command option `--author-home-directory`</a>
+      *     @throws IllegalArgumentException If `reference` has a query or fragment component.
       */
     Path toPath( final URI reference, final Path referrer ) {
         Path p = Paths.toPath( reference, referrer );
