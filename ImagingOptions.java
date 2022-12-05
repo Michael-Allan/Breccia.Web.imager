@@ -82,6 +82,15 @@ public class ImagingOptions extends Options {
 
 
 
+    /** Whether to run without effect.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#fakely'>
+      *         Command option `--fakely`</a>
+      */
+    public final boolean toFake() { return toFake; }
+
+
+
     /** Whether to forcefully remake the Web image.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#forcefully'>
@@ -208,6 +217,10 @@ public class ImagingOptions extends Options {
 
 
 
+    private boolean toFake;
+
+
+
     private boolean toForce;
 
 
@@ -223,6 +236,7 @@ public class ImagingOptions extends Options {
         else if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
         else if( arg.startsWith( s = "--co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
+        else if( arg.equals( "--fakely" )) toFake = true;
         else if( arg.equals( "--forcefully" )) toForce = true;
         else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
         else if( arg.startsWith( s = "--reference-mapping=" )) {

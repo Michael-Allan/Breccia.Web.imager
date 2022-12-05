@@ -77,6 +77,8 @@
                 / Better not rely on it, however.  The files there may be incompatible
                   with your installation, or become so at any time, or be slow to serve.
                   Rather you should supply a directory under your own control.
+        --fakely
+            - Runs the Web imager without effect.  Makes no Web image, nor any image files.
         --forcefully
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.

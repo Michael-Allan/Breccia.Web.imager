@@ -54,7 +54,7 @@ public final class ImagingCommands {
                 err.println( name + ": " + x.getMessage() );
                 hasFailed = true; }
             errWriter.flush(); }
-        try { placeImageFiles( /*from*/mouldOutputDirectory, /*to*/mould.boundaryPathDirectory ); }
+        try { placeImageFiles( /*from*/mouldOutputDirectory, /*to*/mould.boundaryPathDirectory, opt ); }
         catch( IOException x ) { throw new Unhandled( x ); } /* Failure might occur owing to an
           unwritable directory, but this is unlikely; the mould images only writeable directories. */
         err.print( errHolder.toString() );
@@ -71,13 +71,15 @@ public final class ImagingCommands {
       *
       *     @throws IllegalArgumentException Unless `dFrom` and `dTo` are directories.
       */
-    private static void placeImageFiles​( final Path dFrom, final Path dTo ) throws IOException {
+    private static void placeImageFiles​( final Path dFrom, final Path dTo, final ImagingOptions opt )
+          throws IOException {
         verifyDirectoryArgument( dFrom );
         verifyDirectoryArgument( dTo );
+        final boolean toDo = !opt.toFake();
         walkFileTree( dFrom, new SimpleFileVisitor<Path>() {
             public @Override FileVisitResult visitFile( final Path f, BasicFileAttributes _a )
                   throws IOException {
-                Files.move( f, dTo.resolve(dFrom.relativize(f)), REPLACE_EXISTING );
+                if( toDo ) Files.move( f, dTo.resolve(dFrom.relativize(f)), REPLACE_EXISTING );
                 return CONTINUE; }}); }}
 
 
