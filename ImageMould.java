@@ -174,11 +174,17 @@ public final class ImageMould<C extends ReusableCursor> {
               here similar enough to its predecessors to warrant inclusion. */
 
       // ═══════════════════════════
-      // 1. Pull in the source files, sorting them as apodictically imageable or indeterminate
+      // 1. Pull in the source files, sorting them as apodictically imageable or indeterminate  [PSF]
       // ═══════════════════════════
-        if( isDirectory( boundaryPath )) {   // A streamlined process versus that of `pullPath`
-            pullDirectory( boundaryPath ); } // whose added testing and messaging would be redundant
-        else pullFile( boundaryPath );       // for this topmost path.
+        if( isDirectory( boundaryPath )) {
+            out(2).println();
+            out(1).println( "Collating source files" );
+            out(2).println( "──────────────────────" );
+            out(1).flush();
+            pullDirectory( boundaryPath );
+            out(1).println( "  " + imageabilityDeterminations.size() + " collated" );
+            out(1).flush(); }
+        else pullFile( boundaryPath );
         // Now `imageabilityDeterminations` is structurally complete.  Newly started threads
         // may safely use it for all but structural modification.
 
@@ -186,9 +192,27 @@ public final class ImageMould<C extends ReusableCursor> {
       // ════════════════════════════════════
       // 2. Begin reducing the indeterminates, determining the imageability of each
       // ════════════════════════════════════
+        speak: if( opt.verbosity() >= 1 ) {
+            int c = 0; // Count of indeterminates.
+            for( final var det: imageabilityDeterminations.entrySet() ) {
+                if( det.getValue().get() == indeterminate ) ++c; }
+            if( c == 0 ) break speak;
+            out(2).println();
+            out(1).println( "Parsing indeterminate source files: " + c );
+            out(2).println( "──────────────────────────────────" );
+            out(1).flush(); }
         imageabilityDeterminations.forEach( this::formalResources_recordFrom ); // Collate the resources.
         // Now `formalResources` is structurally complete.  Newly started threads
         // may safely use it for all but structural modification.
+
+        speak: if( opt.verbosity() >= 1 ) {
+            final int nL = formalResources.local.size();
+            final int rL = formalResources.remote.size();
+            if( nL == 0 && rL == 0 ) break speak;
+            out(2).println();
+            out(1).println( "Syncing on formal referents: " + nL + " local, " + rL + " remote" );
+            out(2).println( "───────────────────────────" );
+            out(1).flush(); }
 
       // Start any probes that are required for remote resources
       // ────────────────
@@ -241,12 +265,27 @@ public final class ImageMould<C extends ReusableCursor> {
       // ═══════════════════════════
       // 3. Translate the imageables as they are determined, extending the image to its bounds
       // ═══════════════════════════
-        out(2).println( "Translating source to image files" );
         boolean isFinalPass;
         if( probes.size() == 0 ) {
             isFinalPass = true; // Only one pass is required.
             barrier.forceTermination(); } // Just to be tidy.
         else isFinalPass = false; // At least two will be required.
+        int countExpected = 0;
+        boolean toSpeak = false;
+        speak: if( opt.verbosity() >= 1 ) {
+            for( final var det: imageabilityDeterminations.entrySet() ) {
+                if( det.getValue().get() == imageable ) ++countExpected; }
+            if( isFinalPass && countExpected == 0 ) break speak;
+            toSpeak = true;
+            final PrintStream out = out( 1 );
+            out(2).println();
+            out.print(      "Translating source files: " + countExpected );
+            if( !isFinalPass ) {
+                out.print( '+' );
+                countExpected = -1; } // Meaning not precisely known.
+            out.println();
+            out(2).println( "────────────────────────" );
+            out(1).flush(); }
         int count = 0; // Count of translated source files.
         for( ;; ) {
             int c = 0; // Count of imageables found during the present pass.
@@ -260,7 +299,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 final Path sourceFile = det.getKey();
                 final Path sourceFileRelative = boundaryPathDirectory.relativize( sourceFile );
                 boolean wasTranslated = false;
-                out(1).println( "  ↶ " + sourceFileRelative );
+                out(2).println( "  ↶ " + sourceFileRelative );
                 try {
                     translator.translate( sourceFile,
                       outputDirectory.resolve(sourceFileRelative).getParent() );
@@ -280,25 +319,39 @@ public final class ImageMould<C extends ReusableCursor> {
                 throw new UnsourcedInterrupt( x ); }
             catch( TimeoutException x ) { continue; } // Reduction is ongoing.
             isFinalPass = true; } // Reduction is complete, the next pass is final.
-        if( count == 0 ) out(2).println( "    none tranformed" );
+        if( toSpeak  &&  count != countExpected ) {
+            out(1).println( "  " + count + " translated" );
+            out(1).flush(); }
 
 
       // ═════════════════════════
       // 4. Finish the image files
       // ═════════════════════════
-        out(2).println( "Finishing the image files" );
+        countExpected = 0;
+        toSpeak = false;
+        speak: if( opt.verbosity() >= 1 ) {
+            for( final var det: imageabilityDeterminations.entrySet() ) {
+                if( det.getValue().get() == imaged ) ++countExpected; }
+            if( countExpected == 0 ) break speak;
+            toSpeak = true;
+            out(2).println();
+            out(1).println( "Finishing image files: " + countExpected );
+            out(2).println( "─────────────────────" );
+            out(1).flush(); }
         count = 0; // Count of finished image files.
         for( final var det: imageabilityDeterminations.entrySet() ) {
             final ImageabilityReference iR = det.getValue();
             if( iR.get() != imaged ) continue;
             final Path sourceFile = det.getKey();
             final Path imageFileRelative = imageSibling( boundaryPathDirectory.relativize( sourceFile ));
-            out(1).println( "  → " + imageFileRelative );
+            out(2).println( "  → " + imageFileRelative );
             try {
                 translator.finish( sourceFile, outputDirectory.resolve( imageFileRelative ));
                 ++count; }
             catch( final ErrorAtFile x ) { flag( x ); }}
-        if( count == 0 ) out(2).println( "    none finished" );
+        if( toSpeak  &&  count != countExpected ) {
+            out(1).println( "  " + count + " finished" );
+            out(1).flush(); }
         return !hasFailed; }
 
 
@@ -756,6 +809,9 @@ public final class ImageMould<C extends ReusableCursor> {
 //   LUR  Logging of unexpected yet recoverable IO errors.  Aside from avoiding a flood of reports
 //        on the `err` stream, these lines of code merely serve as examples (the only ones at present)
 //        of efficient report formation for logging purposes.
+//
+//   PSF  Pulling in the source files.  Here using a streamlined process, rather than `pullPath`
+//        whose added testing and messaging would be redundant for this topmost (boundary) path.
 //
 //   RC · Referencing code.  Cf. the comparably structured code of `BreccianFileTranslator.href`.
 //
