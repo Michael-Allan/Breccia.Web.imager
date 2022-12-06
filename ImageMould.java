@@ -308,7 +308,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @param ref The URI reference.
       *     @param p A character pointer formed on the original source line of `ref`.
       *       The value of its `column` field will be ignored if `isAlteredRef`.
-      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
+      *     @param isAlteredRef Whether `ref` has been altered (by `-reference-mapping` translation)
       *       from the original reference given in source.
       */
     public String markedLine( String ref, CharacterPointer p, boolean isAlteredRef ) {
@@ -321,7 +321,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @param ref The URI reference.
       *     @param p A character pointer formed on the original source line of `ref`.
       *       The value of its `column` field will be ignored if `isAlteredRef`.
-      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
+      *     @param isAlteredRef Whether `ref` has been altered (by `-reference-mapping` translation)
       *       from the original reference given in source.
       *     @param c The zero-based offset in `ref` of the character whose column to mark.
       *       It will be used only if `isAlteredRef`. *//*
@@ -333,7 +333,7 @@ public final class ImageMould<C extends ReusableCursor> {
         if( isAlteredRef ) {
             b.append( IntralineCharacterPointer.markedLine( "      ", ref, c, gcc ));
             b.append( "\n    Source line, with original reference:  "
-              + "(before `--reference-mapping` translation)\n" );
+              + "(before `-reference-mapping` translation)\n" );
             b.append( p.line ); }
         else b.append( p.markedLine() );
         return b.toString(); }
@@ -345,12 +345,12 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
     /** The output stream for user feedback of verbosity level `v`.  If `v` is greater than the level
-      * allowed by command option `--verbosity`, then this method returns a do-nothing dummy stream.
+      * allowed by command option `-verbosity`, then this method returns a do-nothing dummy stream.
       * Otherwise it returns `System.{@linkplain java.lang.System#out out}`.
       *
       *     @param v Either 1 or 2.
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbosity,verbosity-0-'>
-      *         Command option `--verbosity`</a>
+      *         Command option `-verbosity`</a>
       *     @see #err()
       *     @see #wrn()
       */
@@ -441,7 +441,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
     /** @param f The path of a source file.
       * @param gRef A reference from `f` to a formal resource, encapsulated as a `Granum`.
-      * @param sRef The reference in string form, after any applicable `--reference-mapping`
+      * @param sRef The reference in string form, after any applicable `-reference-mapping`
       *   translations.
       * @param isAlteredRef Whether `sRef` was actually changed by such translation.
       * @return Whether the present method call actually recorded the resource (by its `sRef`),
@@ -495,7 +495,7 @@ public final class ImageMould<C extends ReusableCursor> {
                           .append( markedLine ).append( "\n    Falling back to the original reference");
                         level = FINER;  /* Merely logging in the private case, because this type
                           of inaccessibility is common when a private reference is altered
-                          by a `--reference-mapping` translation. */
+                          by a `-reference-mapping` translation. */
                         bMessage.append( "; consider marking this reference as private" ); }
                     else {
                         bMessageWhenPrivate = bMessage;
@@ -533,7 +533,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 For what follows, cf. `BreccianFileTranslator.finish(Path,Element)`. */
                 final String sRefOriginal = gRef.text().toString(); // The reference in string form.
                 final String sRef = translate( sRefOriginal, f );
-                  // Applying any `--reference-mapping` translations.
+                  // Applying any `-reference-mapping` translations.
                 final boolean isAlteredRef = !sRef.equals( sRefOriginal );
                 if( !formalResources_record( f, gRef, sRef, isAlteredRef )  &&  isAlteredRef ) {
                     formalResources_record( f, gRef, sRefOriginal, /*isAlteredRef*/false ); } /*
@@ -573,7 +573,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
     /** Whether the inaccessibility of `file` is of a type known to result
-      * from the `--reference-mapping` translation of a private reference.
+      * from the `-reference-mapping` translation of a private reference.
       *
       *     @param file A file that `{@linkplain java.nio.file.Files#exists(Path) exists}` not.
       *     @param b Where to append a description of the type of inaccessibility in terms of its
@@ -604,7 +604,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @param x The malformation detected in `ref`.
       *     @param p A character pointer formed on the original source line of `ref`.
       *       The value of its `column` field will be ignored if `isAlteredRef`.
-      *     @param isAlteredRef Whether `ref` has been altered (by `--reference-mapping` translation)
+      *     @param isAlteredRef Whether `ref` has been altered (by `-reference-mapping` translation)
       *       from the original reference given in source.
       */
     String message( String ref, final URISyntaxException x, CharacterPointer p, boolean isAlteredRef ) {
@@ -671,7 +671,7 @@ public final class ImageMould<C extends ReusableCursor> {
       *
       *     @see Java.Paths#toPath(URI,Path)
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#author-home-,author-home-,path'>
-      *         Command option `--author-home-directory`</a>
+      *         Command option `-author-home-directory`</a>
       *     @throws IllegalArgumentException If `reference` has a query or fragment component.
       */
     Path toPath( final URI reference, final Path referrer ) {
@@ -686,14 +686,14 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Applies any due `--reference-mapping` translations to the given reference and returns the result.
+    /** Applies any due `-reference-mapping` translations to the given reference and returns the result.
       *
       *     @param reference A URI reference.
       *     @param referrer The referring source file, wherein the reference is contained.
       *     @return The same `reference` instance if translation failed; otherwise the translated result
       *       in the form of a new string of equal or different content.
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#reference-ma,reference-ma,translation'>
-      *         Command option `--reference-mapping`</a>
+      *         Command option `-reference-mapping`</a>
       */
     String translate( final String reference, final Path referrer ) {
         for( final var tt: opt.referenceMappings() ) { // For each mapping given on the command line.

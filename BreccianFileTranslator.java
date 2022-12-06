@@ -384,7 +384,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 For what follows, cf. `ImageMould.formalResources_recordFrom`. */
                 final String sRefOriginal = tRef.getData(); // The reference in string form.
                 final String sRef = mould.translate( sRefOriginal, sourceFile );
-                  // Applying any `--reference-mapping` translations.
+                  // Applying any `-reference-mapping` translations.
                 final boolean isAlteredRef = !sRef.equals( sRefOriginal );
                 if( isAlteredRef ) {
                     final String test = hRef( sourceFile, eRef, sRefOriginal, /*isAlteredRef*/false ); /*
@@ -421,7 +421,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @param f The absolute path of a source file.
       *     @param eRef The unfinished image from `f` of a URI reference.
       *     @param sRef The reference itself in string form, after any applicable
-      *       {@linkplain ImageMould#translate(String,Path) `--reference-mapping` translations}.
+      *       {@linkplain ImageMould#translate(String,Path) `-reference-mapping` translations}.
       *     @param isAlteredRef Whether `sRef` was actually changed by such translation.
       */
     private String hRef( final Path f, final Element eRef, final String sRef,
@@ -466,7 +466,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                   + ": Omitting a hyperlink for this private reference:\n" + markedLine );
                 return null; } /* With neither hyperlink nor warning, because this type
                   of inaccessibility is common when a private reference is altered
-                  by a `--reference-mapping` translation. */
+                  by a `-reference-mapping` translation. */
             if( wouldPrivatizationSuppress ) {
                 bMessage.append( "; consider marking this reference as private" ); }
             bMessage.append( ":\n" ).append( markedLine );
@@ -480,7 +480,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** Returns the hyperlink target reference (`href` attribute of `a` element) to use for `eRef`,
       * the referent of which is known to exist locally at `pRefAbsolute`, or null to omit hyperlinking.
       *
-      * <p>Where {@linkplain ImageMould#translate(String,Path) `--reference-mapping`}
+      * <p>Where {@linkplain ImageMould#translate(String,Path) `-reference-mapping`}
       * alters a reference, this method is called twice: first with the original reference,
       * then with the altered reference.</p>
       *
@@ -488,7 +488,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @param eRef The unfinished image from `f` of an absolute-path reference
       *       or relative-path reference.
       *     @param sRef The reference itself in string form, after any applicable
-      *       {@linkplain ImageMould#translate(String,Path) `--reference-mapping` translations}.
+      *       {@linkplain ImageMould#translate(String,Path) `-reference-mapping` translations}.
       *     @param isAlteredRef Whether `sRef` was actually changed by such translation.
       *     @param uRef The reference in parsed `URI` form.
       *     @param pRef The reference translated to a local file path by way of
@@ -521,7 +521,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** Returns the hyperlink target reference (`href` attribute of `a` element) to use for `eRef`,
       * or null to omit hyperlinking.
       *
-      * <p>Where {@linkplain ImageMould#translate(String,Path) `--reference-mapping`}
+      * <p>Where {@linkplain ImageMould#translate(String,Path) `-reference-mapping`}
       * alters a reference, this method is called twice: first with the original reference,
       * then with the altered reference.</p>
       *
@@ -529,7 +529,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @param eRef The unfinished image from `f` of a URI reference in the form of a URI
       *       or network-path reference.
       *     @param sRef The reference itself in string form, after any applicable
-      *       {@linkplain ImageMould#translate(String,Path) `--reference-mapping` translations}.
+      *       {@linkplain ImageMould#translate(String,Path) `-reference-mapping` translations}.
       *     @param isAlteredRef Whether `sRef` was actually changed by such translation.
       *     @param uRef The reference in parsed `URI` form.
       *     @see <a href='https://www.rfc-editor.org/rfc/rfc3986#section-4.1'>

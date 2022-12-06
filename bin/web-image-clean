@@ -50,7 +50,7 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
         final var argsP = new ArrayList<String>();
         for( final String arg: arguments ) {
             exitOnDemand( arg );
-            (arg.startsWith("--") ? argsN : argsP).add( arg ); }
+            (arg.charAt(0) == '-' ? argsN : argsP).add( arg ); }
         if( !new WebImageCleanCommand(argsN,argsP).run() ) exit( 1 ); }
 
 
@@ -107,18 +107,18 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
 
 
     private static void exitOnDemand( final String arg ) {
-        if( arg.equals("-?") || arg.equals("--help") ) exitWithUsage( out, 0 ); }
+        if( arg.equals("-?") || arg.equals("-help") ) exitWithUsage( out, 0 ); }
 
 
 
     private static void exitWithUsage( final PrintStream sP, final int status ) {
         sP.println( "Usage: " + commandName + " [<options>] <boundary path>" );
-        sP.println( "       " + commandName + " --help | -?" );
+        sP.println( "       " + commandName + " -help | -?" );
         sP.println( "Options, one or more of:" );
-        sP.println( "    --forcefully" );
-        sP.println( "    --quietly" );
-        sP.println( "    --verbosely" );
-        sP.println( "    --verbosity=0|1|2" );
+        sP.println( "    -forcefully" );
+        sP.println( "    -quietly" );
+        sP.println( "    -verbosely" );
+        sP.println( "    -verbosity=0|1|2" );
         exit( status ); }
 
 

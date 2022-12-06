@@ -19,7 +19,7 @@ Installation instructions for the Breccia Web imager
             : join @ http://reluk.ca/project/Java/project_installation.brec
             >+ build Breccia/Web/imager class-files
         4+ Test your access to the `breccia-web-image` command.
-            >+ Breccia/Web/imager/bin/breccia-web-image --help
+            >+ Breccia/Web/imager/bin/breccia-web-image -help
             /
             ⇒  Usage: breccia-web-image [<options>] <boundary path>
            

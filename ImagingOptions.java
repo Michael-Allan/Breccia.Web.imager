@@ -38,7 +38,7 @@ public class ImagingOptions extends Options {
     /** The home directory of the source author.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#author-home-,author-home-,path'>
-      *         Command option `--author-home-directory`</a>
+      *         Command option `-author-home-directory`</a>
       */
     public final Path authorHomeDirectory() { return authorHomeDirectory; }
 
@@ -47,7 +47,7 @@ public class ImagingOptions extends Options {
     /** The columnar offset on which to centre the text.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#centre-colum,centre-colum'>
-      *         Command option `--centre-column`</a>
+      *         Command option `-centre-column`</a>
       */
     public final float centreColumn() { return centreColumn; }
 
@@ -56,7 +56,7 @@ public class ImagingOptions extends Options {
     /** The enslashed name of the directory containing the auxiliary files of the Web image.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#co-service-d,co-service-d,reference'>
-      *         Command option `--co-service-directory`</a>
+      *         Command option `-co-service-directory`</a>
       *     @see Java.Path#enslash(String)
       */
     public final String coServiceDirectory() { return coServiceDirectory; }
@@ -66,17 +66,17 @@ public class ImagingOptions extends Options {
     /** The font file for glyph tests.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#glyph-test-f,glyph-test-f,path'>
-      *         Command option `--glyph-test-font`</a>
+      *         Command option `-glyph-test-font`</a>
       */
     public final String glyphTestFont() { return glyphTestFont; }
 
 
 
-    /** List of occurences of the `--reference-mapping` option, each itself a list
+    /** List of occurences of the `-reference-mapping` option, each itself a list
       * of reference translations.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#reference-ma,reference-ma,translation'>
-      *         Command option `--reference-mapping`</a>
+      *         Command option `-reference-mapping`</a>
       */
     public final List<List<ReferenceTranslation>> referenceMappings() { return referenceMappings; }
 
@@ -85,7 +85,7 @@ public class ImagingOptions extends Options {
     /** Whether to run without effect.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#fakely'>
-      *         Command option `--fakely`</a>
+      *         Command option `-fakely`</a>
       */
     public final boolean toFake() { return toFake; }
 
@@ -94,7 +94,7 @@ public class ImagingOptions extends Options {
     /** Whether to forcefully remake the Web image.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#forcefully'>
-      *         Command option `--forcefully`</a>
+      *         Command option `-forcefully`</a>
       */
     public final boolean toForce() { return toForce; }
 
@@ -109,8 +109,8 @@ public class ImagingOptions extends Options {
         if( glyphTestFont == null ) {
             if( !isRemote( coServiceDirectory )) {
                 final Path styleSheet; {
-                    final URI uCSD; { /* Expose any syntax error in the value of `--coServiceDirectory`
-                          before complicating the error message by involvingthe style sheet. */
+                    final URI uCSD; { /* Expose any syntax error in the value of `--co-service-directory`
+                          before complicating the error message by involving the style sheet. */
                         try { uCSD = new URI( coServiceDirectory ); }
                         catch( URISyntaxException x ) { throw new Unhandled( x ); }
                         toPath( uCSD ); } // May throw `IllegalArgumentException`.
@@ -206,12 +206,12 @@ public class ImagingOptions extends Options {
 
 
 
-    /** A pattern for `lookingAt` a reference translation within a `--reference-mapping` option.
+    /** A pattern for `lookingAt` a reference translation within a `-reference-mapping` option.
       * It captures as group (2) the translation pattern, and group (3) the replacement string.
       *
       *     @see java.util.regex.Matcher#find()
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#reference-ma,reference-ma,translation'>
-      *         Command option `--reference-mapping`</a>
+      *         Command option `-reference-mapping`</a>
       */
     private static final Pattern referenceTranslationPattern = Pattern.compile( "(.)(.+?)\\1(.+?)\\1" );
 
@@ -231,15 +231,15 @@ public class ImagingOptions extends Options {
     protected @Override boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
-        arg:if( arg.startsWith( s = "--author-home-directory=" )) {
+        arg:if( arg.startsWith( s = "-author-home-directory=" )) {
             authorHomeDirectory = Path.of( value( arg, s )); }
-        else if( arg.startsWith( s = "--centre-column=" )) centreColumn = parseFloat( value( arg, s ));
-        else if( arg.startsWith( s = "--co-service-directory=" )) {
+        else if( arg.startsWith( s = "-centre-column=" )) centreColumn = parseFloat( value( arg, s ));
+        else if( arg.startsWith( s = "-co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
-        else if( arg.equals( "--fakely" )) toFake = true;
-        else if( arg.equals( "--forcefully" )) toForce = true;
-        else if( arg.startsWith( s = "--glyph-test-font=" )) glyphTestFont = value( arg, s );
-        else if( arg.startsWith( s = "--reference-mapping=" )) {
+        else if( arg.equals( "-fakely" )) toFake = true;
+        else if( arg.equals( "-forcefully" )) toForce = true;
+        else if( arg.startsWith( s = "-glyph-test-font=" )) glyphTestFont = value( arg, s );
+        else if( arg.startsWith( s = "-reference-mapping=" )) {
             final List<ReferenceTranslation> tt = new ArrayList<>( /*initial capacity*/8 );
             tt: {
                 final String value = value( arg, s );

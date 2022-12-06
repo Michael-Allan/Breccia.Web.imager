@@ -8,7 +8,7 @@ import static java.lang.Integer.toHexString;
 /** The record of a character that has failed its glyph test.
   *
   *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#glyph-test-f,glyph-test-f,file'>
-  *         Command option `--glyph-test-font`</a>
+  *         Command option `-glyph-test-font`</a>
   */
 class UnglyphedCharacter {
 

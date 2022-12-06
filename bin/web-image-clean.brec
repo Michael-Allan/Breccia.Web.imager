@@ -1,7 +1,7 @@
 `web-image-clean` - Clean a Web image of orphan image files
 
         web-image-clean  [<options>]  <boundary path>
-        web-image-clean  --help | -?
+        web-image-clean  -help | -?
 
     - The `web-image-clean` command cleans a Web image delimited by the given boundary path.
         - It deletes any orphan image file stored at or under the boundary path.
@@ -18,14 +18,14 @@
 
     - The positional argument may be preceded by one or more nominal arguments, aka options:
 
-        --forcefully
+        -forcefully
             - Cleans the Web image without prompting.
             - By default, the user is prompted for permission at each file deletion.
-        --quietly
+        -quietly
             : see @ breccia-web-image.brec
-        --verbosely
+        -verbosely
             : see @ breccia-web-image.brec
-        --verbosity: --verbosity=0|1|2
+        -verbosity: -verbosity=0|1|2
             : see @ breccia-web-image.brec
 
 
@@ -34,9 +34,8 @@
      See also
     ──────────
         • Working examples
-            : e.g. http://reluk.ca/.bashrc : `alias web-image-clean`, as called from:
-                : see `^^testing$` @ http://reluk.ca/project/Breccia/Web/imager/working_notes.brec
-            : e.g. http://reluk.ca/sys/bin/publish-files : `web-image-clean`
+            : e.g. `^^testing$` @ http://reluk.ca/project/Breccia/Web/imager/working_notes.brec
+            : e.g. http://reluk.ca/sys/bin/publish-files
 
 
 

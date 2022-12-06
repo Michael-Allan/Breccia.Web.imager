@@ -43,11 +43,11 @@ public abstract class Options {
     /** The allowed amount of user feedback on the standard output stream.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbosity,verbosity-0-'>
-      *         Command option `--verbosity`</a>
+      *         Command option `-verbosity`</a>
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#quietly'>
-      *         Command option `--quietly`</a>
+      *         Command option `-quietly`</a>
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#verbosely'>
-      *         Command option `--verbosely`</a>
+      *         Command option `-verbosely`</a>
       */
     public final int verbosity() { return verbosity; }
 
@@ -70,9 +70,9 @@ public abstract class Options {
     protected boolean initialize( final String arg ) {
         boolean isGo = true;
         String s;
-        if( arg.equals( "--quietly" )) verbosity = 0;
-        else if( arg.equals( "--verbosely" )) verbosity = 2;
-        else if( arg.startsWith( s = "--verbosity=" )) {
+        if( arg.equals( "-quietly" )) verbosity = 0;
+        else if( arg.equals( "-verbosely" )) verbosity = 2;
+        else if( arg.startsWith( s = "-verbosity=" )) {
             verbosity = parseUnsignedInt( value( arg, s ));
             if( verbosity < 0 || verbosity > 2 ) {
                 err.println( commandName + ": Unrecognized verbosity level: " + verbosity );
