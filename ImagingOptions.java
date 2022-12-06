@@ -84,8 +84,8 @@ public class ImagingOptions extends Options {
 
     /** Whether to run without effect.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#fakely'>
-      *         Command option `-fakely`</a>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#fake'>
+      *         Command option `-fake`</a>
       */
     public final boolean toFake() { return toFake; }
 
@@ -93,8 +93,8 @@ public class ImagingOptions extends Options {
 
     /** Whether to forcefully remake the Web image.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#forcefully'>
-      *         Command option `-forcefully`</a>
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#force'>
+      *         Command option `-force`</a>
       */
     public final boolean toForce() { return toForce; }
 
@@ -236,8 +236,8 @@ public class ImagingOptions extends Options {
         else if( arg.startsWith( s = "-centre-column=" )) centreColumn = parseFloat( value( arg, s ));
         else if( arg.startsWith( s = "-co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
-        else if( arg.equals( "-fakely" )) toFake = true;
-        else if( arg.equals( "-forcefully" )) toForce = true;
+        else if( arg.equals( "-fake" )) toFake = true;
+        else if( arg.equals( "-force" )) toForce = true;
         else if( arg.startsWith( s = "-glyph-test-font=" )) glyphTestFont = value( arg, s );
         else if( arg.startsWith( s = "-reference-mapping=" )) {
             final List<ReferenceTranslation> tt = new ArrayList<>( /*initial capacity*/8 );

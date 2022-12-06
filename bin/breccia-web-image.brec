@@ -77,9 +77,9 @@
                 / Better not rely on it, however.  The files there may be incompatible
                   with your installation, or become so at any time, or be slow to serve.
                   Rather you should supply a directory under your own control.
-        -fakely
+        -fake
             - Runs the Web imager without effect.  Makes no Web image, nor any image files.
-        -forcefully
+        -force
             - Forcefully remakes the Web image.  Any preexisting image files are reformed
               regardless of whether they were out of date.
         -glyph-test-font: -glyph-test-font=<file path> | none
@@ -90,8 +90,8 @@
                   for any whose glyph is missing from the font.
             - The default value is either read from the style sheet, or it is `none`.
                 : re `style sheet` see @ `^^-co-service-directory`
-                - Use `-verbosely` to report the actual default value in use.
-                    : re `-verbosely` see
+                - Use `-speak` to report the actual default value in use.
+                    : re `-speak` see
                 - For the value to be read from the style sheet, the co-service directory must exist
                   locally and the style sheet there (or one of its locally reachable imports) must
                   contain a font reference with a ‘[GTF]’ mark.
@@ -141,17 +141,17 @@
                           https://www.rfc-editor.org/rfc/rfc3986#section-4.2
                         : re `boundary path` see `^^<boundary path>$` @
                           `^^- One positional argument is required:$`
-        -quietly
-            - Sets the verbosity to level 0.
-                : re `verbosity` see `^^-verbosity`
-        -verbosely
+        -speak
             - Sets the verbosity to level 2.
+                : re `verbosity` see `^^-verbosity`
+        -stifle
+            - Sets the verbosity to level 0.
                 : re `verbosity` see `^^-verbosity`
         -verbosity: -verbosity=0|1|2
             - The allowed amount of user feedback on the standard output stream:
               0 none, 1 some, and 2 more.
-                : see also `^^-quietly$`
-                : see also `^^-verbosely$`
+                : see also `^^-stifle$`
+                : see also `^^-speak$`
             - The default is 1.
 
 
