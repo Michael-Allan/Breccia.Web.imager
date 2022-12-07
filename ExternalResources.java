@@ -48,7 +48,7 @@ final @Async class ExternalResources {
       * references (to non-existent resources) to be reported in the context of their source text
       * while that text is still easily accessible.
       */
-    final HashMap<Path,HashSet<Path>> local = new HashMap<>( initialCapacity( 8192/*resources*/ ));
+    final HashMap<Path,HashSet<Path>> local = new HashMap<>( initialCapacity( 0x2000/*or 8192*/ ));
 
 
 
@@ -64,7 +64,7 @@ final @Async class ExternalResources {
       * improbeable references to be reported in the context of their source text while that text
       * is still easily accessible.
       */
-    final HashMap<URI,HashSet<Path>> remote = new HashMap<>( initialCapacity( 8192/*resources*/ )); }
+    final HashMap<URI,HashSet<Path>> remote = new HashMap<>( initialCapacity( 0x2000/*or 8192*/ )); }
 
 
 
