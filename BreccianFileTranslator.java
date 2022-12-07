@@ -18,6 +18,9 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.StringTokenizer;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
@@ -46,9 +49,12 @@ import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBrecciaLike;
 import static Breccia.Web.imager.Project.looksImageLike;
+import static Breccia.Web.imager.Project.sourceSibling;
 import static Breccia.Web.imager.Project.zeroBased;
 import static java.awt.Font.createFont;
 import static java.awt.Font.TRUETYPE_FONT;
+import static Java.Hashing.initialCapacity;
+import static Java.IntralineCharacterPointer.markedLine;
 import static java.lang.Character.charCount;
 import static java.lang.Character.isAlphabetic;
 import static java.lang.Character.isDigit;
@@ -61,19 +67,24 @@ import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
+import static java.nio.file.Files.readString;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static Java.Nodes.hasName;
+import static Java.Nodes.isElement;
 import static Java.Nodes.isText;
 import static Java.Nodes.parentAsElement;
 import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
+import static Java.Paths.toPath;
 import static Java.Paths.to_URI_relativeReference;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static Java.URI_References.isRemote;
 import static java.util.Arrays.sort;
+import static java.util.regex.Pattern.DOTALL;
+import static java.util.regex.Pattern.MULTILINE;
 import static javax.xml.transform.OutputKeys.*;
 
 
@@ -154,8 +165,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final var iIR = cR.inferentialReferentIndicant();
                 if( iIR == null ) { // Then `cR` itself directly contains any `iF`.
                     iF = cR.fractumIndicant();
-                    if( iF.patternMatchers() == null ) return null; } /* Without a matcher, `iF`
-                      indicates the resource as a whole, making it informal within the image. */
+                    if( iF.patternMatchers() == null ) return null; } /* The pattern matchers
+                     of a fractum indicant alone make it formal (not the resource reference),
+                     because alone their hyperlink forms depend on the content of the resource. */
                 else iF = iIR.fractumIndicant(); /* The `iIR` of `cR` alone contains any `iF`.  Whether
                   this `iF` includes a matcher is immaterial ∵ already `iIR` itself infers one. */
                 if( iF == null ) return null; }
@@ -233,7 +245,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // XHTML DOM ← X-Breccia DOM
           // ─────────
-            translate( d );
+            translate( sourceFile, d );
 
           // XHTML image file ← XHTML DOM
           // ────────────────
@@ -333,8 +345,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    private static final String fileFractumIdentifier = "file-fractum"; // Its `id` attribute.
+
+
+
     /** @param head A `Head` element representing a fractal head.
-      * @return The file title as derived from the head, or null if it yields none.
+      * @return The file title as derived from the head, or null if it yields none. *//*
+      * @paramImplied #stringBuilder
       */
     private String fileTitle( Element head ) {
         final String titlingExtract; // The relevant text extracted from the fractal head.
@@ -346,16 +363,16 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     break; }}}
         else { // Presumeably `head` is a file head or point head.
             head = (Element)head.cloneNode( /*deeply*/true ); /* So both preserving the original,
-              and keeping the nodal scan that follows within the bounds of the isolated copy. */
+              and keeping the nodal scan that follows within the bounds of the isolated clone. */
             strip: for( Node p, n = successor(p = head);  n != null;  n = successor(p = n) ) {
-                final String localName = n.getLocalName();
-                if( "IndentBlind".equals( localName )) for( ;; ) { // Then remove `n` and all successors.
-                    final Node s = successorAfter( n );
+                final String name = n.getLocalName();
+                if( "IndentBlind".equals( name )) for( ;; ) { // Remove indent blind `n`
+                    final Node s = successorAfter( n );      // and all successors.
                     n.getParentNode().removeChild( n );
                     if( s == null ) break strip;
                     n = s; }
-                if( "CommentAppender".equals( localName )
-                 || "CommentBlock"   .equals( localName )) { // Then `n` is a comment carrier, remove it.
+                if( "CommentAppender".equals( name )
+                 || "CommentBlock"   .equals( name )) { // Remove comment carrier `n`.
                     final Node c = n;
                     c.getParentNode().removeChild( c );
                     n = p; }} // Resuming from the predecessor of comment carrier `n`, now removed.
@@ -369,15 +386,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** @param sourceFile The absolute path of a source file.
       * @param fileFractum The unfinished image of its file fractum.
       */
-    protected void finish( final Path sourceFile, final Element fileFractum ) {
+    protected void finish( final Path sourceFile, final Element fileFractum ) throws IOException {
         final Document d = fileFractum.getOwnerDocument();
 
-      // URI references each formed as a hyperlink  [F, HF]
-      // ──────────────
+      // ══════════════
+      // URI references each formed as a hyperlink  [F, HF, ◦↓◦]
+      // ══════════════
         for( Element e = successorElement(fileFractum);  e != null;  e = successorElement(e) ) {
             if( !hasName( "Reference", e )) continue;
-            assert hasName( "AssociativeReference", ownerFractum(e) ); /* Adding a hyperlink to
-              other than an associative reference?  Then sync with `formalReferenceAt` above. */
             final Element eRef = e; // The reference encapsulated as an `Element`.
             final Text tRef = (Text)eRef.getFirstChild(); // The reference encapsulated as `Text`.
             final String hRef; { /*
@@ -398,8 +414,106 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( hRef == null ) continue; } // For then `sRef` is not to be hyperlinked.
             final Element a = d.createElementNS( nsHTML, "html:a" );
             eRef.insertBefore( a, tRef );
-            a.setAttribute( "href", hRef );
-            a.appendChild( tRef ); }}
+            a.setAttribute( "href", hRef ); // [◦↓◦]
+            a.appendChild( tRef ); }
+
+
+      // ══════════════════
+      // Patterns of fracta within fractum indicants, each formed as a hyperlink  [◦↑◦]
+      // ══════════════════
+        iF: for( Element iF = successorElement(fileFractum);  iF != null;  iF = successorElement(iF) ) {
+            if( !hasName( "FractumIndicant", iF )) continue;
+            if( !hasName( "PatternMatcher", iF.getFirstChild() )
+             && !hasName( "InferentialReferentIndicant", iF.getParentNode().getParentNode() )) {
+                continue; } // No patterns (explicit or implicit) to hyperlink.
+            assert hasName( "AssociativeReference", ownerFractum(iF) ); /* Hyperlinking a formal
+              reference other than an associative one?  Then sync with `formalReferenceAt` above. */
+
+          // Referent file
+          // ─────────────
+            final ImagedBodyFractum[] referentFracta;
+            final String referentSourceText;
+            final String hRef_filePart; // The pre-fragment part of each hyperlink’s `href` attribute.
+            Node n;
+            Node iFc; { // Initialized herein to the last child of `iF` before any resource indicant:
+                iFc = iF.getLastChild();
+                if( hasName( "ResourceIndicant", iFc )) {
+                    if( ((Element)iFc).getAttribute("qualifiers").contains( "non-fractal" )) continue;
+                       // No patterns of *fracta* to hyperlink.
+                    n = iFc.getLastChild();
+                    assert hasName( "Reference", n );
+                    n = n.getFirstChild();
+                    if( !hasName( "a", n )) continue; /* No hyperlink having been formed
+                      for the referent file, none will be formed for its fracta. */
+                    final String hRef = ((Element)n).getAttribute( "href" ); // [◦↑◦]
+                    final URI uRef; {
+                        try { uRef = new URI( hRef ); }
+                        catch( URISyntaxException x ) { throw new Unhandled( x ); }}
+                          // Unexpected because this is effectively a reconstruction.
+                    if( !looksImageLike( uRef )) continue; /* The hyperlink for the referent file
+                      not targeting its image, no fracta can be targeted. */
+                    if( isRemote( uRef )) {
+                        continue; // No HTTP access, no `referentSourceText`. [NH]
+                     /* hRef_filePart = unfragmented( uRef ).toASCIIString(); /* To be correct,
+                          though no fragment is expected on Breccian referent `uRef`. */ }
+                    else {
+                        final Path referentImage = // Absolute path of the referent image file,
+                          sourceFile.resolveSibling( toPath( uRef, sourceFile )); /*
+                            No `IllegalArgumentException` expected, ∵ a reference so malformed
+                            would not have been hyperlinked. [◦↑◦] */
+                        final Path referentSource = sourceSibling( referentImage ); // Likewise absolute.
+                        if( !isRegularFile( referentSource )) continue;
+                        referentFracta = imagedBodyFracta( referentImage.normalize() );
+                        if( referentFracta == null ) continue;
+                        referentSourceText = readString( referentSource );
+                        hRef_filePart = hRef; } // Already without a fragment, given `toPath` above.
+                    iFc = iFc.getPreviousSibling(); }
+                else { // The referent file is the containing file, the present image file.
+                    referentFracta = imagedBodyFracta( imageSibling(sourceFile).normalize() );
+                    referentSourceText = readString( sourceFile );
+                    hRef_filePart = ""; }}
+            int tStart = 0, tEnd = referentSourceText.length();
+
+          // Referring patterns
+          // ──────────────────
+            for(; iFc != null; iFc = iFc.getPreviousSibling() ) {
+                if( !hasName( "PatternMatcher", iFc )) continue;
+                final Element eP = (Element)iFc.getFirstChild().getNextSibling(); /* The image
+                  of a Breccian regular-expression pattern from a pattern matcher. */
+                assert hasName( "Pattern", eP );
+                final Pattern jP; { /* The Java translation of `eP` compiled with
+                      its associated match modifiers. */
+                    n = iFc.getLastChild();
+                    final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
+                    try { jP = pattern( eP, mm, MULTILINE ); }
+                    catch( final PatternSyntaxException x ) {
+                        final CharacterPointer p = characterPointer( eP );
+                        mould.warn( sourceFile, p, "Malformed pattern: " + x.getDescription() + '\n'
+                          + markedLine( "    ", x.getPattern(), zeroBased(x.getIndex()), mould.gcc )
+                          + "\n    Source line, with original pattern:  (before translation to Java)\n"
+                          + p.markedLine() );
+                        continue iF; }}
+                final Matcher m = jP.matcher( referentSourceText ).region( tStart, tEnd );
+                if( !m.find() ) {
+                    final CharacterPointer p = characterPointer( eP );
+                    mould.warn( sourceFile, p, "No such fractum\n" + p.markedLine() );
+                    continue iF; }
+                final String hRef; {
+                    final int tMatch = m.start();
+                    for( int f = referentFracta.length - 1;; --f ) {
+                        if( f < 0 ) { // Then the referent is the file fractum.
+                            hRef = hRef_filePart.length() > 0 ? hRef_filePart // Either to that file,
+                              : '#' +  fileFractumIdentifier; // or to the top of the present file.
+                            break; }
+                        final ImagedBodyFractum fractum = referentFracta[f];
+                        if( fractum.xunc <= tMatch ) { // Then the referent is a body fractum.
+                            hRef = hRef_filePart + '#' +  fractum.identifier;
+                            break; }}}
+                final Element a = d.createElementNS( nsHTML, "html:a" );
+                eP.insertBefore( a, n = eP.getFirstChild() );
+                a.setAttribute( "href", hRef );
+                do a.appendChild( n ); while( (n = n.getNextSibling()) != null ); // All `eP` children.
+                if( 0 == 0 ) break; }}} // TODO: narrow `tStart` and `tEnd` for the next pattern.
 
 
 
@@ -422,7 +536,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @param eRef The unfinished image from `f` of a URI reference.
       *     @param sRef The reference itself in string form, after any applicable
       *       {@linkplain ImageMould#translate(String,Path) `-reference-mapping` translations}.
-      *     @param isAlteredRef Whether `sRef` was actually changed by such translation.
+      *     @param isAlteredRef Whether `sRef` was actually changed by such translation. *//*
+      *     @paramImplied #stringBuilder
       */
     private String hRef( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef ) { /* For what follows,
@@ -543,8 +658,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           final boolean isAlteredRef, final URI uRef ) {
         URI u = uRef; // Either `uRef` or its image sibling.
         if( looksBrecciaLike( uRef )) u = imageSibling( u ); /* Without accessing the referent,
-          e.g. to parse out and precisely target any fractum indicant, for HTTP access is deferred.
-          http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches */
+          e.g. to parse out and precisely target any fractum indicant; HTTP access is deferred. [NH] */
         else if( !isAlteredRef/*[LC]*/  &&  looksImageLike(uRef)  &&  !isNonFractal(eRef) ) {
             warn_imageFileReference( f, eRef, sRef, isAlteredRef ); } /* Yet carry on and form
               the hyperlink, for the purpose here is satified by flagging the fault in the source. */
@@ -570,9 +684,35 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private final Map<String,Integer> idMap = new HashMap<>();
+    private final Map<String,Integer> idMap;
       // Fractum base identifiers (keys) each mapped to the count of occurences (value).
       // Base identifiers omit any ordinal suffix.
+
+
+
+    private final ArrayList<ImagedBodyFractum> imagedBodyFracta; {
+        final int c = 0x2000; // = 8192
+        idMap = new HashMap<>( initialCapacity( c ));
+        imagedBodyFracta = new ArrayList<>( c ); }
+
+
+
+    private ImagedBodyFractum[] imagedBodyFracta( final Path imageFile ) {
+        assert imageFile.isAbsolute();
+        return imageFilesLocal.get( imageFile ); }
+
+
+
+    private static final ImagedBodyFractum[] imagedBodyFractaType = new ImagedBodyFractum[0];
+
+
+
+    /** Map of records of image files that are file-system accessible.
+      * Each entry comprises an absolute, normalized file path to an image file (key)
+      * mapped to an linear-order array (value) of that file’s imaged body fracta.
+      */
+    private final HashMap<Path,ImagedBodyFractum[]> imageFilesLocal = new HashMap<>(
+      initialCapacity( 0x400/*or 1024*/ ));
 
 
 
@@ -616,7 +756,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     /** @param token A word or other sequence of characters extracted from a fractal head.
-      * @return The token transformed as necessary to serve as a keyword in a fractum `id` attribute.
+      * @return The token transformed as necessary to serve as a keyword in a fractum `id` attribute. *//*
+      * @paramImplied #stringBuilder
       */
     private String keyword( final String token ) {
         final StringBuilder b = clear( stringBuilder );
@@ -663,6 +804,23 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** A pattern that `matches` in a regular-expression pattern a `\N{⋯}` element designating
+      * a character by its numeric code point.  It captures as group (1) the code point.
+      *
+      *     @see java.util.regex.Matcher#match()
+      *     @see <a href='http://reluk.ca/project/Breccia/language_definition.brec.xht#n'>
+      *       Breccia language definition § Pattern language, `\N{⋯}` element</a>
+      */
+    private static final Pattern numberedCharacterBackslashPattern = Pattern.compile(
+      "\\\\N\\{ *U\\+(\\p{XDigit}+) *\\}" );
+
+
+
+    private final Matcher numberedCharacterBackslashMatcher =
+      numberedCharacterBackslashPattern.matcher( "" );
+
+
+
     private final ImagingOptions opt;
 
 
@@ -689,9 +847,59 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** Returns the Java translation of `eP` compiled with `mm`.
+      *
+      *     @param eP The image of a regular-expression pattern within a pattern matcher.
+      *     @param mm The match modifiers, or an empty string if there are none.
+      *     @param flags Default {@linkplain Pattern#flags() match flags}, or zero if there are none.
+      *       The match flags for the resulting pattern will comprise this default
+      *       together with the translatation of any `mm`.
+      *     @throws PatternSyntaxException
+      *       As for {@linkplain Pattern#compile(String,int) Pattern.compile}. *//*
+      *     @paramImplied #stringBuilder
+      */
+    private Pattern pattern( final Node eP, final String mm, int flags ) {
+
+      // Pattern
+      // ───────
+        final StringBuilder bP = clear( stringBuilder ); // The Java translation of `eP`.
+        for( Node n = eP.getFirstChild();  n != null;  n = n.getNextSibling() ) {
+            assert isElement( n ); // ↘ for reason
+            bP.append( switch( n.getLocalName()/* ≠ null, given the assertion above */) { // [NSC]
+                case "Granum" -> Pattern.quote( textChildFlat( n ));
+                case "BackslashedSpecial" -> {
+                    final String tF = textChildFlat( n );
+                    if( tF.equals( "\\t" )) yield "(?:    )";
+                    final Matcher m = numberedCharacterBackslashMatcher.reset( tF );
+                    if( m.matches() ) yield "\\x{" + m.group(1) + "}";
+                    yield tF; }
+                case "Literalizer" -> {
+                    n = n.getNextSibling(); // Skipping past the literalizer `\`.
+                    assert hasName( "Granum", n ); /* Always a literalizer is followed
+                      directly by a `Granum` that starts with the character to literalize. */
+                    yield Pattern.quote( textChildFlat( n )); } /* Yielding the `Granum`
+                      quoted as usual, for that suffices to literalize the character. */
+                case "PerfectIndentMarker" -> "^(?:    )*";
+                default -> textChildFlat( n ); }); }
+
+      // Flags, aka match modifiers
+      // ─────
+        for( int c = 0, cN = mm.length(); c < cN; ++c ) flags |= switch( mm.charAt( c )) {
+            case 'm' -> MULTILINE;
+            case 's' -> DOTALL;
+            default -> throw new IllegalArgumentException( "Match modifiers `" + mm + '`' ); };
+              // Unexpected, the Breccia parser should have caught and reported it to the user.
+        return Pattern.compile( bP.toString(), flags ); }
+
+
+
+    private final C sourceCursor;
+
+
+
     /** The original text content of the given node and its descendants prior to any translation.
       */
-    private String sourceText( final Node node ) { return node.getTextContent(); }
+    private static String sourceText( final Node node ) { return node.getTextContent(); }
       // Should the translation ever introduce text of its own, then it must be marked as non-original,
       // e.g. by some attribute defined for that purpose.  The present method would then be modified
       // to remove all such text from the return value, e.g. by cloning `node`, filtering the clone,
@@ -711,12 +919,15 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private final C sourceCursor;
-
-
-
     private static final String systemID_HTML = "about:legacy-compat";
       // https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
+
+
+
+    /** Returns the flat text (aka `data`) of the first child of the given node,
+      * which child must be a text node.
+      */
+    private static String textChildFlat( final Node n ) { return ((Text)n.getFirstChild()).getData(); }
 
 
 
@@ -728,7 +939,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    protected void translate( final Document d ) {
+    /** @param sourceFile The absolute path of a source file.
+      * @param d Its unfinished image. *//*
+        @paramImplied #stringBuilder
+      * @paramImplied #stringBuilder2
+      */
+    protected void translate( final Path sourceFile, final Document d ) {
 
       // HTML form
       // ─────────
@@ -771,13 +987,21 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // ════════════════
         for( Element dL = successorElement(fileFractum);  dL != null;  dL = successorElement(dL) ) {
             if( !hasName( "DivisionLabel", dL )) continue;
-            final String p = ((Text)dL.getPreviousSibling().getFirstChild()).getData();
+            final String p = textChildFlat( dL.getPreviousSibling() );
               // All `dL` have a `Granum` predecessor comprising flat text.
             int c = p.length();
             do --c; while( p.charAt(c) == ' ' );    // Scan leftward past any plain space characters,
             if( completesNewline( p.charAt( c ))) { // and there test for the presence of a newline.
                 assert "".equals( dL.getAttribute( "class" ));
                 dL.setAttribute( "class", "titling" ); }}
+
+
+      // ════════════
+      // File fractum
+      // ════════════
+        idMap.clear();
+        idMap.put( fileFractumIdentifier, 1 );
+        fileFractum.setAttribute( "id", fileFractumIdentifier );
 
 
       // ═════════════════
@@ -828,7 +1052,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // ═══════════
       // Body fracta  [BF]
       // ═══════════
-        idMap.clear();
+        imagedBodyFracta.clear();
         for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
             if( !isFractum( bF )) continue;
 
@@ -907,7 +1131,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 a.setAttribute( "onclick",
                   "Breccia_Web_imager.fractumSelfHyperlink_hearClick( event )" );
                 a.appendChild( nText );
-                break; }}}
+                break; }
+
+          // Record of image
+          // ───────────────
+            final int xunc = parseUnsignedInt( bF.getAttribute( "xunc" ));
+            imagedBodyFracta.add( new ImagedBodyFractum( xunc, id )); }
+        imageFilesLocal.put( imageSibling(sourceFile).normalize(),
+          imagedBodyFracta.toArray(imagedBodyFractaType) ); }
 
 
 
@@ -933,7 +1164,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private void warn_imageFileReference/*[IFR]*/( final Path f, final Element eRef, final String sRef,
+    /* Note that Breccia Mode for Emacs plans a remedy for this type of malformed reference.
+     * http://reluk.ca/project/Breccia/Emacs/working_notes.brec.xht#substitution,source-file,references
+     */
+    private void warn_imageFileReference( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef ) {
         final CharacterPointer p = characterPointer( eRef );
         mould.warn( f, p, "Reference to an image file; consider qualifying the reference "
@@ -957,22 +1191,35 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         xmlInputFactory.setProperty( "javax.xml.stream.isCoalescing", true );
           // Consistent with the other input sources here relied on, such as `BrecciaXCursor`.
         xmlInputFactory.setProperty( "javax.xml.stream.isSupportingExternalEntities", false );
-        xmlInputFactory.setProperty( "javax.xml.stream.supportDTD", false ); }}
+        xmlInputFactory.setProperty( "javax.xml.stream.supportDTD", false ); }
           // While a DTD is present in each image file (a requirement of HTML) it is empty. [DTR]
+
+
+
+   // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+
+    /** @param xunc The {@linkplain Breccia.parser.Granum#xunc() source offset} of the body fractum.
+      * @param identifier The `id` attribute of its image element.
+      */
+    private static record ImagedBodyFractum( int xunc, String identifier ) {}}
 
 
 
 // NOTES
 // ─────
+//   ◦↓◦  Code that is order dependent with like-marked code (◦↕◦, ◦↑◦) that comes after.
+//
+//   ◦↕◦  Code that is order dependent with like-marked code (◦↓◦, ◦↕◦, ◦↑◦) that comes before and after.
+//
+//   ◦↑◦  Code that is order dependent with like-marked code (◦↓◦, ◦↕◦) that comes before.
+//
 //   BF↓  Code that must execute before section *Body fracta*`.
 //
 //   BF · Section *Body fracta* itself, or code that must execute in unison with it.
 //
 //   DTR  ‘A `DOCTYPE` is a required preamble’ in HTML.
 //        https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
-//
-//   IFR  Image-file reference.  Breccia Mode for Emacs plans a remedy for such malformed references.
-//        http://reluk.ca/project/Breccia/Emacs/working_notes.brec.xht#substitution,source-file,references
 //
 //   F ·· Method `finish` itself, or code that must execute in unison with it.
 //
@@ -983,6 +1230,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   MT · Mask trimming for ID stability.  The purpose is to omit any punctuation marks such as quote
 //        characters, commas or periods that might destabilize the ID as the source text is edited.
+//
+//   NH · HTTP access has yet to be implemented here.
+//        http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches
+//
+//   NSC  Presently ‘null in switch cases is a preview feature and is disabled by default’ (JDK 18),
+//        else this code could be simplified.
 //
 //   RC · Referencing code.  Cf. the comparably structured code of `ImageMould.formalResources_record`.
 //
