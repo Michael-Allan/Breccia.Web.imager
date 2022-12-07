@@ -177,13 +177,9 @@ public final class ImageMould<C extends ReusableCursor> {
       // 1. Pull in the source files, sorting them as apodictically imageable or indeterminate  [PSF]
       // ═══════════════════════════
         if( isDirectory( boundaryPath )) {
-            out(2).println();
             out(1).println( "Collating source files" );
-            out(2).println( "──────────────────────" );
-            out(1).flush();
             pullDirectory( boundaryPath );
-            out(1).println( "  " + imageabilityDeterminations.size() + " collated" );
-            out(1).flush(); }
+            out(1).println( "  " + imageabilityDeterminations.size() + " collated" ); }
         else pullFile( boundaryPath );
         // Now `imageabilityDeterminations` is structurally complete.  Newly started threads
         // may safely use it for all but structural modification.
@@ -197,10 +193,7 @@ public final class ImageMould<C extends ReusableCursor> {
             for( final var det: imageabilityDeterminations.entrySet() ) {
                 if( det.getValue().get() == indeterminate ) ++c; }
             if( c == 0 ) break speak;
-            out(2).println();
-            out(1).println( "Parsing indeterminate source files: " + c );
-            out(2).println( "──────────────────────────────────" );
-            out(1).flush(); }
+            out(1).println( "Parsing indeterminate source files: " + c ); }
         imageabilityDeterminations.forEach( this::formalResources_recordFrom ); // Collate the resources.
         // Now `formalResources` is structurally complete.  Newly started threads
         // may safely use it for all but structural modification.
@@ -209,10 +202,7 @@ public final class ImageMould<C extends ReusableCursor> {
             final int nL = formalResources.local.size();
             final int rL = formalResources.remote.size();
             if( nL == 0 && rL == 0 ) break speak;
-            out(2).println();
-            out(1).println( "Syncing on formal referents: " + nL + " local, " + rL + " remote" );
-            out(2).println( "───────────────────────────" );
-            out(1).flush(); }
+            out(1).println( "Syncing on formal referents: " + nL + " local, " + rL + " remote" ); }
 
       // Start any probes that are required for remote resources
       // ────────────────
@@ -278,14 +268,11 @@ public final class ImageMould<C extends ReusableCursor> {
             if( isFinalPass && countExpected == 0 ) break speak;
             toSpeak = true;
             final PrintStream out = out( 1 );
-            out(2).println();
             out.print(      "Translating source files: " + countExpected );
             if( !isFinalPass ) {
                 out.print( '+' );
                 countExpected = -1; } // Meaning not precisely known.
-            out.println();
-            out(2).println( "────────────────────────" );
-            out(1).flush(); }
+            out.println(); }
         int count = 0; // Count of translated source files.
         for( ;; ) {
             int c = 0; // Count of imageables found during the present pass.
@@ -299,7 +286,6 @@ public final class ImageMould<C extends ReusableCursor> {
                 final Path sourceFile = det.getKey();
                 final Path sourceFileRelative = boundaryPathDirectory.relativize( sourceFile );
                 boolean wasTranslated = false;
-                out(2).println( "  ↶ " + sourceFileRelative );
                 try {
                     translator.translate( sourceFile,
                       outputDirectory.resolve(sourceFileRelative).getParent() );
@@ -319,9 +305,7 @@ public final class ImageMould<C extends ReusableCursor> {
                 throw new UnsourcedInterrupt( x ); }
             catch( TimeoutException x ) { continue; } // Reduction is ongoing.
             isFinalPass = true; } // Reduction is complete, the next pass is final.
-        if( toSpeak  &&  count != countExpected ) {
-            out(1).println( "  " + count + " translated" );
-            out(1).flush(); }
+        if( toSpeak  &&  count != countExpected ) out(1).println( "  " + count + " translated" );
 
 
       // ═════════════════════════
@@ -334,24 +318,18 @@ public final class ImageMould<C extends ReusableCursor> {
                 if( det.getValue().get() == imaged ) ++countExpected; }
             if( countExpected == 0 ) break speak;
             toSpeak = true;
-            out(2).println();
-            out(1).println( "Finishing image files: " + countExpected );
-            out(2).println( "─────────────────────" );
-            out(1).flush(); }
+            out(1).println( "Finishing image files: " + countExpected ); }
         count = 0; // Count of finished image files.
         for( final var det: imageabilityDeterminations.entrySet() ) {
             final ImageabilityReference iR = det.getValue();
             if( iR.get() != imaged ) continue;
             final Path sourceFile = det.getKey();
             final Path imageFileRelative = imageSibling( boundaryPathDirectory.relativize( sourceFile ));
-            out(2).println( "  → " + imageFileRelative );
             try {
                 translator.finish( sourceFile, outputDirectory.resolve( imageFileRelative ));
                 ++count; }
             catch( final ErrorAtFile x ) { flag( x ); }}
-        if( toSpeak  &&  count != countExpected ) {
-            out(1).println( "  " + count + " finished" );
-            out(1).flush(); }
+        if( toSpeak  &&  count != countExpected ) out(1).println( "  " + count + " finished" );
         return !hasFailed; }
 
 
