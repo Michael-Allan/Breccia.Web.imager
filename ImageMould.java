@@ -188,21 +188,31 @@ public final class ImageMould<C extends ReusableCursor> {
       // ════════════════════════════════════
       // 2. Begin reducing the indeterminates, determining the imageability of each
       // ════════════════════════════════════
-        speak: if( opt.verbosity() >= 1 ) {
+        boolean toSpeak = opt.verbosity() >= 1;
+        if( toSpeak ) {
             int c = 0; // Count of indeterminates.
             for( final var det: imageabilityDeterminations.entrySet() ) {
                 if( det.getValue().get() == indeterminate ) ++c; }
-            if( c == 0 ) break speak;
-            out(1).println( "Parsing indeterminate source files: " + c ); }
+            if( c > 0 )  out(1).println( "Parsing source files: " + c ); }
         imageabilityDeterminations.forEach( this::formalResources_recordFrom ); // Collate the resources.
         // Now `formalResources` is structurally complete.  Newly started threads
         // may safely use it for all but structural modification.
 
-        speak: if( opt.verbosity() >= 1 ) {
+        int countExpected = -1; // Of source files to translate, or -1 if unknown pending probes.
+        speak: if( toSpeak ) {
             final int nL = formalResources.local.size();
             final int rL = formalResources.remote.size();
-            if( nL == 0 && rL == 0 ) break speak;
-            out(1).println( "Syncing on formal referents: " + nL + " local, " + rL + " remote" ); }
+            if( nL == 0 && rL == 0 ) {
+                countExpected = 0;
+                for( final var det: imageabilityDeterminations.entrySet() ) {
+                    if( det.getValue().get() == imageable ) ++countExpected; }
+                if( countExpected == 0 ) {
+                    toSpeak = false;
+                    break speak; }
+                out(1).println( "Translating source files: " + countExpected ); }
+            else {
+                out(1).println( "Probing referent files: " + nL + " local, " + rL + " remote" );
+                out(1).println( "  Translating source files en passent" ); }}
 
       // Start any probes that are required for remote resources
       // ────────────────
@@ -260,19 +270,6 @@ public final class ImageMould<C extends ReusableCursor> {
             isFinalPass = true; // Only one pass is required.
             barrier.forceTermination(); } // Just to be tidy.
         else isFinalPass = false; // At least two will be required.
-        int countExpected = 0;
-        boolean toSpeak = false;
-        speak: if( opt.verbosity() >= 1 ) {
-            for( final var det: imageabilityDeterminations.entrySet() ) {
-                if( det.getValue().get() == imageable ) ++countExpected; }
-            if( isFinalPass && countExpected == 0 ) break speak;
-            toSpeak = true;
-            final PrintStream out = out( 1 );
-            out.print(      "Translating source files: " + countExpected );
-            if( !isFinalPass ) {
-                out.print( '+' );
-                countExpected = -1; } // Meaning not precisely known.
-            out.println(); }
         int count = 0; // Count of translated source files.
         for( ;; ) {
             int c = 0; // Count of imageables found during the present pass.
@@ -305,7 +302,8 @@ public final class ImageMould<C extends ReusableCursor> {
                 throw new UnsourcedInterrupt( x ); }
             catch( TimeoutException x ) { continue; } // Reduction is ongoing.
             isFinalPass = true; } // Reduction is complete, the next pass is final.
-        if( toSpeak  &&  count != countExpected ) out(1).println( "  " + count + " translated" );
+        if( toSpeak  &&  count != countExpected ) {
+            out(1).println( "  " + count + " translated" ); }
 
 
       // ═════════════════════════
