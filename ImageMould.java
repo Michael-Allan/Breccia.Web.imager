@@ -601,8 +601,8 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Map of records of image files that are file-system accessible.
-      * Each entry comprises an absolute, normalized file path to an image file (key)
+    /** Cache of records of image files that are file-system accessible.
+      * Each entry comprises an absolute, normalized path to an image file (key)
       * mapped to an linear-order array (value) of that file’s imaged body fracta.
       */
     final Map<Path,ImagedBodyFractum[]> imageFilesLocal = new HashMap<>(

@@ -122,33 +122,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     public @Override void finish( Path sourceFile, final Path imageFile ) throws ErrorAtFile { // [F]
-        try {
-
-          // XHTML DOM ← XHTML image file
-          // ─────────
-            toDOM.setNode( null/*make a new `Document`*/ );
-            try( final Reader imageReader = newBufferedReader​( imageFile )) {
-                fromStream.setReader( imageReader );
-             // identityTransformer.transform( fromStream, toDOM ); }
-            ///  ↑ Transformation direct from an image file fails with ‘unknown protocol: about’. [UPA]
-           ////  ↓ Transformation through an intermediate StAX parser does not.
-                final XMLStreamReader imageParser = xmlInputFactory.createXMLStreamReader( fromStream );
-                try { identityTransformer.transform( new StAXSource(imageParser), toDOM ); } // [SNR]
-                finally { imageParser.close(); }}
-            final Document d = (Document)(toDOM.getNode());
-
-          // XHTML DOM ← XHTML DOM
-          // ─────────
-            final Element fileFractum = (Element)(
-              d.getDocumentElement()./*body*/getLastChild().getFirstChild() );
-            assert hasName( "FileFractum", fileFractum );
-            finish( sourceFile, fileFractum );
-
-          // XHTML image file ← XHTML DOM
-          // ────────────────
-            write( d, imageFile ); }
-        catch( IOException|TransformerException|XMLStreamException x ) {
-            throw new ErrorAtFile( imageFile, "Unable to finish image file", x ); }}
+        final Element fileFractum = fileFractum( imageFile );
+        finish( sourceFile, fileFractum );
+        try { write( fileFractum.getOwnerDocument(), imageFile ); }
+        catch( IOException|TransformerException x ) {
+            throw new ErrorAtFile( imageFile, "Unable to write image file", x ); }}
 
 
 
@@ -345,6 +323,28 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** @param imageFile The absolute path of an image file.
+      * @return The image of that path’s file fractum.
+      */
+    private Element fileFractum( final Path imageFile ) throws ErrorAtFile {
+        toDOM.setNode( null/*make a new `Document`*/ );
+        try( final Reader fileReader = newBufferedReader​( imageFile )) {
+            fromStream.setReader( fileReader );
+         // identityTransformer.transform( fromStream, toDOM ); }
+        ///  ↑ Transformation direct from an image file fails with ‘unknown protocol: about’. [UPA]
+       ////  ↓ Transformation through an intermediate StAX parser does not.
+            final XMLStreamReader imageReader = xmlInputFactory.createXMLStreamReader( fromStream );
+            try { identityTransformer.transform( new StAXSource(imageReader), toDOM ); } // [SNR]
+            finally { imageReader.close(); }}
+        catch( IOException|TransformerException|XMLStreamException x ) {
+            throw new ErrorAtFile( imageFile, "Unable to read image file", x ); }
+        final Document d = (Document)(toDOM.getNode());
+        final Element e = (Element)( d.getDocumentElement()./*body*/getLastChild().getFirstChild() );
+        assert hasName( "FileFractum", e );
+        return e; }
+
+
+
     private static final String fileFractumIdentifier = "file-fractum"; // Its `id` attribute.
 
 
@@ -386,7 +386,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** @param sourceFile The absolute path of a source file.
       * @param fileFractum The unfinished image of its file fractum.
       */
-    protected void finish( final Path sourceFile, final Element fileFractum ) throws IOException {
+    protected void finish( final Path sourceFile, final Element fileFractum ) {
         final Document d = fileFractum.getOwnerDocument();
 
       // ══════════════
@@ -465,12 +465,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         if( !isRegularFile( referentSource )) continue;
                         referentFracta = imagedBodyFracta( referentImage.normalize() );
                         if( referentFracta == null ) continue;
-                        referentSourceText = readString( referentSource );
+                        try { referentSourceText = readString( referentSource ); }
+                        catch( IOException x ) { throw new Unhandled( x ); }
                         hRef_filePart = hRef; } // Already without a fragment, given `toPath` above.
                     iFc = iFc.getPreviousSibling(); }
                 else { // The referent file is the containing file, the present image file.
                     referentFracta = imagedBodyFracta( imageSibling(sourceFile).normalize() );
-                    referentSourceText = readString( sourceFile );
+                    try { referentSourceText = readString( sourceFile ); }
+                    catch( IOException x ) { throw new Unhandled( x ); }
                     hRef_filePart = ""; }}
             int tStart = 0, tEnd = referentSourceText.length();
 
@@ -690,16 +692,37 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private final ArrayList<ImagedBodyFractum> imagedBodyFracta; { // For the present image file
-        final int c = 0x2000; // = 8192                               of `translate`.
+    private final ArrayList<ImagedBodyFractum> imagedBodyFracta; { // For use by `translate`, or
+        final int c = 0x2000; // = 8192                               elsewhere as `paramImplied`.
         idMap = new HashMap<>( initialCapacity( c ));
         imagedBodyFracta = new ArrayList<>( c ); }
 
 
 
+    /** Returns a linear-order array of the body fracta of the given image file,
+      * or null if none could be got from it.  Caches return values in `imageFilesLocal`.
+      *
+      *     @param imageFile The absolute, normalized path of an existing image file.
+      *     @see ImageMould#imageFilesLocal *//*
+      *
+      *     @paramImplied #imagedBodyFracta
+      */
     private ImagedBodyFractum[] imagedBodyFracta( final Path imageFile ) {
         assert imageFile.isAbsolute();
-        return mould.imageFilesLocal.get( imageFile ); }
+        var fracta = mould.imageFilesLocal.get( imageFile );
+        if( fracta == null ) {
+            assert exists( imageFile );
+            final Element fileFractum; {
+                try { fileFractum = fileFractum( imageFile ); }
+                catch( ErrorAtFile x ) { throw new Unhandled( x ); }}
+            imagedBodyFracta.clear();
+            for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
+                if( !isFractum( bF )) continue;
+                imagedBodyFracta.add( new ImagedBodyFractum(
+                  parseUnsignedInt( bF.getAttribute( "xunc" )), bF.getAttribute( "id" ))); }
+            fracta = imagedBodyFracta.toArray( imagedBodyFractaType );
+            mould.imageFilesLocal.put( imageFile, fracta ); }
+        return fracta; }
 
 
 
