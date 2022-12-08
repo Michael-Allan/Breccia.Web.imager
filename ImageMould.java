@@ -214,7 +214,7 @@ public final class ImageMould<C extends ReusableCursor> {
       // Start any probes that are required for remote resources
       // ────────────────
         final Phaser barrier = new Phaser();
-        final Map<String,RemoteChangeProbe> probes = new HashMap<>( initialCapacity( 256 ));
+        final Map<String,RemoteChangeProbe> probes = new HashMap<>( initialCapacity( 0x100 )); // = 256
           // Network hosts (keys) mapped each to its assigned probe (value).
         formalResources.remote.keySet().forEach( res -> // Ensure a probe is assigned, if called for.
             probes.computeIfAbsent( res.getHost(), host -> {
@@ -268,7 +268,7 @@ public final class ImageMould<C extends ReusableCursor> {
             barrier.forceTermination(); } // Just to be tidy.
         else isFinalPass = false; // At least two will be required.
         final ArrayList<Path> files = new ArrayList<>( // List of translated source files.
-          /*initial capacity*/0x1000/*or 4096*/ );
+          /*initial capacity*/0x1000 ); // = 4096
         for( ;; ) {
             int c = 0; // Count of imageables found during the present pass.
 
@@ -597,7 +597,16 @@ public final class ImageMould<C extends ReusableCursor> {
       *
       */ @Async // See `start` of remote probe threads in `formImage`.
     final Map<Path,ImageabilityReference> imageabilityDeterminations = new HashMap<>(
-      initialCapacity( 8192/*source files*/ ));
+      initialCapacity( 0x2000/*source files*/ )); // = 8192
+
+
+
+    /** Map of records of image files that are file-system accessible.
+      * Each entry comprises an absolute, normalized file path to an image file (key)
+      * mapped to an linear-order array (value) of that file’s imaged body fracta.
+      */
+    final Map<Path,ImagedBodyFractum[]> imageFilesLocal = new HashMap<>(
+      initialCapacity( 0x1000 )); // = 4096
 
 
 
@@ -685,13 +694,11 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    private final StringBuilder stringBuilder = new StringBuilder(
-      /*initial capacity*/0x200/*or 512*/ );
+    private final StringBuilder stringBuilder = new StringBuilder( /*initial capacity*/0x200 ); // = 512
 
 
 
-    private final StringBuilder stringBuilder2 = new StringBuilder(
-      /*initial capacity*/0x200/*or 512*/ );
+    private final StringBuilder stringBuilder2 = new StringBuilder( /*initial capacity*/0x200 ); // = 512
 
 
 

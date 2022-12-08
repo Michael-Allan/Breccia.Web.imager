@@ -506,8 +506,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                               : '#' +  fileFractumIdentifier; // or to the top of the present file.
                             break; }
                         final ImagedBodyFractum fractum = referentFracta[f];
-                        if( fractum.xunc <= tMatch ) { // Then the referent is a body fractum.
-                            hRef = hRef_filePart + '#' +  fractum.identifier;
+                        if( fractum.xunc() <= tMatch ) { // Then the referent is a body fractum.
+                            hRef = hRef_filePart + '#' +  fractum.identifier();
                             break; }}}
                 final Element a = d.createElementNS( nsHTML, "html:a" );
                 a.setAttribute( "href", hRef );
@@ -685,13 +685,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private final Map<String,Integer> idMap;
-      // Fractum base identifiers (keys) each mapped to the count of occurences (value).
-      // Base identifiers omit any ordinal suffix.
+      // Fractum base identifiers (keys) for the present image file of `translate`, each mapped
+      // to the count of its occurences (value).  Base identifiers omit any ordinal suffix.
 
 
 
-    private final ArrayList<ImagedBodyFractum> imagedBodyFracta; {
-        final int c = 0x2000; // = 8192
+    private final ArrayList<ImagedBodyFractum> imagedBodyFracta; { // For the present image file
+        final int c = 0x2000; // = 8192                               of `translate`.
         idMap = new HashMap<>( initialCapacity( c ));
         imagedBodyFracta = new ArrayList<>( c ); }
 
@@ -699,20 +699,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     private ImagedBodyFractum[] imagedBodyFracta( final Path imageFile ) {
         assert imageFile.isAbsolute();
-        return imageFilesLocal.get( imageFile ); }
+        return mould.imageFilesLocal.get( imageFile ); }
 
 
 
     private static final ImagedBodyFractum[] imagedBodyFractaType = new ImagedBodyFractum[0];
-
-
-
-    /** Map of records of image files that are file-system accessible.
-      * Each entry comprises an absolute, normalized file path to an image file (key)
-      * mapped to an linear-order array (value) of that file’s imaged body fracta.
-      */
-    private final HashMap<Path,ImagedBodyFractum[]> imageFilesLocal = new HashMap<>(
-      initialCapacity( 0x400/*or 1024*/ ));
 
 
 
@@ -910,12 +901,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private final StringBuilder stringBuilder = new StringBuilder(
-      /*initial capacity*/0x2000/*or 8192*/ );
+      /*initial capacity*/0x2000 ); // = 8192
 
 
 
     private final StringBuilder stringBuilder2 = new StringBuilder(
-      /*initial capacity*/0x2000/*or 8192*/ );
+      /*initial capacity*/0x2000 ); // = 8192
 
 
 
@@ -1137,7 +1128,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ───────────────
             final int xunc = parseUnsignedInt( bF.getAttribute( "xunc" ));
             imagedBodyFracta.add( new ImagedBodyFractum( xunc, id )); }
-        imageFilesLocal.put( imageSibling(sourceFile).normalize(),
+        mould.imageFilesLocal.put( imageSibling(sourceFile).normalize(),
           imagedBodyFracta.toArray(imagedBodyFractaType) ); }
 
 
@@ -1191,18 +1182,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         xmlInputFactory.setProperty( "javax.xml.stream.isCoalescing", true );
           // Consistent with the other input sources here relied on, such as `BrecciaXCursor`.
         xmlInputFactory.setProperty( "javax.xml.stream.isSupportingExternalEntities", false );
-        xmlInputFactory.setProperty( "javax.xml.stream.supportDTD", false ); }
+        xmlInputFactory.setProperty( "javax.xml.stream.supportDTD", false ); }}
           // While a DTD is present in each image file (a requirement of HTML) it is empty. [DTR]
-
-
-
-   // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-
-
-    /** @param xunc The {@linkplain Breccia.parser.Granum#xunc() source offset} of the body fractum.
-      * @param identifier The `id` attribute of its image element.
-      */
-    private static record ImagedBodyFractum( int xunc, String identifier ) {}}
 
 
 
