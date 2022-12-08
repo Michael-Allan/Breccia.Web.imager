@@ -510,9 +510,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             hRef = hRef_filePart + '#' +  fractum.identifier;
                             break; }}}
                 final Element a = d.createElementNS( nsHTML, "html:a" );
-                eP.insertBefore( a, n = eP.getFirstChild() );
                 a.setAttribute( "href", hRef );
-                do a.appendChild( n ); while( (n = n.getNextSibling()) != null ); // All `eP` children.
+                while( (n = eP.getFirstChild()) != null ) a.appendChild( n ); // All `eP` children wrap-
+                eP.appendChild( a );                                         // ped to form a hyperlink.
                 if( 0 == 0 ) break; }}} // TODO: narrow `tStart` and `tEnd` for the next pattern.
 
 
