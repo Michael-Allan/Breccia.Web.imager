@@ -270,7 +270,8 @@ public final class ImageMould<C extends ReusableCursor> {
             isFinalPass = true; // Only one pass is required.
             barrier.forceTermination(); } // Just to be tidy.
         else isFinalPass = false; // At least two will be required.
-        int count = 0; // Count of translated source files.
+        final ArrayList<Path> files // List of translated source files.
+          = new ArrayList<>( /*initial capacity*/0x1000/*or 4096*/ );
         for( ;; ) {
             int c = 0; // Count of imageables found during the present pass.
 
@@ -286,11 +287,13 @@ public final class ImageMould<C extends ReusableCursor> {
                 try {
                     translator.translate( sourceFile,
                       outputDirectory.resolve(sourceFileRelative).getParent() );
-                    ++count;
                     wasTranslated = true; }
                 catch( final ParseError x ) { flag( sourceFile, x ); }
                 catch( final ErrorAtFile x ) { flag( x ); }
-                iR.set( wasTranslated? imaged: unimageable ); }
+                if( wasTranslated ) {
+                    files.add( sourceFileRelative );
+                    iR.set( imaged ); }
+                else iR.set( unimageable ); }
             if( isFinalPass ) break;
             if( c > 0 ) continue; // One good turn deserves another by making it likelier.
 
@@ -302,8 +305,9 @@ public final class ImageMould<C extends ReusableCursor> {
                 throw new UnsourcedInterrupt( x ); }
             catch( TimeoutException x ) { continue; } // Reduction is ongoing.
             isFinalPass = true; } // Reduction is complete, the next pass is final.
-        if( toSpeak  &&  count != countExpected ) {
-            out(1).println( "  " + count + " translated" ); }
+        if( toSpeak  &&  ( files.size() != countExpected  ||  opt.verbosity() >= 2 )) {
+            out(1).println( "  " + files.size() + " translated" );
+            if( opt.verbosity() >= 2 ) for( final Path f: files ) out(2).println( "     ↶ " + f ); }
 
 
       // ═════════════════════════
@@ -317,7 +321,7 @@ public final class ImageMould<C extends ReusableCursor> {
             if( countExpected == 0 ) break speak;
             toSpeak = true;
             out(1).println( "Finishing image files: " + countExpected ); }
-        count = 0; // Count of finished image files.
+        files.clear(); // List of finished image files.
         for( final var det: imageabilityDeterminations.entrySet() ) {
             final ImageabilityReference iR = det.getValue();
             if( iR.get() != imaged ) continue;
@@ -325,9 +329,11 @@ public final class ImageMould<C extends ReusableCursor> {
             final Path imageFileRelative = imageSibling( boundaryPathDirectory.relativize( sourceFile ));
             try {
                 translator.finish( sourceFile, outputDirectory.resolve( imageFileRelative ));
-                ++count; }
+                files.add( imageFileRelative ); }
             catch( final ErrorAtFile x ) { flag( x ); }}
-        if( toSpeak  &&  count != countExpected ) out(1).println( "  " + count + " finished" );
+        if( toSpeak  &&  ( files.size() != countExpected  ||  opt.verbosity() >= 2 )) {
+            out(1).println( "  " + files.size() + " finished" );
+            if( opt.verbosity() >= 2 ) for( final Path f: files ) out(2).println( "     → " + f ); }
         return !hasFailed; }
 
 
