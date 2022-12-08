@@ -500,7 +500,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         final Matcher m = jP.matcher( referentSourceText ).region( textStart, textEnd );
                         if( !m.find() ) {
                             final CharacterPointer p = characterPointer( eP );
-                            mould.warn( sourceFile, p, "No such fractum\n" + p.markedLine() );
+                            mould.warn( sourceFile, p, "No such fractal head\n" + p.markedLine() );
                             continue iF; }
                         final int f; {
                             f = find( referentFracta, m.start() );
