@@ -188,8 +188,7 @@ public final class ImageMould<C extends ReusableCursor> {
       // ════════════════════════════════════
       // 2. Begin reducing the indeterminates, determining the imageability of each
       // ════════════════════════════════════
-        boolean toSpeak = opt.verbosity() >= 1;
-        if( toSpeak ) {
+        if( opt.verbosity() >= 1 ) {
             int c = 0; // Count of indeterminates.
             for( final var det: imageabilityDeterminations.entrySet() ) {
                 if( det.getValue().get() == indeterminate ) ++c; }
@@ -199,17 +198,15 @@ public final class ImageMould<C extends ReusableCursor> {
         // may safely use it for all but structural modification.
 
         int countExpected = -1; // Of source files to translate, or -1 if unknown pending probes.
-        speak: if( toSpeak ) {
+        if( opt.verbosity() >= 1 ) {
             final int nL = formalResources.local.size();
             final int rL = formalResources.remote.size();
             if( nL == 0 && rL == 0 ) {
                 countExpected = 0;
                 for( final var det: imageabilityDeterminations.entrySet() ) {
                     if( det.getValue().get() == imageable ) ++countExpected; }
-                if( countExpected == 0 ) {
-                    toSpeak = false;
-                    break speak; }
-                out(1).println( "Translating source files: " + countExpected ); }
+                if( countExpected != 0 ) {
+                    out(1).println( "Translating source files: " + countExpected ); }}
             else {
                 out(1).println( "Probing referent files: " + nL + " local, " + rL + " remote" );
                 out(1).println( "  Translating source files en passent" ); }}
@@ -270,8 +267,8 @@ public final class ImageMould<C extends ReusableCursor> {
             isFinalPass = true; // Only one pass is required.
             barrier.forceTermination(); } // Just to be tidy.
         else isFinalPass = false; // At least two will be required.
-        final ArrayList<Path> files // List of translated source files.
-          = new ArrayList<>( /*initial capacity*/0x1000/*or 4096*/ );
+        final ArrayList<Path> files = new ArrayList<>( // List of translated source files.
+          /*initial capacity*/0x1000/*or 4096*/ );
         for( ;; ) {
             int c = 0; // Count of imageables found during the present pass.
 
@@ -305,22 +302,19 @@ public final class ImageMould<C extends ReusableCursor> {
                 throw new UnsourcedInterrupt( x ); }
             catch( TimeoutException x ) { continue; } // Reduction is ongoing.
             isFinalPass = true; } // Reduction is complete, the next pass is final.
-        if( toSpeak  &&  ( files.size() != countExpected  ||  opt.verbosity() >= 2 )) {
+        if( files.size() != countExpected  ||  countExpected != 0  &&  opt.verbosity() >= 2 ) {
             out(1).println( "  " + files.size() + " translated" );
-            if( opt.verbosity() >= 2 ) for( final Path f: files ) out(2).println( "     ↶ " + f ); }
+            if( opt.verbosity() >= 2 ) for( final Path f: files ) out(2).println( "    ↶ " + f ); }
 
 
       // ═════════════════════════
       // 4. Finish the image files
       // ═════════════════════════
         countExpected = 0;
-        toSpeak = false;
-        speak: if( opt.verbosity() >= 1 ) {
+        if( opt.verbosity() >= 1 ) {
             for( final var det: imageabilityDeterminations.entrySet() ) {
                 if( det.getValue().get() == imaged ) ++countExpected; }
-            if( countExpected == 0 ) break speak;
-            toSpeak = true;
-            out(1).println( "Finishing image files: " + countExpected ); }
+            if( countExpected != 0 ) out(1).println( "Finishing image files: " + countExpected ); }
         files.clear(); // List of finished image files.
         for( final var det: imageabilityDeterminations.entrySet() ) {
             final ImageabilityReference iR = det.getValue();
@@ -331,9 +325,9 @@ public final class ImageMould<C extends ReusableCursor> {
                 translator.finish( sourceFile, outputDirectory.resolve( imageFileRelative ));
                 files.add( imageFileRelative ); }
             catch( final ErrorAtFile x ) { flag( x ); }}
-        if( toSpeak  &&  ( files.size() != countExpected  ||  opt.verbosity() >= 2 )) {
+        if( files.size() != countExpected  ||  countExpected != 0  &&  opt.verbosity() >= 2 ) {
             out(1).println( "  " + files.size() + " finished" );
-            if( opt.verbosity() >= 2 ) for( final Path f: files ) out(2).println( "     → " + f ); }
+            if( opt.verbosity() >= 2 ) for( final Path f: files ) out(2).println( "    → " + f ); }
         return !hasFailed; }
 
 
