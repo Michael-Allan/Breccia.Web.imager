@@ -498,7 +498,18 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
                             mould.warn( sourceFile, p, "No such fractal head\n" + p.markedLine() );
-                            continue iF; }}
+                            continue iF; }
+                        final int s = r + 1; // Index of the linear successor, if any.
+                        if( s < referentFracta.length ) {
+                            m.region( referentFracta[s].xunc(), textEnd );
+                            final int r2 = seek( m, referentFracta );
+                            if( r2 != -2 ) { // Then a further fractum is matched.
+                                final CharacterPointer p = characterPointer( eP );
+                                final int rLineNumber = r < 0 ? 1 : referentFracta[r].lineNumber();
+                                mould.warn( sourceFile, p, "Ambiguous pattern: fracta at lines "
+                                  + rLineNumber + " and " + referentFracta[r2].lineNumber()
+                                  + " both match\n" + p.markedLine() ); // This is disallowed. [RFI]
+                                continue iF; }}}
                     if( r >= 0 ) hRef = hRef_filePart + '#' +  referentFracta[r].identifier();
                     else { // The referent is the file fractum.
                         assert r == -1;
@@ -912,7 +923,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
                 if( !isFractum( bF )) continue;
                 imagedBodyFracta.add( new ImagedBodyFractum(
-                  parseUnsignedInt( bF.getAttribute( "xunc" )), bF.getAttribute( "id" ))); }
+                  parseUnsignedInt( bF.getAttribute( "xunc" )),
+                  parseUnsignedInt( bF.getAttribute( "lineNumber" )), bF.getAttribute( "id" ))); }
             rec = newImageFile( imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) );
             mould.imageFilesLocal.put( imageFile, rec ); }
         return rec; }
@@ -1195,8 +1207,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // Record of image
           // ───────────────
-            final int xunc = parseUnsignedInt( bF.getAttribute( "xunc" ));
-            imagedBodyFracta.add( new ImagedBodyFractum( xunc, id )); }
+            imagedBodyFracta.add( new ImagedBodyFractum(
+              parseUnsignedInt( bF.getAttribute( "xunc" )),
+              parseUnsignedInt( bF.getAttribute( "lineNumber" )), id )); }
         final Path imageFile = imageSibling(sourceFile).normalize();
         mould.imageFilesLocal.put( imageFile, newImageFile(
           imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) )); }
