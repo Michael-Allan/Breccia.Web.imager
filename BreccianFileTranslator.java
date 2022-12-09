@@ -487,8 +487,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                       its associated match modifiers. */
                     n = iFc.getLastChild();
                     final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
-                    try { jP = pattern( eP, mm, MULTILINE ); }
-                    catch( final PatternSyntaxException x ) {
+                    try { jP = pattern( eP, mm, MULTILINE ); } // Re MULTILINE: these patterns must be
+                    catch( final PatternSyntaxException x ) { // matched in ‘multiple-line mode’. [RFI]
                         final CharacterPointer p = characterPointer( eP );
                         mould.warn( sourceFile, p, "Malformed pattern: " + x.getDescription() + '\n'
                           + markedLine( "    ", x.getPattern(), zeroBased(x.getIndex()), mould.gcc )
@@ -496,24 +496,18 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                           + p.markedLine() );
                         continue iF; }}
                 final String hRef; {
-                    for( ;; ) {
+                    final int r; { // Index in `referentFracta` of the matched fractum.
                         final Matcher m = jP.matcher( referentSourceText ).region( textStart, textEnd );
-                        if( !m.find() ) {
+                        r = seek( m, referentFracta );
+                        if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
                             mould.warn( sourceFile, p, "No such fractal head\n" + p.markedLine() );
-                            continue iF; }
-                        final int f; {
-                            f = find( referentFracta, m.start() );
-                            final int g = f + 1;
-                            if( g < referentFracta.length  &&  m.end() >= referentFracta[g].xunc() ) { /*
-                                This match is not confined to a single fractal head, as required. */
-                                ++textStart; // Ignore this match and seek the next.
-                                continue; }}
-                        if( f < 0 ) { // Then the referent is the file fractum.
-                            hRef = hRef_filePart.length() > 0 ? hRef_filePart // Either to that file,
-                              : '#' +  fileFractumIdentifier; } // or to the top of the present file.
-                        else hRef = hRef_filePart + '#' +  referentFracta[f].identifier();
-                        break; }}
+                            continue iF; }}
+                    if( r >= 0 ) hRef = hRef_filePart + '#' +  referentFracta[r].identifier();
+                    else { // The referent is the file fractum.
+                        assert r == -1;
+                        hRef = hRef_filePart.length() > 0 ? hRef_filePart // Either to that file,
+                          : '#' +  fileFractumIdentifier; }} // or to the top of the present file.
                 final Element a = d.createElementNS( nsHTML, "html:a" );
                 a.setAttribute( "href", hRef );
                 while( (n = eP.getFirstChild()) != null ) a.appendChild( n ); // All `eP` children wrap-
@@ -733,19 +727,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** Returns the index in `fracta` of the body fractum in whose head the given offset lies,
-      * or -1 if the offset lies in the head of the file fractum.
-      *
-      *     @param fracta A linear-order array of a source text’s imaged body fracta.
-      *     @param xunc An offset in UTF-16 code units from the start of the text.
-      */
-    private static int find( final ImagedBodyFractum[] fracta, final int xunc ) {
-        for( int f = fracta.length - 1;; --f ) {
-            if( f < 0 ) return -1;
-            if( fracta[f].xunc() <= xunc ) return f; }}
-
-
-
     private static boolean isFractum( final Element e ) { return e.hasAttribute( "typestamp" ); }
 
 
@@ -920,6 +901,40 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             default -> throw new IllegalArgumentException( "Match modifiers `" + mm + '`' ); };
               // Unexpected, the Breccia parser should have caught and reported it to the user.
         return Pattern.compile( bP.toString(), flags ); }
+
+
+
+    /** Seeks the next match of a fractum-indicant pattern in a source text.
+      *
+      *     @param fracta The imaged body fracta of the source text.
+      *     @return The index in `fracta` of the matched body fractum, or -1 if instead the file fractum
+      *       is matched, or -2 if no fractum is matched.
+      */
+    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta ) {
+        for( ;; ) {
+            if( !m.find() ) return -2;
+            final int f = seek( m.start(), fracta ); // Index in `fracta` of the matched fractum.
+            final int g = f + 1;
+            if( g < fracta.length ) {
+                final int fEnd = fracta[g].xunc(); // End boundary of the head of the matched fractum.
+                if( m.end() >= fEnd ) { // Then this match extends across multiple heads.
+                    m.region( m.regionStart() + 1, m.regionEnd() ); // Ignore this match, for matches
+                    continue; }} // of a fractum-indicant pattern are ‘confined to a single head’. [RFI]
+            return f; }}
+
+
+
+    /** Seeks the fractum in whose head the given offset lies.
+      *
+      *     @param xunc An offset in UTF-16 code units from the start of a source text.
+      *     @param fracta A linear-order array of the source text’s imaged body fracta.
+      *     @return The index in `fracta` of the body fractum in whose head the offset lies,
+      *       or -1 if instead the offset lies in the head of the file fractum.
+      */
+    private static int seek( final int xunc, final ImagedBodyFractum[] fracta ) {
+        for( int f = fracta.length - 1;; --f ) {
+            if( f < 0 ) return -1;
+            if( fracta[f].xunc() <= xunc ) return f; }}
 
 
 
@@ -1237,6 +1252,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //   BF↓  Code that must execute before section *Body fracta*`.
 //
 //   BF · Section *Body fracta* itself, or code that must execute in unison with it.
+//
+//   RFI  Resolving a fractum indicant.
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#indicated,fractum,indicant
 //
 //   DTR  ‘A `DOCTYPE` is a required preamble’ in HTML.
 //        https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
