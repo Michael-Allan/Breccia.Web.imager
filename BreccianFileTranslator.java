@@ -67,7 +67,6 @@ import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
-import static java.nio.file.Files.readString;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static Java.Nodes.hasName;
 import static Java.Nodes.isElement;
@@ -431,8 +430,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // Referent file
           // ─────────────
-            final ImagedBodyFractum[] referentFracta;
-            final String referentSourceText;
+            final ImageFile iRef;
             final String hRef_filePart; // The pre-fragment part of each hyperlink’s `href` attribute.
             Node n;
             Node iFc; { // Initialized herein to the last child of `iF` before any resource indicant:
@@ -451,35 +449,30 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         catch( URISyntaxException x ) { throw new Unhandled( x ); }}
                           // Unexpected because this is effectively a reconstruction.
                     if( !looksImageLike( uRef )) continue; /* The hyperlink for the referent file
-                      does not target its Web image, which means that no image file was found. [◦↑◦]
-                      Without an image file, there can be no `referentFracta` against which to resolve
-                      the patterns of `iF`, nor any way to form hyperlinks to the matching fracta. */
+                      does not target its Web image, which means that no image file was found earlier.
+                      Without an image file, there can be no `iRef.fracta` against which to resolve
+                      the patterns of `iF`, nor any way to form hyperlinks to the fracta that match. */
                     if( isRemote( uRef )) {
                         continue; // No HTTP access, no `referentSourceText`. [NH]
                      /* hRef_filePart = unfragmented( uRef ).toASCIIString(); /* To be correct,
                           though no fragment is expected on Breccian referent `uRef`. */ }
                     else {
-                        final Path referentImage = // Absolute path of the referent image file,
+                        final Path referentPath = // Absolute path of the referent image file,
                           sourceFile.resolveSibling( toPath( uRef, sourceFile )); /*
                             No `IllegalArgumentException` expected, ∵ a reference so malformed
                             would not have been hyperlinked. [◦↑◦] */
-                        final Path referentSource = sourceSibling( referentImage ); // Likewise absolute.
-                        if( !isRegularFile( referentSource )) continue;
-                        referentFracta = imagedBodyFracta( referentImage.normalize() );
-                        if( referentFracta == null ) continue;
-                        try { referentSourceText = readString( referentSource ); }
-                        catch( IOException x ) { throw new Unhandled( x ); }
+                        iRef = recorded( referentPath.normalize() );
+                        if( iRef == null ) continue;
                         hRef_filePart = hRef; } // Already without a fragment, given `toPath` above.
                     iFc = iFc.getPreviousSibling(); }
                 else { // The referent file is the containing file, the present image file.
-                    referentFracta = imagedBodyFracta( imageSibling(sourceFile).normalize() );
-                    try { referentSourceText = readString( sourceFile ); }
-                    catch( IOException x ) { throw new Unhandled( x ); }
+                    iRef = recorded( imageSibling(sourceFile).normalize() );
+                    assert iRef != null; // It was formed earlier, during the `translate` cycle.
                     hRef_filePart = ""; }}
 
           // Referring patterns
           // ──────────────────
-            int textStart = 0, textEnd = referentSourceText.length(); // The region in which to search.
+            int textStart = 0, textEnd = iRef.sourceText().length(); // The region in which to search.
             for(; iFc != null; iFc = iFc.getPreviousSibling() ) {
                 if( !hasName( "PatternMatcher", iFc )) continue;
                 final Element eP = (Element)iFc.getFirstChild().getNextSibling(); /* The image
@@ -498,8 +491,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                           + p.markedLine() );
                         continue iF; }}
                 final String hRef; {
+                    final ImagedBodyFractum[] referentFracta = iRef.fracta();
                     final int r; { // Index in `referentFracta` of the matched fractum.
-                        final Matcher m = jP.matcher( referentSourceText ).region( textStart, textEnd );
+                        final Matcher m = jP.matcher( iRef.sourceText() ).region( textStart, textEnd );
                         r = seek( m, referentFracta );
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
@@ -698,33 +692,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** Returns a linear-order array of the body fracta of the given image file,
-      * or null if none could be got from it.  Caches return values in `imageFilesLocal`.
-      *
-      *     @param imageFile The absolute, normalized path of an existing image file.
-      *     @see ImageMould#imageFilesLocal *//*
-      *
-      *     @paramImplied #imagedBodyFracta
-      */
-    private ImagedBodyFractum[] imagedBodyFracta( final Path imageFile ) {
-        assert imageFile.isAbsolute();
-        var fracta = mould.imageFilesLocal.get( imageFile );
-        if( fracta == null ) {
-            assert exists( imageFile );
-            final Element fileFractum; {
-                try { fileFractum = fileFractum( imageFile ); }
-                catch( ErrorAtFile x ) { throw new Unhandled( x ); }}
-            imagedBodyFracta.clear();
-            for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
-                if( !isFractum( bF )) continue;
-                imagedBodyFracta.add( new ImagedBodyFractum(
-                  parseUnsignedInt( bF.getAttribute( "xunc" )), bF.getAttribute( "id" ))); }
-            fracta = imagedBodyFracta.toArray( imagedBodyFractaType );
-            mould.imageFilesLocal.put( imageFile, fracta ); }
-        return fracta; }
-
-
-
     private static final ImagedBodyFractum[] imagedBodyFractaType = new ImagedBodyFractum[0];
 
 
@@ -802,6 +769,25 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     protected final ImageMould<?> mould;
+
+
+
+    private static ImageFile newImageFile( final Path imageFile, final Element fileFractum,
+          final ImagedBodyFractum[] fracta ) {
+        final String text = sourceText( fileFractum );
+        final int originalEnd; { // The end boundary of the source text when originally it was parsed.
+            Element finalHead = null; { // The last fractal head of the text.
+                Node n = fileFractum;
+                for( ;; ) {
+                    n = n.getLastChild();
+                    if( n == null ) break;
+                    if( hasName( "Head", n )) finalHead = (Element)n; }}
+            final String ends = finalHead.getAttribute( "xuncLineEnds" );
+            originalEnd = parseUnsignedInt( ends.substring( ends.lastIndexOf(' ') + 1 )); }
+        if( text.length() != originalEnd ) {
+            throw new IllegalStateException( imageFile + ": Image `sourceText` (length " + text.length()
+              + ") unequal to original source text (" + originalEnd + ")" ); }
+        return new ImageFile( text, fracta ); }
 
 
 
@@ -906,6 +892,33 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** Returns a record of the given image file, or null if none could be formed.
+      * Caches return values in `imageFilesLocal`.
+      *
+      *     @param imageFile The absolute, normalized path of an existing image file.
+      *     @see ImageMould#imageFilesLocal *//*
+      *
+      *     @paramImplied #imagedBodyFracta
+      */
+    private ImageFile recorded( final Path imageFile ) {
+        assert imageFile.isAbsolute();
+        ImageFile rec = mould.imageFilesLocal.get( imageFile );
+        if( rec == null ) {
+            assert exists( imageFile );
+            final Element fileFractum; {
+                try { fileFractum = fileFractum( imageFile ); }
+                catch( ErrorAtFile x ) { throw new Unhandled( x ); }}
+            imagedBodyFracta.clear();
+            for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
+                if( !isFractum( bF )) continue;
+                imagedBodyFracta.add( new ImagedBodyFractum(
+                  parseUnsignedInt( bF.getAttribute( "xunc" )), bF.getAttribute( "id" ))); }
+            rec = newImageFile( imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) );
+            mould.imageFilesLocal.put( imageFile, rec ); }
+        return rec; }
+
+
+
     /** Seeks the next match of a fractum-indicant pattern in a source text.
       *
       *     @param fracta The imaged body fracta of the source text.
@@ -944,15 +957,15 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** The original text content of the given node and its descendants prior to any translation.
+    /** The original text content of the given node and its descendants, prior to any translation.
       */
-    private static String sourceText( final Node node ) { return node.getTextContent(); }
+    private static String sourceText( final Element node ) { return node.getTextContent(); }
       // Should the translation ever introduce text of its own, then it must be marked as non-original,
       // e.g. by some attribute defined for that purpose.  The present method would then be modified
       // to remove all such text from the return value, e.g. by cloning `node`, filtering the clone,
       // then calling `getTextContent` on it.
-      //     Non-original elements that merely wrap original content would neither be marked
-      // nor removed, as their presence would have no effect on the return value.
+      //     Non-original elements that merely wrap original content would neither be markednor removed,
+      // as their presence would have no effect on the return value.
 
 
 
@@ -1184,8 +1197,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ───────────────
             final int xunc = parseUnsignedInt( bF.getAttribute( "xunc" ));
             imagedBodyFracta.add( new ImagedBodyFractum( xunc, id )); }
-        mould.imageFilesLocal.put( imageSibling(sourceFile).normalize(),
-          imagedBodyFracta.toArray(imagedBodyFractaType) ); }
+        final Path imageFile = imageSibling(sourceFile).normalize();
+        mould.imageFilesLocal.put( imageFile, newImageFile(
+          imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) )); }
 
 
 
