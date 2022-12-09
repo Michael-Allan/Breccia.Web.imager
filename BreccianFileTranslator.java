@@ -451,7 +451,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         catch( URISyntaxException x ) { throw new Unhandled( x ); }}
                           // Unexpected because this is effectively a reconstruction.
                     if( !looksImageLike( uRef )) continue; /* The hyperlink for the referent file
-                      not targeting its image, no fracta can be targeted. */
+                      does not target its Web image, which means that no image file was found. [◦↑◦]
+                      Without an image file, there can be no `referentFracta` against which to resolve
+                      the patterns of `iF`, nor any way to form hyperlinks to the matching fracta. */
                     if( isRemote( uRef )) {
                         continue; // No HTTP access, no `referentSourceText`. [NH]
                      /* hRef_filePart = unfragmented( uRef ).toASCIIString(); /* To be correct,
