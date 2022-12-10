@@ -933,6 +933,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     /** Seeks the next match of a fractum-indicant pattern in a source text.
       *
+      *     @param m A matcher preconfigured for the purpose, preset to the search region
+      *       of the source text and ready for immediate use.
       *     @param fracta The imaged body fracta of the source text.
       *     @return The index in `fracta` of the matched body fractum, or -1 if instead the file fractum
       *       is matched, or -2 if no fractum is matched.
