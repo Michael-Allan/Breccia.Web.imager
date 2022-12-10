@@ -431,6 +431,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // Referent file
           // ─────────────
             final ImageFile iRef;
+            final int rSelf; // Index in `iRef.fracta` of `iF` owner, as per `seek(m,fracta,fSelf)`.
             final String hRef_filePart; // The pre-fragment part of each hyperlink’s `href` attribute.
             Node n;
             Node iFc; { // Initialized herein to the last child of `iF` before any resource indicant:
@@ -463,11 +464,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             would not have been hyperlinked. [◦↑◦] */
                         iRef = recorded( referentPath.normalize() );
                         if( iRef == null ) continue;
+                        rSelf = -2;
                         hRef_filePart = hRef; } // Already without a fragment, given `toPath` above.
                     iFc = iFc.getPreviousSibling(); }
                 else { // The referent file is the containing file, the present image file.
                     iRef = recorded( imageSibling(sourceFile).normalize() );
                     assert iRef != null; // It was formed earlier, during the `translate` cycle.
+                    rSelf = seek( parseUnsignedInt( ownerFractum(iF).getAttribute( "xunc" )),
+                      iRef.fracta() );
                     hRef_filePart = ""; }}
 
           // Referring patterns
@@ -494,7 +498,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     final ImagedBodyFractum[] referentFracta = iRef.fracta();
                     final int r; { // Index in `referentFracta` of the matched fractum.
                         final Matcher m = jP.matcher( iRef.sourceText() ).region( textStart, textEnd );
-                        r = seek( m, referentFracta );
+                        r = seek( m, referentFracta, rSelf );
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
                             mould.warn( sourceFile, p, "No such fractal head\n" + p.markedLine() );
@@ -502,7 +506,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         final int s = r + 1; // Index of the linear successor, if any.
                         if( s < referentFracta.length ) {
                             m.region( referentFracta[s].xunc(), textEnd );
-                            final int r2 = seek( m, referentFracta );
+                            final int r2 = seek( m, referentFracta, rSelf );
                             if( r2 != -2 ) { // Then a further fractum is matched.
                                 final CharacterPointer p = characterPointer( eP );
                                 final int rLineNumber = r < 0 ? 1 : referentFracta[r].lineNumber();
@@ -931,24 +935,33 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** Seeks the next match of a fractum-indicant pattern in a source text.
+    /** Seeks the next match of a fractum-indicant pattern in a referent source text.
       *
       *     @param m A matcher preconfigured for the purpose, preset to the search region
-      *       of the source text and ready for immediate use.
-      *     @param fracta The imaged body fracta of the source text.
+      *       of the referent source text and ready for immediate use.
+      *     @param fracta The imaged body fracta of the referent source text.
+      *     @param fSelf The index in `fracta` of the nearest fractal ancestor of the fractum indicant,
+      *        or -1 if that ancestor is the file fractum of the referent source text,
+      *        or -2 if the fractum indicant lies outside of the referent source text.
+      *        The value is other than -2 only in the case of a same-document reference.
       *     @return The index in `fracta` of the matched body fractum, or -1 if instead the file fractum
       *       is matched, or -2 if no fractum is matched.
       */
-    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta ) {
+    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelf ) {
         for( ;; ) {
             if( !m.find() ) return -2;
-            final int f = seek( m.start(), fracta ); // Index in `fracta` of the matched fractum.
+            final int f = seek( m.start(), fracta ); // Index in `fracta` of the matched fractum, or -1.
+            if( f == fSelf ) { /* Then ignore this match, for matches of a fractum-indicant pattern
+                  are ‘excluded from the head in which the fractum indicant is contained.’ [RFI] */
+                m.region( m.regionStart() + 1, m.regionEnd() );
+                continue; }
             final int g = f + 1;
             if( g < fracta.length ) {
                 final int fEnd = fracta[g].xunc(); // End boundary of the head of the matched fractum.
-                if( m.end() >= fEnd ) { // Then this match extends across multiple heads.
-                    m.region( m.regionStart() + 1, m.regionEnd() ); // Ignore this match, for matches
-                    continue; }} // of a fractum-indicant pattern are ‘confined to a single head’. [RFI]
+                if( m.end() >= fEnd ) { /* Then this match extends across multiple heads.
+                      Ignore this match, for matches are ‘confined to a single head.’ [RFI] */
+                    m.region( m.regionStart() + 1, m.regionEnd() );
+                    continue; }}
             return f; }}
 
 
