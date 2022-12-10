@@ -948,21 +948,21 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *       is matched, or -2 if no fractum is matched.
       */
     private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelf ) {
-        for( ;; ) {
-            if( !m.find() ) return -2;
+        while( m.find() ) {
             final int f = seek( m.start(), fracta ); // Index in `fracta` of the matched fractum, or -1.
             if( f == fSelf ) { /* Then ignore this match, for matches of a fractum-indicant pattern
                   are ‘excluded from the head in which the fractum indicant is contained.’ [RFI] */
-                m.region( m.regionStart() + 1, m.regionEnd() );
-                continue; }
+                if( seek_advance( m )) continue;
+                break; }
             final int g = f + 1;
             if( g < fracta.length ) {
                 final int fEnd = fracta[g].xunc(); // End boundary of the head of the matched fractum.
                 if( m.end() >= fEnd ) { /* Then this match extends across multiple heads.
                       Ignore this match, for matches are ‘confined to a single head.’ [RFI] */
-                    m.region( m.regionStart() + 1, m.regionEnd() );
-                    continue; }}
-            return f; }}
+                    if( seek_advance( m )) continue;
+                    break; }}
+            return f; }
+        return -2; }
 
 
 
@@ -977,6 +977,17 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         for( int f = fracta.length - 1;; --f ) {
             if( f < 0 ) return -1;
             if( fracta[f].xunc() <= xunc ) return f; }}
+
+
+
+    private static boolean seek_advance( final Matcher m ) {
+        final int matchStart = m.start();
+        final int regionEnd = m.regionEnd();
+        if( matchStart == regionEnd ) return false; // Maybe possible given a zero-width assertion.
+        m.region( matchStart + 1, regionEnd ); /* Far enough to avoid a rematch.
+          Whether `matchStart + 1` is too timid, too aggressive, or neither is uncertain.
+          It might depend on the richness of the pattern language. */
+        return true; }
 
 
 
