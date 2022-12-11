@@ -495,8 +495,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                                     mould.warn( sourceFile, p, "Ambiguous pattern: fracta at lines "
                                       + rLineNumber + " and " + referentFracta[r2].lineNumber()
                                       + " both match\n" + p.markedLine() ); // This is disallowed. [RFI]
-                                    continue iF; }}}
-                            else assert false; } /* That `seek_advance` will not fail
+                                    continue iF; }}
+                            else assert false; }} /* That `seek_advance` will not fail
                               given the prior guard `r + 1 < referentFracta.length`. */
                     if( r >= 0 ) hRef = hRef_filePart + '#' +  referentFracta[r].identifier();
                     else { // The referent is the file fractum.
