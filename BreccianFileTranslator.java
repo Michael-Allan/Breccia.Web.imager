@@ -273,7 +273,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final IntArrayExtensor endsRegional = lineLocator.endsRegional;
         final int offsetRegional;
         final int numberRegional; {
-            final Element fH = contextHead( granum );
+            final Element fH = ownerHeadOrSelf( granum );
             assert fH != null; // Caller obeys the API.
             textRegional = sourceText( fH );
             endsRegional.clear();
@@ -299,26 +299,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         offset -= offsetRegional; // whole text → `textRegional`
         final int column = mould.gcc.clusterCount( textRegional, lineStart, offset );
         return new CharacterPointer( line, column, lineLocator.number() ); }
-
-
-
-    /** Returns the fractal context of `e`, or null if there is none.
-      *
-      *     @return The same `e` if it is a fractum, otherwise `ownerFractum(e)`.
-      *     @see #ownerFractum(Node)
-      */
-    protected static Element contextFractum( final Element e ) {
-        return isFractum(e) ? e : ownerFractum(e); }
-
-
-
-    /** Returns the fractal head context of `e`, or null if there is none.
-      *
-      *     @return The same `e` if it is a fractal head, otherwise `ownerHead(e)`.
-      *     @see #ownerHead(Node)
-      */
-    protected static Element contextHead( final Element e ) {
-        return hasName("Head",e) ? e : ownerHead(e); }
 
 
 
@@ -844,7 +824,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** Returns the nearest fractal ancestor of `node`, or null if there is none.
       *
       *     @return The nearest ancestor of `node` that is a fractum, or null if there is none.
-      *     @see #contextFractum(Element)
       */
     protected static Element ownerFractum( final Node node ) {
         Element a = parentElement( node );
@@ -853,13 +832,25 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** Returns the same `e` if it is a fractum, otherwise `ownerFractum(e)`.
+      */
+    protected static Element ownerFractumOrSelf( final Element e ) {
+        return isFractum(e) ? e : ownerFractum(e); }
+
+
+
     /** Returns the nearest ancestor of `node` that is a fractal head, or null if there is none.
-      *
-      *     @see #contextHead(Node)
       */
     protected static Element ownerHead( Node node ) {
         do node = node.getParentNode(); while( node != null && !hasName("Head",node) );
         return (Element)node; }
+
+
+
+    /** Returns the same `e` if it is a fractal head, otherwise `ownerHead(e)`.
+      */
+    protected static Element ownerHeadOrSelf( final Element e ) {
+        return hasName("Head",e) ? e : ownerHead(e); }
 
 
 
