@@ -5,7 +5,7 @@ package Breccia.Web.imager;
   * @param fracta A linear-order array of the body fracta of the image file.
   */
 record ImageFile( String sourceText, ImagedBodyFractum[] fracta ) {}
-  // OPT `sourceText`, this will not scale.
+  // Re `sourceText`, this will not scale.  OPT
 
 
 
