@@ -587,7 +587,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final boolean wouldPrivatizationSuppress = isAlteredRef && isTransX;
             final CharacterPointer p = characterPointer( eRef );
             final String markedLine = mould.markedLine( sRef, p, isAlteredRef );
-            if( wouldPrivatizationSuppress && isPrivatized(contextFractum(eRef)) ) {
+            if( wouldPrivatizationSuppress && isPrivatized(ownerFractum(eRef)) ) {
                 logger.fine( () -> wrnHead(f,p.lineNumber) + bMessage
                   + ": Omitting a hyperlink for this private reference:\n" + markedLine );
                 return null; } /* With neither hyperlink nor warning, because this type
