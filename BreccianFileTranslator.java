@@ -265,7 +265,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param granum A granal element other than `FileFractum`.
+    /** @param granum A granal element other than a fractum.
       * @param c The offset in `granum` context of the character to point to.
       */
     protected final CharacterPointer characterPointer( final Element granum, final int c ) {
