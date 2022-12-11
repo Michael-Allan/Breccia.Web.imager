@@ -23,6 +23,9 @@
 
     - The positional argument may be preceded by one or more nominal arguments, aka options:
 
+      \ -allow: -allow=broken-source-reference
+      \     - Allow for missing Breccian referent files where a corresponding image file exists.
+      \\ [broken-source-reference], q.v. at end note
         -author-home-directory: -author-home-directory=<file path>
             - The home directory of the author of the source text.
             / It may serve for the purpose of expanding any tilde prefix of a URI reference.
@@ -113,7 +116,7 @@
                   any associated hyperlink will be formed using the translated reference.
             - The form of each translation is:
 
-                    translation: ;<pattern>;<replacement>; \ [three separators], q.v. at end note
+                    translation: ;<pattern>;<replacement>; \ [three separators]
 
                 - The semicolons ‘;’ of the separator triplet may be replaced with any other character.
                 - The form of the given pattern is a regular expression as defined by the `Pattern` class
@@ -169,6 +172,12 @@
     ━━━━━━━
      Notes
     ───────
+     \\ [broken-source-reference]
+     \      - An author may refer to a Web site that publishes an image without its source files.
+     \      - The best practice in that case would be to refer to the source files as usual,
+     \        as though they existed.
+     \      - An option such as `-allow=broken-source-reference` would make allowance for this, e.g. by
+     \        suppressing the warnings that would otherwise ensue, and might be enabled by default.
      \\ [relative replacement]
      \      - A relative replacement is wanted for sake of image portability.  The image might be copied
      \        elsewhere (e.g. to a Web server), or it might lie in a local mount of a foreign file system
