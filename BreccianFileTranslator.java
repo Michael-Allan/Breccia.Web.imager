@@ -450,11 +450,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         catch( URISyntaxException x ) { throw new Unhandled( x ); }}
                           // Unexpected because this is effectively a reconstruction.
                     if( !looksImageLike( uRef )) continue; /* The hyperlink for the referent file
-                      does not target its Web image, which means that no image file was found earlier.
-                      Without an image file, there can be no `iRef.fracta` against which to resolve
-                      the patterns of `iF`, nor any way to form hyperlinks to the fracta that match. */
+                      does not target its Web image, which means either that the referent file is
+                      non-Breccian, or it had no corresponding image file earlier, when one was sought.
+                      Without an image file, there can be no `iRef` against which to resolve the patterns
+                      of `iF`, nor any way to form hyperlinks to the matching fracta. */
                     if( isRemote( uRef )) {
-                        continue; // No HTTP access, no `referentSourceText`. [NH]
+                        continue; // No HTTP access, no `iRef`. [NH]
                      /* hRef_filePart = unfragmented( uRef ).toASCIIString(); /* To be correct,
                           though no fragment is expected on Breccian referent `uRef`. */ }
                     else {
@@ -667,8 +668,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     protected String hRefRemote( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef, final URI uRef ) {
         URI u = uRef; // Either `uRef` or its image sibling.
-        if( looksBrecciaLike( uRef )) u = imageSibling( u ); /* Without accessing the referent,
-          e.g. to parse out and precisely target any fractum indicant; HTTP access is deferred. [NH] */
+        if( looksBrecciaLike( uRef )) {
+         /* u = imageSibling( uRef );  Only if `uRef` actually has an image sibling,
+            which cannot be tested at present, for HTTP access is deferred. [NH] */ }
         else if( !isAlteredRef/*[LC]*/  &&  looksImageLike(uRef)  &&  !isNonFractal(eRef) ) {
             warn_imageFileReference( f, eRef, sRef, isAlteredRef ); } /* Yet carry on and form
               the hyperlink, for the purpose here is satified by flagging the fault in the source. */
