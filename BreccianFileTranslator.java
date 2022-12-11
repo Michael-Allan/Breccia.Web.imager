@@ -484,17 +484,20 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             final CharacterPointer p = characterPointer( eP );
                             mould.warn( sourceFile, p, "No such fractal head\n" + p.markedLine() );
                             continue iF; }
-                        final int s = r + 1; // Index of the linear successor, if any.
-                        if( s < referentFracta.length ) {
-                            m.region( referentFracta[s].xunc(), regionEnd );
-                            final int r2 = seek( m, referentFracta, rSelf );
-                            if( r2 != -2 ) { // Then a further fractum is matched.
-                                final CharacterPointer p = characterPointer( eP );
-                                final int rLineNumber = r < 0 ? 1 : referentFracta[r].lineNumber();
-                                mould.warn( sourceFile, p, "Ambiguous pattern: fracta at lines "
-                                  + rLineNumber + " and " + referentFracta[r2].lineNumber()
-                                  + " both match\n" + p.markedLine() ); // This is disallowed. [RFI]
-                                continue iF; }}}
+                        if( r + 1 < referentFracta.length ) { /* Then a further match may exist
+                            that would indicate an ambigous pattern.  Test for it: */
+                            if( seek_advance( m )) {
+                                final int r2 = seek( m, referentFracta, rSelf, /*ignoring*/r/* because
+                                  any ‘further match in the same head … will be ignored.’  [RFI] */ );
+                                if( r2 != -2 ) { // Then a further fractum is matched.
+                                    final CharacterPointer p = characterPointer( eP );
+                                    final int rLineNumber = r < 0 ? 1 : referentFracta[r].lineNumber();
+                                    mould.warn( sourceFile, p, "Ambiguous pattern: fracta at lines "
+                                      + rLineNumber + " and " + referentFracta[r2].lineNumber()
+                                      + " both match\n" + p.markedLine() ); // This is disallowed. [RFI]
+                                    continue iF; }}}
+                            else assert false; } /* That `seek_advance` will not fail
+                              given the prior guard `r + 1 < referentFracta.length`. */
                     if( r >= 0 ) hRef = hRef_filePart + '#' +  referentFracta[r].identifier();
                     else { // The referent is the file fractum.
                         assert r == -1;
@@ -955,6 +958,19 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     if( seek_advance( m )) continue;
                     break; }}
             return f; }
+        return -2; }
+
+
+
+    /** @param fIgnore The index in `fracta` of a body fractum whose matches to ignore,
+      *    or -1 to ignore matches of the file fractum.
+      */
+    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelf,
+          final int fIgnore ) {
+        do {
+            final int f = seek( m, fracta, fSelf );
+            if( f != fIgnore ) return f; }
+            while( seek_advance( m ));
         return -2; }
 
 
