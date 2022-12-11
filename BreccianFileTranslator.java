@@ -477,7 +477,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // Referring patterns
           // ──────────────────
-            int textStart = 0, textEnd = iRef.sourceText().length(); // The region in which to search.
+            int region = 0, regionEnd = iRef.sourceText().length(); // Search region in referent source.
             for(; iFc != null; iFc = iFc.getPreviousSibling() ) {
                 if( !hasName( "PatternMatcher", iFc )) continue;
                 final Element eP = (Element)iFc.getFirstChild().getNextSibling(); /* The image
@@ -498,7 +498,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final String hRef; {
                     final ImagedBodyFractum[] referentFracta = iRef.fracta();
                     final int r; { // Index in `referentFracta` of the matched fractum.
-                        final Matcher m = jP.matcher( iRef.sourceText() ).region( textStart, textEnd );
+                        final Matcher m = jP.matcher( iRef.sourceText() ).region( region, regionEnd );
                         r = seek( m, referentFracta, rSelf );
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
@@ -506,7 +506,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             continue iF; }
                         final int s = r + 1; // Index of the linear successor, if any.
                         if( s < referentFracta.length ) {
-                            m.region( referentFracta[s].xunc(), textEnd );
+                            m.region( referentFracta[s].xunc(), regionEnd );
                             final int r2 = seek( m, referentFracta, rSelf );
                             if( r2 != -2 ) { // Then a further fractum is matched.
                                 final CharacterPointer p = characterPointer( eP );
@@ -524,7 +524,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 a.setAttribute( "href", hRef );
                 while( (n = eP.getFirstChild()) != null ) a.appendChild( n ); // All `eP` children wrap-
                 eP.appendChild( a );                                         // ped to form a hyperlink.
-                if( 0 == 0 ) break; }}} // TODO: narrow `textStart` and `textEnd` for the next pattern.
+                if( 0 == 0 ) break; }}} // TODO: narrow `region` and `regionEnd` for the next pattern.
 
 
 
