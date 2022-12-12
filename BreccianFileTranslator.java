@@ -76,6 +76,7 @@ import static Java.Nodes.parentElement;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
+import static Java.Nodes.successorElementAfter;
 import static Java.Paths.toPath;
 import static Java.Paths.to_URI_relativeReference;
 import static Java.StringBuilding.clear;
@@ -362,6 +363,18 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** @return The last fractal head within the given fractum.
+      * @see #head(Element)
+      */
+    private static Element finalHead( final Element fractum ) {
+        Element h = null; {
+            Node n = fractum.getLastChild();
+            do if( hasName( "Head", n )) h = (Element)n;
+                while( (n = n.getLastChild()) != null ); }
+        return h; }
+
+
+
     /** @param sourceFile The absolute path of a source file.
       * @param fileFractum The unfinished image of its file fractum.
       */
@@ -455,10 +468,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                       iRef.fracta() );
                     hRef_filePart = ""; }}
 
-          // Referring patterns
+          // Referring patterns taken from right to left in the pattern series
           // ──────────────────
             int region = 0, regionEnd = iRef.sourceText().length(); // Search region in referent source.
-            for(; iFc != null; iFc = iFc.getPreviousSibling() ) {
+            for(; iFc != null; iFc = iFc.getPreviousSibling() ) { // Leftward through `iF` children.
                 if( !hasName( "PatternMatcher", iFc )) continue;
                 final Element eP = (Element)iFc.getFirstChild().getNextSibling(); /* The image
                   of a Breccian regular-expression pattern from a pattern matcher. */
@@ -475,18 +488,19 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                           + "\n    Source line, with original pattern:  (before translation to Java)\n"
                           + p.markedLine() );
                         continue iF; }}
-                final String hRef; {
+                final String hRef; { // Hyperlink `href` attribute referring to matched fractum.
                     final ImagedBodyFractum[] referentFracta = iRef.fracta();
-                    final int r; { // Index in `referentFracta` of the matched fractum.
+                    final int r; { // Index in `referentFracta` of the matched body fractum, or -1.
                         final Matcher m = jP.matcher( iRef.sourceText() ).region( region, regionEnd );
                         r = seek( m, referentFracta, rSelf );
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
                             mould.warn( sourceFile, p, "No such fractal head\n" + p.markedLine() );
                             continue iF; }
-                        if( r + 1 < referentFracta.length ) { /* Then a further match may exist
-                            that would indicate an ambigous pattern.  Test for it: */
-                            if( seek_advance( m )) {
+                        final int s = r + 1;
+                        if( s < referentFracta.length ) {
+                            if( seek_advance( m )) { /* A further match may exist that would indicate
+                                an ambigous pattern.  Test for it: */
                                 final int r2 = seek( m, referentFracta, rSelf, /*ignoring*/r/* because
                                   any ‘further match in the same head … will be ignored.’  [RFI] */ );
                                 if( r2 != -2 ) { // Then a further fractum is matched.
@@ -496,18 +510,24 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                                       + rLineNumber + " and " + referentFracta[r2].lineNumber()
                                       + " both match\n" + p.markedLine() ); // This is disallowed. [RFI]
                                     continue iF; }}
-                            else assert false; }} /* That `seek_advance` will not fail
-                              given the prior guard `r + 1 < referentFracta.length`. */
-                    if( r >= 0 ) hRef = hRef_filePart + '#' +  referentFracta[r].identifier();
-                    else { // The referent is the file fractum.
+                            else assert false; /* That `seek_advance` cannot fail given the prior guard
+                              `s < referentFracta.length`. */
+                            region = referentFracta[s].xunc(); } /* Seek any next pattern in `r` body,
+                              which, if `r` has a body (see `regionEnd` below), begins with `s` head. */
+                        else region = regionEnd; } // No more fracta, no more search region.
+                    if( r < 0 ) { // Then the referent is the file fractum.
                         assert r == -1;
                         hRef = hRef_filePart.length() > 0 ? hRef_filePart // Either to that file,
-                          : '#' +  fileFractumIdentifier; }} // or to the top of the present file.
+                          : '#' +  fileFractumIdentifier; } // or to the top of the present file.
+                    else { // The referent is a body fractum.
+                        final ImagedBodyFractum referent = referentFracta[r];
+                        hRef = hRef_filePart + '#' +  referent.identifier();
+                        regionEnd = referent.xuncEnd(); }
+                    assert region <= regionEnd; } // Ready for the next pattern in the series, if any.
                 final Element a = d.createElementNS( nsHTML, "html:a" );
                 a.setAttribute( "href", hRef );
                 while( (n = eP.getFirstChild()) != null ) a.appendChild( n ); // All `eP` children wrap-
-                eP.appendChild( a );                                         // ped to form a hyperlink.
-                if( 0 == 0 ) break; }}} // TODO: narrow `region` and `regionEnd` for the next pattern.
+                eP.appendChild( a ); }}}                                     // ped to form a hyperlink.
 
 
 
@@ -520,6 +540,16 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private Font glyphTestFont;
+
+
+
+    /** @return The head of the given fractum, or null if there is none.
+      * @see #finalHead(Element)
+      */
+    private static Element head( final Element fractum ) {
+        final Element h = (Element)fractum.getFirstChild();
+        assert h == null && hasName( "FileFractum", fractum )  ||  hasName( "Head", h );
+        return h; }
 
 
 
@@ -775,18 +805,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     private static ImageFile newImageFile( final Path imageFile, final Element fileFractum,
           final ImagedBodyFractum[] fracta ) {
         final String text = sourceText( fileFractum );
-        final int originalEnd; { // The end boundary of the source text when originally it was parsed.
-            Element finalHead = null; { // The last fractal head of the text.
-                Node n = fileFractum;
-                for( ;; ) {
-                    n = n.getLastChild();
-                    if( n == null ) break;
-                    if( hasName( "Head", n )) finalHead = (Element)n; }}
-            final String ends = finalHead.getAttribute( "xuncLineEnds" );
-            originalEnd = parseUnsignedInt( ends.substring( ends.lastIndexOf(' ') + 1 )); }
-        if( text.length() != originalEnd ) {
-            throw new IllegalStateException( imageFile + ": Image `sourceText` (length " + text.length()
-              + ") unequal to original source text (" + originalEnd + ")" ); }
+        assert text.length() == xuncEnd( fileFractum, fracta );
         return new ImageFile( text, fracta ); }
 
 
@@ -920,11 +939,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 try { fileFractum = fileFractum( imageFile ); }
                 catch( ErrorAtFile x ) { throw new Unhandled( x ); }}
             imagedBodyFracta.clear();
-            for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
-                if( !isFractum( bF )) continue;
+            for( Element bF = successorFractum(fileFractum);  bF != null;  bF = successorFractum(bF) ) {
                 imagedBodyFracta.add( new ImagedBodyFractum(
                   parseUnsignedInt( bF.getAttribute( "xunc" )),
-                  parseUnsignedInt( bF.getAttribute( "lineNumber" )), bF.getAttribute( "id" ))); }
+                  parseUnsignedInt( bF.getAttribute( "lineNumber" )),
+                  bF.getAttribute( "id" ), xuncEnd( bF ))); }
             rec = newImageFile( imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) );
             mould.imageFilesLocal.put( imageFile, rec ); }
         return rec; }
@@ -1023,6 +1042,33 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     private final StringBuilder stringBuilder2 = new StringBuilder(
       /*initial capacity*/0x2000 ); // = 8192
+
+
+
+    /** Returns the fractal successor of `n` in document order, including any first child,
+      * or null if `n` has no fractal successor.
+      *
+      *     @see <a href='https://www.w3.org/TR/DOM-Level-3-Core/glossary.html#dt-document-order'>
+      *       Definition of ‘document order’</a>
+      */
+    public static Element successorFractum( final Node n ) {
+        Element e = successorElement( n );
+        while( e != null && !isFractum(e) ) e = successorElement( e );
+        return e; }
+
+
+
+    /** Returns the exclusive fractal successor of `n` in document order, or null if there is none.
+      *
+      *     @see <a href='https://www.w3.org/TR/DOM-Level-3-Core/glossary.html#dt-document-order'>
+      *       Definition of ‘document order’</a>
+      *     @return The first fractal successor of `e` outside of its descendants,
+      *       or null if none exists.
+      */
+    public static Element successorFractumAfter( final Node n ) {
+        Element e = successorElementAfter( n );
+        while( e != null && !isFractum(e) ) e = successorElementAfter( e );
+        return e; }
 
 
 
@@ -1160,8 +1206,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // Body fracta  [BF]
       // ═══════════
         imagedBodyFracta.clear();
-        for( Element bF = successorElement(fileFractum);  bF != null;  bF = successorElement(bF) ) {
-            if( !isFractum( bF )) continue;
+        for( Element bF = successorFractum(fileFractum);  bF != null;  bF = successorFractum(bF) ) {
 
           // Identification by `id` attribution
           // ──────────────────────────────────
@@ -1170,7 +1215,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // gather the longest keywords from the fractal head
           // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-            final Element head = (Element)bF.getFirstChild();
+            final Element head = head( bF );
             skim: {
                 final StringTokenizer tt = new StringTokenizer( sourceText(head), " \n\r\u00A0" );
                   // Parsing into tokens the text of the fractal head broken on Breccian whitespace.
@@ -1244,7 +1289,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ───────────────
             imagedBodyFracta.add( new ImagedBodyFractum(
               parseUnsignedInt( bF.getAttribute( "xunc" )),
-              parseUnsignedInt( bF.getAttribute( "lineNumber" )), id )); }
+              parseUnsignedInt( bF.getAttribute( "lineNumber" )), id, xuncEnd(bF) )); }
         final Path imageFile = imageSibling(sourceFile).normalize();
         mould.imageFilesLocal.put( imageFile, newImageFile(
           imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) )); }
@@ -1300,8 +1345,34 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         xmlInputFactory.setProperty( "javax.xml.stream.isCoalescing", true );
           // Consistent with the other input sources here relied on, such as `BrecciaXCursor`.
         xmlInputFactory.setProperty( "javax.xml.stream.isSupportingExternalEntities", false );
-        xmlInputFactory.setProperty( "javax.xml.stream.supportDTD", false ); }}
+        xmlInputFactory.setProperty( "javax.xml.stream.supportDTD", false ); }
           // While a DTD is present in each image file (a requirement of HTML) it is empty. [DTR]
+
+
+
+    /** @return The offset in the source text of the end boundary of the given fractum.
+      */
+    private static int xuncEnd( final Element fractum ) {
+        Element e = successorFractumAfter( fractum );
+        return e == null ? xuncHeadEnd( finalHead( fractum )) :
+          parseUnsignedInt( e.getAttribute( "xunc" )); }
+
+
+
+    /** @return The offset in the source text of the end boundary of the file fractum;
+      *   in other words, the length of the source text.
+      */
+    private static int xuncEnd( final Element fileFractum, final ImagedBodyFractum[] fracta ) {
+        final int fN = fracta.length;
+        return fN == 0 ? xuncHeadEnd( head( fileFractum )) : fracta[fN-1].xuncEnd(); }
+
+
+
+    /** @return The offset in the source text of the end boundary of `head`.
+      */
+    private static int xuncHeadEnd( final Element head ) {
+        final String ends = head.getAttribute( "xuncLineEnds" );
+        return parseUnsignedInt( ends.substring( ends.lastIndexOf(' ') + 1 )); }}
 
 
 
