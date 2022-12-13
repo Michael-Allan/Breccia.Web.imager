@@ -83,7 +83,7 @@ public final class BrecciaWebImageCommand implements AutoCloseable { // [AFN]
         sP.println( "    -co-service-directory=<URI reference>" );
         sP.println( "    -fake" );
         sP.println( "    -force" );
-        sP.println( "    -glyph-test-font=<local file path> | none" );
+        sP.println( "    -glyph-test-font=<file path> | none" );
         sP.println( "    -reference-mapping=;<pattern>;<replacement>; [|| ;<pattern>;<replacement>;] ..." );
         sP.println( "    -speak" );
         sP.println( "    -stifle" );
