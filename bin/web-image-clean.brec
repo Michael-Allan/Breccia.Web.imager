@@ -16,7 +16,9 @@
             - Sets the bounds of the Web image: any orphan image file stored at or under this path
               is eligble for deletion.
 
-    - The positional argument may be preceded by one or more nominal arguments, aka options:
+    - Any number of nominal arguments, aka options, may accompany the positional argument:
+        / Nominal arguments may appear anywhere on the command line,
+          they need not precede the positional argument.
 
         -force
             - Cleans the Web image without prompting.
