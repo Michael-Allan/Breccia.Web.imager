@@ -72,6 +72,8 @@ public final class ImageMould<C extends ReusableCursor> {
             Path p = boundaryPath;
             if( !exists( p )) throw new IllegalArgumentException( "No such file or directory: " + p );
             if( !p.isAbsolute() ) throw new IllegalArgumentException( "Not an absolute path: " + p );
+            if( !p.equals( p.normalize() )) {
+                throw new IllegalArgumentException( "Not a normalized path: " + p ); }
             try {
                 if( !( isDirectory(p = outputDirectory) && isDirectoryEmpty(p) )) {
                     throw new IllegalArgumentException( "Not an empty directory: " + p ); }}
@@ -88,7 +90,7 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** The topmost path of the Web image, which defines its bounds.  This is an absolute path.
+    /** The topmost path of the Web image, which defines its bounds.  It is absolute and normalized.
       * It comprises or contains the Breccian source files of the image, each accompanied
       * by any previously formed image file, a sibling namesake with a `.xht` extension.
       */

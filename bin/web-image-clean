@@ -39,7 +39,7 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
         if( n != 1 ) {
             err.println( commandName + ": Expecting 1 argument, found " + n );
             exitWithUsage( err, 1 ); }
-        boundaryPath = Path.of(argsP.get(0)).toAbsolutePath(); }
+        boundaryPath = Path.of(argsP.get(0)).toAbsolutePath().normalize(); }
 
 
 
