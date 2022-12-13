@@ -167,7 +167,7 @@ public final class ImageMould<C extends ReusableCursor> {
             Path p = boundaryPath;
             if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
             if( !isDirectory(p) && !looksBrecciaLike(p) ) {
-                throw new UserError( "File looks non-fractal, not a Breccian source file: " + p ); }
+                throw new UserError( "Not a Breccian source file: " + p ); }
             if( !isWritable(p = boundaryPathDirectory) ) {
                 throw new UserError( "Directory is unwritable: " + p ); }} /* While writing in itself
               is no responsibility of the mould, skipping unwritable directories is, and the gaurd
