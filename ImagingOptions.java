@@ -63,6 +63,15 @@ public class ImagingOptions extends Options {
 
 
 
+    /** List of occurences of the `-exclude` option, each in the form of a pattern matcher.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#exclude,exclude-patt'>
+      *         Command option `-exclude`</a>
+      */
+    public final List<Matcher> exclusions() { return exclusions; }
+
+
+
     /** The font file for glyph tests.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#glyph-test-f,glyph-test-f,path'>
@@ -139,6 +148,10 @@ public class ImagingOptions extends Options {
 
 
 
+    private List<Matcher> exclusions = new ArrayList<>( /*initial capacity*/8 );
+
+
+
     private String font = "FairfaxHD.ttf";
 
 
@@ -201,6 +214,19 @@ public class ImagingOptions extends Options {
 
 
 
+    /** @param arg A nominal argument, aka option.
+      * @param prefix The leading name and equals sign, e.g. "foo=".
+      * @param p Offset after `prefix` of the pattern that `x` complains of.
+      *   If the pattern directly follows the prefix, then `p` is zero.
+      */
+    String message( final String arg, final String prefix, final int p,
+          final PatternSyntaxException x ) {
+        final int a = prefix.length() + p + zeroBased( x.getIndex() ); // Offset in `arg` of the fault.
+        return commandName + ": Malformed pattern: " + x.getDescription() + '\n'
+          + markedLine( "  ", arg, a, new GraphemeClusterCounter() ); }
+
+
+
     private List<List<ReferenceTranslation>> referenceMappings = new ArrayList<>(
       /*initial capacity*/4 );
 
@@ -236,6 +262,14 @@ public class ImagingOptions extends Options {
         else if( arg.startsWith( s = "-centre-column=" )) centreColumn = parseFloat( value( arg, s ));
         else if( arg.startsWith( s = "-co-service-directory=" )) {
             coServiceDirectory = enslash( value( arg, s )); }
+        else if( arg.startsWith( s = "-exclude=" )) {
+            final Pattern pattern; {
+                try { pattern = Pattern.compile( value( arg, s )); }
+                catch( final PatternSyntaxException x ) {
+                    err.println( message( arg, s, 0, x ));
+                    isGo = false;
+                    break arg; }}
+            exclusions.add( pattern.matcher("") ); }
         else if( arg.equals( "-fake" )) toFake = true;
         else if( arg.equals( "-force" )) toForce = true;
         else if( arg.startsWith( s = "-glyph-test-font=" )) glyphTestFont = value( arg, s );
@@ -250,9 +284,7 @@ public class ImagingOptions extends Options {
                     final Pattern pattern; {
                         try { pattern = Pattern.compile( m.group( 2 )); }
                         catch( final PatternSyntaxException x ) {
-                            final int a = s.length() + m.start( 2 ) + zeroBased( x.getIndex() );
-                            err.println( commandName + ": Malformed pattern: " + x.getDescription()
-                              + '\n' + markedLine( "  ", arg, a, new GraphemeClusterCounter() ));
+                            err.println( message( arg, s, m.start(2), x ));
                             isGo = false;
                             break arg; }}
                     tt.add( newTranslation( pattern, /*replacement*/m.group(3) ));

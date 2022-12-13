@@ -39,6 +39,7 @@ import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.getPosixFilePermissions;
 import static java.nio.file.Files.isDirectory;
 import static java.nio.file.Files.isReadable;
+import static java.nio.file.Files.isRegularFile;
 import static java.nio.file.Files.isWritable;
 import static java.nio.file.Files.list;
 import static Java.Paths.to_URI_relativePathReference;
@@ -165,13 +166,15 @@ public final class ImageMould<C extends ReusableCursor> {
     public boolean formImage() throws UserError {
         /* Sanity tests on boundary path */ {
             Path p = boundaryPath;
-            if( wouldRead(p) && !isReadable(p) ) throw new UserError( "Path is unreadable: " + p );
-            if( !isDirectory(p) && !looksBrecciaLike(p) ) {
-                throw new UserError( "Not a Breccian source file: " + p ); }
+            if( wouldRead( p )) {
+                if( isExcluded( p )) throw new UserError( "Boundary path is explictly excluded: " + p );
+                if( !isReadable( p )) throw new UserError( "Boundary path is unreadable: " + p ); }
+            if( isRegularFile(p) && !looksBrecciaLike(p) ) {
+                throw new UserError( "Boundary file is not a Breccian source file: " + p ); }
             if( !isWritable(p = boundaryPathDirectory) ) {
-                throw new UserError( "Directory is unwritable: " + p ); }} /* While writing in itself
-              is no responsibility of the mould, skipping unwritable directories is, and the gaurd
-              here similar enough to its predecessors to warrant inclusion. */
+                throw new UserError( "Boundary directory is unwritable: " + p ); }} /* While writing
+                  in itself is no responsibility of the mould, skipping unwritable directories is,
+                  and the gaurd here is similar enough to its predecessors to warrant inclusion. */
 
       // ═══════════════════════════
       // 1. Pull in the source files, sorting them as apodictically imageable or indeterminate  [PSF]
@@ -608,6 +611,15 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
+    /** Whether the path matches an `-exclude` pattern.
+      */
+    boolean isExcluded( final Path path ) {
+        final String p = path.toString();
+        for( final Matcher m: opt.exclusions() ) if( m.reset(p).find() ) return true;
+        return false; }
+
+
+
     /** Whether the inaccessibility of `file` is of a type known to result
       * from the `-reference-mapping` translation of a private reference.
       *
@@ -683,6 +695,7 @@ public final class ImageMould<C extends ReusableCursor> {
     /** @param p A path to pull into the mould.
       */
     private void pullPath( final Path p ) {
+        if( isExcluded( p )) return;
         if( isReadable( p )) { // Herein cf. `formImage`.
             if( isDirectory( p )) {
                 if( isWritable( p )) pullDirectory( p );
@@ -761,7 +774,10 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-    /** Whether path `p` would be read during image formation if it were readable.
+    /** Whether path `p` would be read during image formation if it were readable
+      * and not explicitly excluded.
+      *
+      *     @see #isExcluded(Path)
       */
     private static boolean wouldRead( final Path p ) { return isDirectory(p) || looksBrecciaLike(p); }
 

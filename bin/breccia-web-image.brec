@@ -19,7 +19,8 @@
         <boundary path>
             / The path of a file or directory.
             - Sets the bounds of the Web image: any Breccian source file stored at or under this path
-              is eligible for imaging.
+              is eligible for imaging unless explicitly excluded.
+                : re `explicitly excluded` see `^^-exclude`
 
     - Any number of nominal arguments, aka options, may accompany the positional argument:
         / Nominal arguments may appear anywhere on the command line,
@@ -82,6 +83,15 @@
                 / Better not rely on it, however.  The files there may be incompatible
                   with your installation, or become so at any time, or be slow to serve.
                   Rather you should supply a directory under your own control.
+        -exclude: -exclude=<pattern>
+            - A pattern of file and directory paths to exclude from the image.
+                / Do not use tilde prefixes here, they will not be expanded.
+            - The form of the pattern is a regular expression as defined by the `Pattern` class of Java.
+                : see https://docs.oracle.com/en/java/javase/18/docs/api/java.base/java/util/regex/Pattern.html
+            - Paths that match the pattern in whole or part will not be traversed if they are
+              directories, and not imaged if they are Breccian source files.
+                / Do not use a terminal name separator (e.g. `/` or `\`) to match a directory path.
+                  To match a root directory `foo`, for instance, use `^/foo$` as opposed to `^/foo/$`.
         -fake
             - Runs the Web imager without effect.  Makes no Web image, nor any image files.
         -force
