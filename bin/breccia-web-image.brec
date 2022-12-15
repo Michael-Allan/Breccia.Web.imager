@@ -170,6 +170,13 @@
             - The default is 1.
 
 
+    ━━━━━
+     Bug
+    ─────
+        - Parallel runs of `breccia-web-image` by the same user may lead to unexpected results.
+            : e.g. ../ImagingCommands.java : All runs will share the same `projectOutputDirectory`.
+
+
     ━━━━━━━━━━
      See also
     ──────────
