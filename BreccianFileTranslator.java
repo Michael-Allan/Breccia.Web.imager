@@ -236,12 +236,36 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    private static boolean advance_to_ignore( final Matcher m ) {
-        final int matchStart = m.start();
-        final int regionEnd = m.regionEnd();
-        if( matchStart == regionEnd ) return false; // Maybe possible given a zero-width assertion.
-        m.region( matchStart + 1, regionEnd ); /* Far enough to avoid a rematch.
-          Whether `matchStart + 1` is too timid, too aggressive, or neither is uncertain.
+    /** Tries to advance `m.regionStart` far enough to preclude a repeat of the last match.
+      *
+      *     @return True if the attempt succeeded, false if the region was left unchanged.
+      */
+    private static boolean advanceToIgnore( final Matcher m ) {
+        return advanceToIgnore( m.start(), m, m.regionEnd() ); }
+
+
+
+    /** Tries to advance `m.regionStart` far enough to preclude a repeat of the last match.
+      *
+      *     @param rEnd The number to set for `m.regionEnd`.
+      *     @return True if the attempt succeeded, false if the region was left unchanged.
+      */
+    private static boolean advanceToIgnore( final Matcher m, final int rEnd ) {
+        return advanceToIgnore( m.start(), m, rEnd ); }
+
+
+
+    /** Tries to advance `m.regionStart` far enough to preclude a repeat of the last match.
+      *
+      *     @param mStart The start boundary of the last match.
+      *     @param rEnd The number to set for `m.regionEnd`.
+      *     @return True if the attempt succeeded, false if the region was left unchanged.
+      */
+    private static boolean advanceToIgnore( final int mStart, final Matcher m, final int rEnd ) {
+        if( mStart == rEnd ) return false; // Maybe possible given a zero-width assertion.
+        assert mStart < rEnd;
+        m.region( mStart + 1, rEnd ); /* Far enough to avoid a rematch.
+          Whether `mStart + 1` is too timid, too aggressive, or neither is uncertain.
           It might depend on the richness of the pattern language. */
         return true; }
 
@@ -510,8 +534,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             continue iF; }
                         final int s = r + 1;
                         if( s < referentFracta.length ) {
-                            if( advance_to_ignore( m )) { /* A further match may exist that would
-                                  indicate an ambigous pattern.  Test for it: */
+                            if( advanceToIgnore( m, regionEnd )) { /* A further match may exist
+                                  that would indicate an ambigous pattern.  Test for it: */
                                 final int r2 = seek( m, referentFracta, rSelf, /*ignoring*/r/* because
                                   any ‘further match in the same head … will be ignored.’  [RFI] */ );
                                 if( r2 != -2 ) { // Then a further fractum is matched.
@@ -521,7 +545,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                                       + rLineNumber + " and " + referentFracta[r2].lineNumber()
                                       + " both match\n" + p.markedLine() ); // This is disallowed. [RFI]
                                     continue iF; }}
-                            else assert false; /* That `advance_to_ignore` cannot fail given the prior
+                            else assert false; /* That `advanceToIgnore` cannot fail given the prior
                               guard `s < referentFracta.length`. */
                             region = referentFracta[s].xunc(); } /* Seek any next pattern in `r` body,
                               which, if `r` has a body (see `regionEnd` below), begins with `s` head. */
@@ -961,7 +985,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** Seeks the next match of a fractum-indicant pattern in a referent source text.
+    /** Seeks the next match of a fractum-indicant pattern in a referent source text using matcher `m`.
+      * This method may alter the search region of `m`.  It may advance the start boundary in order
+      * to preclude ignorable matches, and it may leave the end boundary at a location inappropriate
+      * for subsequent searches.
       *
       *     @param m A matcher preconfigured for the purpose, preset to the search region
       *       of the referent source text and ready for immediate use.
@@ -978,14 +1005,26 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final int f = seek( m.start(), fracta ); // Index in `fracta` of the matched fractum, or -1.
             if( f == fSelf ) { /* Then ignore this match, for matches of a fractum-indicant pattern
                   are ‘excluded from the head in which the fractum indicant is contained.’ [RFI] */
-                if( advance_to_ignore( m )) continue;
+                if( advanceToIgnore( m )) continue;
                 break; }
             final int g = f + 1;
             if( g < fracta.length ) {
                 final int fEnd = fracta[g].xunc(); // End boundary of the head of the matched fractum.
-                if( m.end() >= fEnd ) { /* Then this match extends across multiple heads.
+                multi: if( m.end() >= fEnd ) { /* Then this match extends across multiple heads.
                       Ignore this match, for matches are ‘confined to a single head.’ [RFI] */
-                    if( advance_to_ignore( m )) continue;
+
+                  // truncate to `fEnd` the search region (method 1 of ignoring the match)
+                  // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+                    final int mStart = m.start();
+                    final int rEnd = m.regionEnd();
+                    m.region( m.regionStart(), fEnd );
+                    if( m.find() ) break multi; // For now the match is ‘confined to a single head’.
+
+                  // advance past `mStart` the search region (method 2 of ignoring the match)
+                  // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+                    if( advanceToIgnore( mStart, m, rEnd )) continue;
+                    assert false; /* That `advanceToIgnore` cannot fail given the prior guard
+                      `g < fracta.length`. */
                     break; }}
             return f; }
         return -2; }
@@ -1000,7 +1039,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         do {
             final int f = seek( m, fracta, fSelf );
             if( f != fIgnore ) return f; }
-            while( advance_to_ignore( m ));
+            while( advanceToIgnore( m ));
         return -2; }
 
 
