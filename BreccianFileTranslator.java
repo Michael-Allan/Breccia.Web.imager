@@ -536,8 +536,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         if( s < referentFracta.length ) {
                             if( advanceToIgnore( m, regionEnd )) { /* A further match may exist
                                   that would indicate an ambigous pattern.  Test for it: */
-                                final int r2 = seek( m, referentFracta, rSelf, /*ignoring*/r/* because
-                                  any ‘further match in the same head … will be ignored.’  [RFI] */ );
+                                final int r2 = seek( m, referentFracta, rSelf, /*ignoring*/r/* as that
+                                  would be a ‘further match in the same head.’  [RFI] */ );
                                 if( r2 != -2 ) { // Then a further fractum is matched.
                                     final CharacterPointer p = characterPointer( eP );
                                     final int rLineNumber = r < 0 ? 1 : referentFracta[r].lineNumber();
