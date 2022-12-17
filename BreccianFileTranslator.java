@@ -450,9 +450,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // ══════════════════
         iF: for( Element iF = successorElement(fileFractum);  iF != null;  iF = successorElement(iF) ) {
             if( !hasName( "FractumIndicant", iF )) continue;
-            if( !hasName( "PatternMatcher", iF.getFirstChild() )
-             && !hasName( "InferentialReferentIndicant", iF.getParentNode().getParentNode() )) {
-                continue; } // No patterns (explicit or implicit) to hyperlink.
+            final Node iFcPM1; { /* Image of the first pattern matcher of the series, or null. */
+                final Node iFc = iF.getFirstChild();
+                if(  hasName( "PatternMatcher", iFc )) iFcPM1 = iFc;
+                else if( hasName( "InferentialReferentIndicant", iF.getParentNode().getParentNode() )) {
+                    iFcPM1 = null; } // Pending determination of what TODO here.
+                else continue; } // No patterns to hyperlink.
             assert hasName( "AssociativeReference", ownerFractum(iF) ); /* Hyperlinking a formal
               reference other than an associative one?  Then sync with `formalReferenceAt` above. */
 
@@ -508,6 +511,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             int region = 0, regionEnd = iRef.sourceText().length(); // Search region in referent source.
             for(; iFc != null; iFc = iFc.getPreviousSibling() ) { // Leftward through `iF` children.
                 if( !hasName( "PatternMatcher", iFc )) continue;
+                final int rSelfIgnore = iFc == iFcPM1 ? rSelf : -2;
                 final Element eP = (Element)iFc.getFirstChild().getNextSibling(); /* The image
                   of a Breccian regular-expression pattern from a pattern matcher. */
                 assert hasName( "Pattern", eP );
@@ -527,7 +531,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     final ImagedBodyFractum[] referentFracta = iRef.fracta();
                     final int r; { // Index in `referentFracta` of the matched body fractum, or -1.
                         final Matcher m = jP.matcher( iRef.sourceText() ).region( region, regionEnd );
-                        r = seek( m, referentFracta, rSelf );
+                        r = seek( m, referentFracta, rSelfIgnore );
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
                             mould.warn( sourceFile, p, "No such fractal head\n" + p.markedLine() );
@@ -536,8 +540,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         if( s < referentFracta.length ) {
                             if( advanceToIgnore( m, regionEnd )) { /* A further match may exist
                                   that would indicate an ambigous pattern.  Test for it: */
-                                final int r2 = seek( m, referentFracta, rSelf, /*ignoring*/r/* as that
-                                  would be a ‘further match in the same head.’  [RFI] */ );
+                                final int r2 = seek( m, referentFracta, rSelfIgnore, /*ignoring also*/r/*
+                                  as that would be a ‘further match in the same head.’  [RFI] */ );
                                 if( r2 != -2 ) { // Then a further fractum is matched.
                                     final CharacterPointer p = characterPointer( eP );
                                     final int rLineNumber = r < 0 ? 1 : referentFracta[r].lineNumber();
@@ -993,18 +997,25 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @param m A matcher preconfigured for the purpose, preset to the search region
       *       of the referent source text and ready for immediate use.
       *     @param fracta The imaged body fracta of the referent source text.
-      *     @param fSelf The index in `fracta` of the nearest fractal ancestor of the fractum indicant,
-      *        or -1 if that ancestor is the file fractum of the referent source text,
-      *        or -2 if the fractum indicant lies outside of the referent source text.
-      *        The value is other than -2 only in the case of a same-document reference.
+      *     @param fSelfIgnore The index in `fracta` of a body fractum whose matches
+      *        to ignore on account of its head containing the fractum indicant itself,
+      *        or -1 to ignore the file fractum on this account,
+      *        or -2 to ignore no fractum on this account, because either
+      *        (a) `m` does not represent the matcher that ‘leads the pattern-matcher series’, or
+      *        (b) the fractum indicant lies outside of the referent source text (outside of `fracta`).
+      *            <p>The value is other than -2 only where
+      *        (a) `m` represents the matcher that ‘leads the pattern-matcher series’, and
+      *        (b) that matcher would be hyperlinked as a same-document reference.</p>
       *     @return The index in `fracta` of the matched body fractum, or -1 if instead the file fractum
-      *       is matched, or -2 if no fractum is matched.
+      *       is matched, or -2 if no fractum is matched. *//*
+      *
+      * The references under `fSelfIgnore` above are to the language definition, [RFI]
       */
-    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelf ) {
+    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelfIgnore ) {
         while( m.find() ) {
             final int f = seek( m.start(), fracta ); // Index in `fracta` of the matched fractum, or -1.
-            if( f == fSelf ) { /* Then ignore this match, for matches of a fractum-indicant pattern
-                  are ‘excluded from the head in which the fractum indicant is contained.’ [RFI] */
+            if( f == fSelfIgnore ) { /* Then ignore this match.  ‘Fractum indicants do not indicate
+                  the fracta in whose heads they are contained.’ [RFI] */
                 if( advanceToIgnore( m )) continue;
                 break; }
             final int g = f + 1;
@@ -1031,13 +1042,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @param fIgnore The index in `fracta` of a body fractum whose matches to ignore,
+    /** @param fIgnore The index in `fracta` of an additional body fractum whose matches to ignore,
       *    or -1 to ignore matches of the file fractum.
       */
-    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelf,
+    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelfIgnore,
           final int fIgnore ) {
         do {
-            final int f = seek( m, fracta, fSelf );
+            final int f = seek( m, fracta, fSelfIgnore );
             if( f != fIgnore ) return f; }
             while( advanceToIgnore( m ));
         return -2; }
