@@ -313,7 +313,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             assert fH != null; // Caller obeys the API.
             textRegional = sourceText( fH );
             endsRegional.clear();
-            final StringTokenizer tt = new StringTokenizer( fH.getAttribute( "xuncLineEnds" ));
+            final StringTokenizer tt = new StringTokenizer( fH.getAttribute( "xuncLineEnds" ), " " );
             while( tt.hasMoreTokens() ) endsRegional.add( parseUnsignedInt( tt.nextToken() ));
             final Element f = parentAsElement( fH );
             offsetRegional = parseUnsignedInt( f.getAttribute( "xunc" ));
