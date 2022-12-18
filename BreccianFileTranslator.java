@@ -1215,9 +1215,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final int pointType = parseInt(
               parentAsElement(parentAsElement(b)).getAttribute( "typestamp" ));
             final String typeMark; switch( pointType ) {
-                case Typestamp.alarmPoint  -> typeMark = "!!";
-                case Typestamp.plainPoint  -> typeMark =  ""; // None.
-                case Typestamp.taskPoint   -> typeMark =  "+";
+                case Typestamp.alarmPoint -> typeMark = "!!";
+                case Typestamp.plainPoint -> typeMark =  ""; // None.
+                case Typestamp.taskPoint  -> typeMark =  "+";
                 default -> { continue; }}; // No free-form content in bullets of this type.
             final String text;
             final int freeEnd; { // End boundary of free-form part, start of type-mark terminator.
