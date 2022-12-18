@@ -41,8 +41,8 @@ import org.w3c.dom.Text;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
 import static Breccia.parser.Typestamp.empty;
-import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Language.completesNewline;
+import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.Project.imageSibling;
@@ -928,18 +928,52 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       */
     private Pattern pattern( final Node eP, final String mm, int flags ) {
 
+      // Match modifiers
+      // ───────────────
+        final boolean toExpandSpaces; { // Whether expansive space mode is enabled.
+            boolean pIsGiven = false;
+            for( int c = 0, cN = mm.length(); c < cN; ++c ) switch( mm.charAt( c )) {
+                case 'm' -> flags |= MULTILINE;
+                case 's' -> flags |= DOTALL;
+                case 'p' -> pIsGiven = true;
+                default -> throw new IllegalArgumentException( "Match modifiers `" + mm + '`' ); }
+                  // Unexpected ∵ the Breccia parser should have caught and reported it to the user.
+            toExpandSpaces = pIsGiven; }
+
       // Pattern
       // ───────
         final StringBuilder bP = clear( stringBuilder ); // The Java translation of `eP`.
         for( Node n = eP.getFirstChild();  n != null;  n = n.getNextSibling() ) {
             assert isElement( n ); // ↘ for reason
             bP.append( switch( n.getLocalName()/* ≠ null, given the assertion above */) { // [NSC]
-                case "Granum" -> Pattern.quote( textChildFlat( n ));
+                case "Granum" -> {
+                    final String tF = textChildFlat( n );
+                    if( !toExpandSpaces ) yield Pattern.quote( tF );
+                    final Matcher m = plainSpaceMatcher.reset( tF );
+                    int c = 0;
+                    final int cN = tF.length();
+                    if( m.lookingAt() ) {
+                        bP.append( "(?: |\n|\r\n)+" );
+                        m.region( c = m.end(), cN ); }
+                    while( m.find() ) {
+                        bP.append( "\\Q" );
+                        bP.append( tF, c, m.start() );
+                        bP.append( "\\E" );
+                        bP.append( "(?: |\n|\r\n)+" );
+                        c = m.end(); }
+                    if( c < cN ) {
+                        bP.append( "\\Q" );
+                        bP.append( tF, c, cN );
+                        bP.append( "\\E" ); }
+                    yield ""; } // The whole having been appended above.
                 case "BackslashedSpecial" -> {
                     final String tF = textChildFlat( n );
                     if( tF.equals( "\\t" )) yield "(?:    )";
                     final Matcher m = numberedCharacterBackslashMatcher.reset( tF );
-                    if( m.matches() ) yield "\\x{" + m.group(1) + "}";
+                    if( m.matches() ) {
+                        bP.append( "\\x{" );
+                        bP.append( m.group( 1 ));
+                        yield "}"; }
                     yield tF; }
                 case "Literalizer" -> {
                     n = n.getNextSibling(); // Skipping past the literalizer `\`.
@@ -949,15 +983,19 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                       quoted as usual, for that suffices to literalize the character. */
                 case "PerfectIndentMarker" -> "^(?:    )*";
                 default -> textChildFlat( n ); }); }
-
-      // Flags, aka match modifiers
-      // ─────
-        for( int c = 0, cN = mm.length(); c < cN; ++c ) flags |= switch( mm.charAt( c )) {
-            case 'm' -> MULTILINE;
-            case 's' -> DOTALL;
-            default -> throw new IllegalArgumentException( "Match modifiers `" + mm + '`' ); };
-              // Unexpected, the Breccia parser should have caught and reported it to the user.
         return Pattern.compile( bP.toString(), flags ); }
+
+
+
+    /** A pattern to `find` a sequence of plain space characters.
+      *
+      *     @see java.util.regex.Matcher#find()
+      */
+    private static final Pattern plainSpacePattern = Pattern.compile( " +" );
+
+
+
+    private final Matcher plainSpaceMatcher = plainSpacePattern.matcher( "" );
 
 
 
