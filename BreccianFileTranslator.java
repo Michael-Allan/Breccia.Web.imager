@@ -968,7 +968,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     yield ""; } // The whole having been appended above.
                 case "BackslashedSpecial" -> {
                     final String tF = textChildFlat( n );
-                    if( tF.equals( "\\t" )) yield "(?:    )";
                     final Matcher m = numberedCharacterBackslashMatcher.reset( tF );
                     if( m.matches() ) {
                         bP.append( "\\x{" );
