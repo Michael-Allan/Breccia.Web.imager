@@ -83,6 +83,7 @@ import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static Java.URI_References.isRemote;
 import static java.util.Arrays.sort;
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.regex.Pattern.DOTALL;
 import static java.util.regex.Pattern.MULTILINE;
 import static javax.xml.transform.OutputKeys.*;
@@ -933,6 +934,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final boolean toExpandSpaces; { // Whether expansive space mode is enabled.
             boolean pIsGiven = false;
             for( int c = 0, cN = mm.length(); c < cN; ++c ) switch( mm.charAt( c )) {
+                case 'i' -> flags |= CASE_INSENSITIVE;
                 case 'm' -> flags |= MULTILINE;
                 case 's' -> flags |= DOTALL;
                 case 'p' -> pIsGiven = true;
