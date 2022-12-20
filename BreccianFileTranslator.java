@@ -947,50 +947,50 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final StringBuilder bP = clear( stringBuilder ); // The Java translation of `eP`.
         for( Node n = eP.getFirstChild();  n != null;  n = n.getNextSibling() ) {
             assert isElement( n ); // ↘ for reason
-            bP.append( switch( n.getLocalName()/* ≠ null, given the assertion above */) { // [NSC]
+            switch( n.getLocalName()/* ≠ null, given the assertion above */) { // [NSC]
                 case "AnchoredPrefix" -> {
                     final String tF = textChildFlat( n );
                     assert tF.length() == 2 && tF.charAt(0) == '^';
-                    yield switch( tF.charAt( 1 )) {
+                    bP.append( switch( tF.charAt( 1 )) {
                         case '*' -> "^(?:    )*";
                         case '+' -> "^(?:    )*"+"[\u2500-\u259F].*?\\R(?:    )* {1,3}";
                         case '^' -> "^(?:    )*(?:[\u2500-\u259F].*?\\R(?:    )* {1,3})?";
-                        default -> throw new IllegalStateException(); }; }
+                        default -> throw new IllegalStateException(); }); }
                 case "Granum" -> {
                     final String tF = textChildFlat( n );
-                    if( !toExpandSpaces ) yield Pattern.quote( tF );
-                    final Matcher m = plainSpaceMatcher.reset( tF );
-                    int c = 0;
-                    final int cN = tF.length();
-                    if( m.lookingAt() ) {
-                        bP.append( "(?: |\n|\r\n)+" );
-                        m.region( c = m.end(), cN ); }
-                    while( m.find() ) {
-                        bP.append( "\\Q" );
-                        bP.append( tF, c, m.start() );
-                        bP.append( "\\E" );
-                        bP.append( "(?: |\n|\r\n)+" );
-                        c = m.end(); }
-                    if( c < cN ) {
-                        bP.append( "\\Q" );
-                        bP.append( tF, c, cN );
-                        bP.append( "\\E" ); }
-                    yield ""; } // The whole having been appended above.
+                    if( toExpandSpaces ) {
+                        final Matcher m = plainSpaceMatcher.reset( tF );
+                        int c = 0;
+                        final int cN = tF.length();
+                        if( m.lookingAt() ) {
+                            bP.append( "(?: |\n|\r\n)+" );
+                            m.region( c = m.end(), cN ); }
+                        while( m.find() ) {
+                            bP.append( "\\Q" );
+                            bP.append( tF, c, m.start() );
+                            bP.append( "\\E" );
+                            bP.append( "(?: |\n|\r\n)+" );
+                            c = m.end(); }
+                        if( c < cN ) {
+                            bP.append( "\\Q" );
+                            bP.append( tF, c, cN );
+                            bP.append( "\\E" ); }}
+                    else bP.append( Pattern.quote( tF )); }
                 case "BackslashedSpecial" -> {
                     final String tF = textChildFlat( n );
                     final Matcher m = numberedCharacterBackslashMatcher.reset( tF );
                     if( m.matches() ) {
                         bP.append( "\\x{" );
                         bP.append( m.group( 1 ));
-                        yield "}"; }
-                    yield tF; }
+                        bP.append( '}' ); }
+                    else bP.append( tF ); }
                 case "Literalizer" -> {
                     n = n.getNextSibling(); // Skipping past the literalizer `\`.
                     assert hasName( "Granum", n ); /* Always a literalizer is followed
                       directly by a `Granum` that starts with the character to literalize. */
-                    yield Pattern.quote( textChildFlat( n )); } /* Yielding the `Granum`
+                    bP.append( Pattern.quote( textChildFlat( n ))); } /* Yielding the `Granum`
                       quoted as usual, for that suffices to literalize the character. */
-                default -> textChildFlat( n ); }); }
+                default -> bP.append( textChildFlat( n )); }}
         return Pattern.compile( bP.toString(), flags ); }
 
 
