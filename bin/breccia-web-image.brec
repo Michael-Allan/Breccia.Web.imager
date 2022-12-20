@@ -12,7 +12,7 @@
                 : re `formal resources` see `formalResources` @ non-fractal ../ExternalResources.java :
                   Typically these are Breccian referent files.
         - The working directory must be the command directory.
-            : see `^^working directory$` @ `^^shell commands$` @
+            : see `^*working directory$` @ `^*shell commands$` @
               http://reluk.ca/project/Java/editorial_guidelines.brec
     - One positional argument is required:
 
@@ -20,7 +20,7 @@
             / The path of a file or directory.
             - Sets the bounds of the Web image: any Breccian source file stored at or under this path
               is eligible for imaging unless explicitly excluded.
-                : re `explicitly excluded` see `^^-exclude`
+                : re `explicitly excluded` see `^*-exclude`
 
     - Any number of nominal arguments, aka options, may accompany the positional argument:
         / Nominal arguments may appear anywhere on the command line,
@@ -64,7 +64,7 @@
                         - An actual copy of the co-service directory must exist locally at CS
                           in order for this to work.
                     b) Glyph testing may work by default.
-                        : see `^^-glyph-test-font`
+                        : see `^*-glyph-test-font`
             - The co-service directory must contain the following auxiliary files at a minimum.
 
                     style sheet: `<CS>/Breccia/Web/imager/image.css`
@@ -104,20 +104,20 @@
                 - A test is performed on each character of the source text and a warning emitted
                   for any whose glyph is missing from the font.
             - The default value is either read from the style sheet, or it is `none`.
-                : re `style sheet` see @ `^^-co-service-directory`
+                : re `style sheet` see @ `^*-co-service-directory`
                 - Use `-speak` to report the actual default value in use.
                     : re `-speak` see
                 - For the value to be read from the style sheet, the co-service directory must exist
                   locally and the style sheet there (or one of its locally reachable imports) must
                   contain a font reference with a ‘[GTF]’ mark.
-                    : re `co-service directory` see `^^-co-service-directory`
+                    : re `co-service directory` see `^*-co-service-directory`
                     : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
                 - The bundled style sheet describes and gives an example of this mark.
                     : re `bundled style sheet` see ../image.css
         -reference-mapping: -reference-mapping=<translation> [|| <translation>] ...
             - A list of translations to apply to URI references of the source text,
               separated by double bars ‘||’.
-                : re `URI references` see e.g. `─ (URI reference) ─` @ `^^ Resource indicant$` @
+                : re `URI references` see e.g. `─ (URI reference) ─` @ `^+Resource indicant$` @
                   http://reluk.ca/project/Breccia/language_definition.brec
             - The translations are attempted in the given order on each URI reference of the source text
               until one succeeds or the list is exhausted.
@@ -154,19 +154,19 @@
                             \ which the addition of a normalization step would defy.
                         : re `relative-path.+reference`s see
                           https://www.rfc-editor.org/rfc/rfc3986#section-4.2
-                        : re `boundary path` see `^^<boundary path>$` @
-                          `^^- One positional argument is required:$`
+                        : re `boundary path` see `^*<boundary path>$` @
+                          `^*- One positional argument is required:$`
         -speak
             - Sets the verbosity to level 2.
-                : re `verbosity` see `^^-verbosity`
+                : re `verbosity` see `^*-verbosity`
         -stifle
             - Sets the verbosity to level 0.
-                : re `verbosity` see `^^-verbosity`
+                : re `verbosity` see `^*-verbosity`
         -verbosity: -verbosity=0|1|2
             - The allowed amount of user feedback on the standard output stream:
               0 none, 1 some, and 2 more.
-                : see also `^^-stifle$`
-                : see also `^^-speak$`
+                : see also `^*-stifle$`
+                : see also `^*-speak$`
             - The default is 1.
 
 
@@ -181,7 +181,7 @@
      See also
     ──────────
         • Working example
-            : e.g. `^^testing$` @ http://reluk.ca/project/Breccia/Web/imager/working_notes.brec
+            : e.g. `^*testing$` @ http://reluk.ca/project/Breccia/Web/imager/working_notes.brec
         • The `waycast-web-image` command
             : see http://reluk.ca/project/wayic/Web/imager/bin/waycast-web-image.brec
             - For imaging a boundary path that might include a waycast.

@@ -946,6 +946,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         for( Node n = eP.getFirstChild();  n != null;  n = n.getNextSibling() ) {
             assert isElement( n ); // ↘ for reason
             bP.append( switch( n.getLocalName()/* ≠ null, given the assertion above */) { // [NSC]
+                case "AnchoredPrefix" -> {
+                    final String tF = textChildFlat( n );
+                    assert tF.length() == 2 && tF.charAt(0) == '^';
+                    yield switch( tF.charAt( 1 )) {
+                        case '*' -> "^(?:    )*";
+                        case '+' -> "^(?:    )*"+"[\u2500-\u259F].*?\\R(?:    )* {1,3}";
+                        case '^' -> "^(?:    )*(?:[\u2500-\u259F].*?\\R(?:    )* {1,3})?";
+                        default -> throw new IllegalStateException(); }; }
                 case "Granum" -> {
                     final String tF = textChildFlat( n );
                     if( !toExpandSpaces ) yield Pattern.quote( tF );
@@ -980,7 +988,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                       directly by a `Granum` that starts with the character to literalize. */
                     yield Pattern.quote( textChildFlat( n )); } /* Yielding the `Granum`
                       quoted as usual, for that suffices to literalize the character. */
-                case "PerfectIndentMarker" -> "^(?:    )*";
                 default -> textChildFlat( n ); }); }
         return Pattern.compile( bP.toString(), flags ); }
 

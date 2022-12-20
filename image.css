@@ -226,11 +226,11 @@
 
 
 
+    brec|AnchoredPrefix,
     brec|BackslashedSpecial,
     brec|GroupDelimiter,
     brec|Literalizer,
-    brec|Metacharacter,
-    brec|PerfectIndentMarker {
+    brec|Metacharacter {
         color: hsl( 0/*red*/, 33%, 38% ); }
 
 
