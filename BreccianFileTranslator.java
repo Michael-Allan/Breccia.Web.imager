@@ -79,10 +79,12 @@ import static Java.Nodes.successorElement;
 import static Java.Nodes.successorElementAfter;
 import static Java.Paths.toPath;
 import static Java.Paths.to_URI_relativeReference;
+import static Java.Patterns.appendFlags;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static Java.URI_References.isRemote;
 import static java.util.Arrays.sort;
+import static java.util.logging.Level.WARNING;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.regex.Pattern.DOTALL;
 import static java.util.regex.Pattern.MULTILINE;
@@ -567,7 +569,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         r = seek( m, referentFracta, rSelfIgnore );
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
-                            mould.warn( sourceFile, p, "No such fractal head\n" + p.markedLine() );
+                            warn( sourceFile, p, jP, "No such fractal head\n" + p.markedLine() );
                             continue iF; }
                         final int s = r + 1;
                         if( s < referentFracta.length ) {
@@ -578,7 +580,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                                 if( r2 != -2 ) { // Then a further fractum is matched.
                                     final CharacterPointer p = characterPointer( eP );
                                     final int rLineNumber = r < 0 ? 1 : referentFracta[r].lineNumber();
-                                    mould.warn( sourceFile, p, "Ambiguous pattern: fracta at lines "
+                                    warn( sourceFile, p, jP, "Ambiguous pattern: fracta at lines "
                                       + rLineNumber + " and " + referentFracta[r2].lineNumber()
                                       + " both match\n" + p.markedLine() ); // This is disallowed. [RFI]
                                     continue iF; }}
@@ -1426,6 +1428,30 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     private final Map<Integer,UnglyphedCharacter> unsMap = new HashMap<>();
       // Code points (keys) each mapped to an unglyphed-character record (value).
+
+
+
+    /* @paramImplied #stringBuilder2
+     */
+    private void warn( final Path f, final CharacterPointer p, final Pattern jP, final String message ) {
+        mould.warn( f, p, message );
+        if( !logger.isLoggable( WARNING )) return;
+        final StringBuilder b = clear( stringBuilder2 );
+        b.append( wrnHead( f, p. lineNumber ));
+        b.append( message );
+        b.append( "\n    Seeking " );
+        b.append( Pattern.class.getName() );
+        b.append( " `" ); {
+            final String jPs = jP.toString();
+            final int cN = jPs.length();
+            for( int c = 0; c < cN; ++c ) { // Append pattern string `jPs` in human-readable form:
+                final char ch = jPs.charAt( c );
+                if( ch == '\n' ) b.append( "\\n" );
+                else if( ch == '\r' ) b.append( "\\r" );
+                else b.append( ch ); }
+            b.append( "`" ); }
+        appendFlags( jP, b );
+        logger.log( WARNING, b.toString() ); }
 
 
 
