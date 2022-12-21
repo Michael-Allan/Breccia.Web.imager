@@ -295,6 +295,38 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** @param tF The flat text of a `Granum` element from the image of a regular-expression pattern.
+      * @param c The offset in `tF` at which to start appending.
+      */
+    private void appendGranum( final String tF, int c, final StringBuilder b,
+          final boolean toExpandSpaces ) {
+        final int cN = tF.length();
+        if( !toExpandSpaces ) {
+            appendGranum( tF, c, cN, b );
+            return; }
+        final Matcher m = plainSpaceMatcher.reset( tF );
+        if( m.lookingAt() ) {
+            b.append( "(?: |\n|\r\n)+" );
+            m.region( c = m.end(), cN ); }
+        while( m.find() ) {
+            appendGranum( tF, c, m.start(), b );
+            b.append( "(?: |\n|\r\n)+" );
+            c = m.end(); }
+        if( c < cN ) appendGranum( tF, c, cN, b ); }
+
+
+
+    /** @throws AssertionError If assertions are enabled and the portion of the text to append includes
+      *   a character that would have special meaning in the context of a regular expression.
+      */
+    private void appendGranum( final String tF, int c, final int cEnd, final StringBuilder b ) {
+        while( c < cEnd ) {
+            final char ch = tF.charAt( c++ );
+            assert "\\^.$|()*+?[]{}".indexOf(ch) < 0;
+            b.append( ch ); }}
+
+
+
     /** @param granum A granal element other than `FileFractum`.
       */
     protected final CharacterPointer characterPointer( Element granum ) {
@@ -956,26 +988,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         case '+' -> "^(?:    )*"+"[\u2500-\u259F].*?\\R(?:    )* {1,3}";
                         case '^' -> "^(?:    )*(?:[\u2500-\u259F].*?\\R(?:    )* {1,3})?";
                         default -> throw new IllegalStateException(); }); }
-                case "Granum" -> {
-                    final String tF = textChildFlat( n );
-                    if( toExpandSpaces ) {
-                        final Matcher m = plainSpaceMatcher.reset( tF );
-                        int c = 0;
-                        final int cN = tF.length();
-                        if( m.lookingAt() ) {
-                            bP.append( "(?: |\n|\r\n)+" );
-                            m.region( c = m.end(), cN ); }
-                        while( m.find() ) {
-                            bP.append( "\\Q" );
-                            bP.append( tF, c, m.start() );
-                            bP.append( "\\E" );
-                            bP.append( "(?: |\n|\r\n)+" );
-                            c = m.end(); }
-                        if( c < cN ) {
-                            bP.append( "\\Q" );
-                            bP.append( tF, c, cN );
-                            bP.append( "\\E" ); }}
-                    else bP.append( Pattern.quote( tF )); }
+                case "Granum" -> appendGranum( textChildFlat(n), 0, bP, toExpandSpaces );
                 case "BackslashedSpecial" -> {
                     final String tF = textChildFlat( n );
                     final Matcher m = numberedCharacterBackslashMatcher.reset( tF );
@@ -985,11 +998,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         bP.append( '}' ); }
                     else bP.append( tF ); }
                 case "Literalizer" -> {
-                    n = n.getNextSibling(); // Skipping past the literalizer `\`.
-                    assert hasName( "Granum", n ); /* Always a literalizer is followed
-                      directly by a `Granum` that starts with the character to literalize. */
-                    bP.append( Pattern.quote( textChildFlat( n ))); } /* Yielding the `Granum`
-                      quoted as usual, for that suffices to literalize the character. */
+                    bP.append( '\\' );      // The backslash part,
+                    n = n.getNextSibling(); // and skipping past it.
+                    assert hasName( "Granum", n ); /* Always that backslash is followed
+                      directly by a `Granum` that starts with the literalized character. */
+                    final String tF = textChildFlat( n );
+                    bP.append( tF.charAt( 0 )); // The literalized character, plus any remainder from
+                    if( tF.length() > 1 ) appendGranum( tF, 1, bP, toExpandSpaces ); } // the `Granum`.
                 default -> bP.append( textChildFlat( n )); }}
         return Pattern.compile( bP.toString(), flags ); }
 
