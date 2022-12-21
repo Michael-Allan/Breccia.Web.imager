@@ -230,7 +230,8 @@
     brec|BackslashedSpecial,
     brec|GroupDelimiter,
     brec|Literalizer,
-    brec|Metacharacter {
+    brec|Metacharacter,
+    brec|Variable {
         color: hsl( 0/*red*/, 33%, 38% ); }
 
 

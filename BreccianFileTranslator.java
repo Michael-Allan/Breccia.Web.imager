@@ -554,8 +554,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                       its associated match modifiers. */
                     n = iFc.getLastChild();
                     final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
-                    try { jP = pattern( eP, mm, MULTILINE ); } // Re MULTILINE: these patterns must be
-                    catch( final PatternSyntaxException x ) { // matched in ‘multiple-line mode’. [RFI]
+                    try { jP = pattern( eP, mm, MULTILINE/* pattern matchers in this context
+                      must operate in ‘multiple-line mode’ [RFI] */, sourceFile ); }
+                    catch( final PatternSyntaxException x ) {
                         final CharacterPointer p = characterPointer( eP );
                         mould.warn( sourceFile, p, "Malformed pattern: " + x.getDescription() + '\n'
                           + markedLine( "    ", x.getPattern(), zeroBased(x.getIndex()), mould.gcc )
@@ -961,7 +962,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *       As for {@linkplain Pattern#compile(String,int) Pattern.compile}. *//*
       *     @paramImplied #stringBuilder
       */
-    private Pattern pattern( final Node eP, final String mm, int flags ) {
+    private Pattern pattern( final Node eP, final String mm, int flags, final Path sourceFile ) {
 
       // Match modifiers
       // ───────────────
@@ -1007,6 +1008,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     final String tF = textChildFlat( n );
                     bP.append( tF.charAt( 0 )); // The literalized character, plus any remainder from
                     if( tF.length() > 1 ) appendGranum( tF, 1, bP, toExpandSpaces ); } // the `Granum`.
+                case "Variable" -> {
+                    // TODO
+                    final CharacterPointer p = characterPointer( (Element)n, /*start of name*/2 );
+                    mould.warn( sourceFile, p, "No such variable to interpolate\n" + p.markedLine() ); }
                 default -> bP.append( textChildFlat( n )); }}
         return Pattern.compile( bP.toString(), flags ); }
 
