@@ -69,7 +69,6 @@ import static java.nio.file.Files.newBufferedReader;
 import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static Java.Nodes.hasName;
-import static Java.Nodes.isElement;
 import static Java.Nodes.isText;
 import static Java.Nodes.parentAsElement;
 import static Java.Nodes.parentElement;
@@ -77,6 +76,7 @@ import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
 import static Java.Nodes.successorElementAfter;
+import static Java.Nodes.textChildFlat;
 import static Java.Paths.toPath;
 import static Java.Paths.to_URI_relativeReference;
 import static Java.Patterns.appendFlags;
@@ -85,8 +85,6 @@ import static Java.StringBuilding.collapseWhitespace;
 import static Java.URI_References.isRemote;
 import static java.util.Arrays.sort;
 import static java.util.logging.Level.WARNING;
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
-import static java.util.regex.Pattern.DOTALL;
 import static java.util.regex.Pattern.MULTILINE;
 import static javax.xml.transform.OutputKeys.*;
 
@@ -105,6 +103,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         this.sourceXCursor = sourceXCursor;
         this.mould = mould;
         opt = mould.opt;
+        patternCompiler = new AssociativePatternCompiler( mould );
+
+      // Glyph-test font
+      // ───────────────
         final String f = opt.glyphTestFont();
         if( !f.equals( "none" )) {
             try( final var in = new FileInputStream( f )) {
@@ -294,38 +296,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         if( cN > 0 ) {
             b.appendChild( b.getOwnerDocument().createTextNode( bQ.toString() ));
             clear( bQ ); }}
-
-
-
-    /** @param tF The flat text of a `Granum` element from the image of a regular-expression pattern.
-      * @param c The offset in `tF` at which to start appending.
-      */
-    private void appendGranum( final String tF, int c, final StringBuilder b,
-          final boolean toExpandSpaces ) {
-        final int cN = tF.length();
-        if( !toExpandSpaces ) {
-            appendGranum( tF, c, cN, b );
-            return; }
-        final Matcher m = plainSpaceMatcher.reset( tF );
-        if( m.lookingAt() ) {
-            b.append( "(?: |\n|\r\n)+" );
-            m.region( c = m.end(), cN ); }
-        while( m.find() ) {
-            appendGranum( tF, c, m.start(), b );
-            b.append( "(?: |\n|\r\n)+" );
-            c = m.end(); }
-        if( c < cN ) appendGranum( tF, c, cN, b ); }
-
-
-
-    /** @throws AssertionError If assertions are enabled and the portion of the text to append includes
-      *   a character that would have special meaning in the context of a regular expression.
-      */
-    private void appendGranum( final String tF, int c, final int cEnd, final StringBuilder b ) {
-        while( c < cEnd ) {
-            final char ch = tF.charAt( c++ );
-            assert "\\^.$|()*+?[]{}".indexOf(ch) < 0;
-            b.append( ch ); }}
 
 
 
@@ -554,13 +524,17 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                       its associated match modifiers. */
                     n = iFc.getLastChild();
                     final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
-                    try { jP = pattern( eP, mm, MULTILINE/* pattern matchers in this context
-                      must operate in ‘multiple-line mode’ [RFI] */, sourceFile ); }
+                    try { jP = patternCompiler.compile( eP, mm, sourceFile ); }
                     catch( final PatternSyntaxException x ) {
                         final CharacterPointer p = characterPointer( eP );
                         mould.warn( sourceFile, p, "Malformed pattern: " + x.getDescription() + '\n'
                           + markedLine( "    ", x.getPattern(), zeroBased(x.getIndex()), mould.gcc )
                           + "\n    Source line, with original pattern:  (before translation to Java)\n"
+                          + p.markedLine() );
+                        continue iF; }
+                    catch( final FailedInterpolation x ) {
+                        final CharacterPointer p = characterPointer( x.interpolation, x.index );
+                        mould.warn( sourceFile, p, "Failed interpolation: " + x.getMessage() + "\n"
                           + p.markedLine() );
                         continue iF; }}
                 final String hRef; { // Hyperlink `href` attribute referring to matched fractum.
@@ -897,23 +871,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** A pattern that `matches` in a regular-expression pattern a `\N{⋯}` element designating
-      * a character by its numeric code point.  It captures as group (1) the code point.
-      *
-      *     @see java.util.regex.Matcher#match()
-      *     @see <a href='http://reluk.ca/project/Breccia/language_definition.brec.xht#n'>
-      *       Breccia language definition § Pattern language, `\N{⋯}` element</a>
-      */
-    private static final Pattern numberedCharacterBackslashPattern = Pattern.compile(
-      "\\\\N\\{ *U\\+(\\p{XDigit}+) *\\}" );
-
-
-
-    private final Matcher numberedCharacterBackslashMatcher =
-      numberedCharacterBackslashPattern.matcher( "" );
-
-
-
     private final ImagingOptions opt;
 
 
@@ -951,81 +908,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** Returns the Java translation of `eP` compiled with `mm`.
-      *
-      *     @param eP The image of a regular-expression pattern within a pattern matcher.
-      *     @param mm The match modifiers, or an empty string if there are none.
-      *     @param flags Default {@linkplain Pattern#flags() match flags}, or zero if there are none.
-      *       The match flags for the resulting pattern will comprise this default
-      *       together with the translatation of any `mm`.
-      *     @throws PatternSyntaxException
-      *       As for {@linkplain Pattern#compile(String,int) Pattern.compile}. *//*
-      *     @paramImplied #stringBuilder
-      */
-    private Pattern pattern( final Node eP, final String mm, int flags, final Path sourceFile ) {
-
-      // Match modifiers
-      // ───────────────
-        final boolean toExpandSpaces; { // Whether expansive space mode is enabled.
-            boolean pIsGiven = false;
-            for( int c = 0, cN = mm.length(); c < cN; ++c ) switch( mm.charAt( c )) {
-                case 'i' -> flags |= CASE_INSENSITIVE;
-                case 'm' -> flags |= MULTILINE;
-                case 's' -> flags |= DOTALL;
-                case 'p' -> pIsGiven = true;
-                default -> throw new IllegalArgumentException( "Match modifiers `" + mm + '`' ); }
-                  // Unexpected ∵ the Breccia parser should have caught and reported it to the user.
-            toExpandSpaces = pIsGiven; }
-
-      // Pattern
-      // ───────
-        final StringBuilder bP = clear( stringBuilder ); // The Java translation of `eP`.
-        for( Node n = eP.getFirstChild();  n != null;  n = n.getNextSibling() ) {
-            assert isElement( n ); // ↘ for reason
-            switch( n.getLocalName()/* ≠ null, given the assertion above */) { // [NSC]
-                case "AnchoredPrefix" -> {
-                    final String tF = textChildFlat( n );
-                    assert tF.length() == 2 && tF.charAt(0) == '^';
-                    bP.append( switch( tF.charAt( 1 )) {
-                        case '*' -> "^(?:    )*";
-                        case '+' -> "^(?:    )*"+"[\u2500-\u259F].*?\\R(?:    )* {1,3}";
-                        case '^' -> "^(?:    )*(?:[\u2500-\u259F].*?\\R(?:    )* {1,3})?";
-                        default -> throw new IllegalStateException(); }); }
-                case "Granum" -> appendGranum( textChildFlat(n), 0, bP, toExpandSpaces );
-                case "BackslashedSpecial" -> {
-                    final String tF = textChildFlat( n );
-                    final Matcher m = numberedCharacterBackslashMatcher.reset( tF );
-                    if( m.matches() ) {
-                        bP.append( "\\x{" );
-                        bP.append( m.group( 1 ));
-                        bP.append( '}' ); }
-                    else bP.append( tF ); }
-                case "Literalizer" -> {
-                    bP.append( '\\' );      // The backslash part,
-                    n = n.getNextSibling(); // and skipping past it.
-                    assert hasName( "Granum", n ); /* Always that backslash is followed
-                      directly by a `Granum` that starts with the literalized character. */
-                    final String tF = textChildFlat( n );
-                    bP.append( tF.charAt( 0 )); // The literalized character, plus any remainder from
-                    if( tF.length() > 1 ) appendGranum( tF, 1, bP, toExpandSpaces ); } // the `Granum`.
-                case "Variable" -> {
-                    // TODO
-                    final CharacterPointer p = characterPointer( (Element)n, /*start of name*/2 );
-                    mould.warn( sourceFile, p, "No such variable to interpolate\n" + p.markedLine() ); }
-                default -> bP.append( textChildFlat( n )); }}
-        return Pattern.compile( bP.toString(), flags ); }
-
-
-
-    /** A pattern to `find` a sequence of plain space characters.
-      *
-      *     @see java.util.regex.Matcher#find()
-      */
-    private static final Pattern plainSpacePattern = Pattern.compile( " +" );
-
-
-
-    private final Matcher plainSpaceMatcher = plainSpacePattern.matcher( "" );
+    private final PatternCompiler patternCompiler;
 
 
 
@@ -1192,13 +1075,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     private static final String systemID_HTML = "about:legacy-compat";
       // https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
-
-
-
-    /** Returns the flat text (aka `data`) of the first child of the given node,
-      * which child must be a text node.
-      */
-    private static String textChildFlat( final Node n ) { return ((Text)n.getFirstChild()).getData(); }
 
 
 
@@ -1514,7 +1390,20 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       */
     private static int xuncHeadEnd( final Element head ) {
         final String ends = head.getAttribute( "xuncLineEnds" );
-        return parseUnsignedInt( ends.substring( ends.lastIndexOf(' ') + 1 )); }}
+        return parseUnsignedInt( ends.substring( ends.lastIndexOf(' ') + 1 )); }
+
+
+
+   // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+
+
+    /** Compiler of patterns from an associative reference.
+      */
+    private static final class AssociativePatternCompiler extends PatternCompiler {
+
+
+        protected AssociativePatternCompiler( ImageMould<?> mould ) { super( MULTILINE/*associative
+          pattern matchers operate in ‘multiple-line mode’ [RC, RFI]*/, mould ); }}}
 
 
 
@@ -1529,6 +1418,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //   BF↓  Code that must execute before section *Body fracta*`.
 //
 //   BF · Section *Body fracta* itself, or code that must execute in unison with it.
+//
+//   RC · Referrer clause.
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#-,referrer,clause
 //
 //   RFI  Resolving a fractum indicant.
 //        http://reluk.ca/project/Breccia/language_definition.brec.xht#indicated,fractum,indicant
@@ -1548,9 +1440,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   NH · HTTP access has yet to be implemented here.
 //        http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches
-//
-//   NSC  Presently ‘null in switch cases is a preview feature and is disabled by default’ (JDK 18),
-//        else this code could be simplified.
 //
 //   RC · Referencing code.  Cf. the comparably structured code of `ImageMould.formalResources_record`.
 //
