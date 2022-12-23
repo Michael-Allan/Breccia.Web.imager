@@ -70,8 +70,10 @@ import static java.nio.file.Files.newOutputStream;
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 import static Java.Nodes.hasName;
 import static Java.Nodes.isText;
+import static Java.Nodes.nextSibling;
 import static Java.Nodes.parentAsElement;
 import static Java.Nodes.parentElement;
+import static Java.Nodes.previousSibling;
 import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
@@ -103,7 +105,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         this.sourceXCursor = sourceXCursor;
         this.mould = mould;
         opt = mould.opt;
-        patternCompiler = new AssociativePatternCompiler( mould );
+        referentClausePatternCompiler = new ReferentClausePatternCompiler( mould );
+        referrerClausePatternCompiler = new PatternCompiler( MULTILINE/*pattern matchers
+          in this context operate in ‘multiple-line mode’ [RC]*/, mould );
 
       // Glyph-test font
       // ───────────────
@@ -343,6 +347,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    final Pattern compile( final Node eP, final String matchModifiers, final Matcher mReferrer,
+          final Path sourceFile ) throws FailedInterpolation {
+        referentClausePatternCompiler.mReferrer = mReferrer;
+        return referentClausePatternCompiler.compile( eP, matchModifiers,sourceFile ); }
+
+
+
     /** @param imageFile The absolute path of an image file.
       * @return The image of that path’s file fractum.
       */
@@ -450,26 +461,67 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             a.appendChild( tRef ); }
 
 
-      // ══════════════════
-      // Patterns of fracta within fractum indicants, each formed as a hyperlink  [◦↑◦]
-      // ══════════════════
-        iF: for( Element iF = successorElement(fileFractum);  iF != null;  iF = successorElement(iF) ) {
-            if( !hasName( "FractumIndicant", iF )) continue;
-            final Node iFcPM1; { /* Image of the first pattern matcher of the series, or null. */
-                final Node iFc = iF.getFirstChild();
-                if(  hasName( "PatternMatcher", iFc )) iFcPM1 = iFc;
-                else if( hasName( "InferentialReferentIndicant", iF.getParentNode().getParentNode() )) {
-                    iFcPM1 = null; } // Pending determination of what TODO here.
-                else continue; } // No patterns to hyperlink.
-            assert hasName( "AssociativeReference", ownerFractum(iF) ); /* Hyperlinking a formal
-              reference other than an associative one?  Then sync with `formalReferenceAt` above. */
+      // ════════════════
+      // Fractal patterns in associative references, each formed as a hyperlink  [◦↑◦]
+      // ════════════════
+        rA: for( Node cR = successor(fileFractum);  cR != null;  cR = successor(cR) ) {
+            if( !hasName( "ReferentialCommand", cR )) continue;
+            final Element rA/*associative reference*/ = ownerFractum( cR );
+            assert hasName( "AssociativeReference", rA ); /* Hyperlinking a formal reference
+              other than an associative one?  Then sync with `formalReferenceAt` above. */
+
+          // Referrer
+          // ────────
+            Node n;
+            final Matcher mReferrer;  /* The pattern matcher of the referrer clause successfully matched
+                  to the referrer, or null if there is no referrer clause. */
+            if( (n = previousSibling( cR, "ReferrerClause" )) != null ) {
+                final Node ePM = n/*ReferrerClause*/.getLastChild(); {
+                    assert hasName( "PatternMatcher", ePM ); }
+                final Element eP = (Element) ePM.getFirstChild()/*delimiter*/.getNextSibling(); {
+                    assert hasName( "Pattern", eP ); }
+                final Pattern jP; { // Java compilation of `eP` and its associated match modifiers.
+                    n = ePM.getLastChild();
+                    final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
+                    try { jP = referrerClausePatternCompiler.compile( eP, mm, sourceFile ); }
+                    catch( final PatternSyntaxException x ) {
+                        warn( sourceFile, eP, x );
+                        continue rA; }
+                    catch( final FailedInterpolation x ) {
+                        warn( sourceFile, x );
+                        continue rA; }}
+                n = head( rA.getParentNode() ); // Wherein lies the referrer.
+                if( n == null ) {
+                    final CharacterPointer p = characterPointer( parentElement(ePM)/*ReferrerClause*/ );
+                    mould.warn( sourceFile, p, "Misplaced back reference, no parent head to refer to\n"
+                      + p.markedLine() );
+                    continue rA; }
+                mReferrer = jP.matcher( sourceText( n ));
+                if( !mReferrer.find() ) {
+                    final CharacterPointer p = characterPointer( eP );
+                    warn( sourceFile, p, "Broken back reference, no such text in parent head\n"
+                      + p.markedLine(), jP );
+                    continue rA; }}
+            else mReferrer = null;
+
+          // Referent clause
+          // ───────────────
+            final Node iF; // Fractum indicant.
+            final Node iFcPM1; { // First pattern matcher in the `iF` matcher series.
+                final Node cReferent = nextSibling( cR, "ReferentClause" );
+                if( cReferent == null ) continue rA; // No referent clause, no patterns to hyperlink.
+                iF = cReferent.getFirstChild();
+                if( !hasName( "FractumIndicant", iF )) continue rA; /* Pending determination of what
+                  TODO here, for this referent clause comprises an inferential referent indicant. */
+                iFcPM1 = iF.getFirstChild();
+                if( !hasName( "PatternMatcher", iFcPM1 )) continue rA; } /* No patterns to hyperlink,
+                  for this fractum indicant contains a resource indicant alone. */
 
           // Referent file
           // ─────────────
             final ImageFile iRef;
             final int rSelf; // Index in `iRef.fracta` of `iF` owner, as per `seek(m,fracta,fSelf)`.
             final String hRef_filePart; // The pre-fragment part of each hyperlink’s `href` attribute.
-            Node n;
             Node iFc; { // Initialized herein to the last child of `iF` before any resource indicant:
                 iFc = iF.getLastChild();
                 if( hasName( "ResourceIndicant", iFc )) {
@@ -507,36 +559,28 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 else { // The referent file is the containing file, the present image file.
                     iRef = recorded( imageSibling(sourceFile).normalize() );
                     assert iRef != null; // It was formed earlier, during the `translate` cycle.
-                    rSelf = seek( parseUnsignedInt( ownerFractum(iF).getAttribute( "xunc" )),
-                      iRef.fracta() );
+                    rSelf = seek( parseUnsignedInt( rA.getAttribute( "xunc" )), iRef.fracta() );
                     hRef_filePart = ""; }}
 
-          // Referring patterns taken from right to left in the pattern series
-          // ──────────────────
+          // Referent patterns taken from right to left in the `iF` pattern-matcher series
+          // ─────────────────
             int region = 0, regionEnd = iRef.sourceText().length(); // Search region in referent source.
             for(; iFc != null; iFc = iFc.getPreviousSibling() ) { // Leftward through `iF` children.
                 if( !hasName( "PatternMatcher", iFc )) continue;
                 final int rSelfIgnore = iFc == iFcPM1 ? rSelf : -2;
-                final Element eP = (Element)iFc.getFirstChild().getNextSibling(); /* The image
-                  of a Breccian regular-expression pattern from a pattern matcher. */
+                final Element eP = (Element)iFc.getFirstChild().getNextSibling(); /* Image of a Breccian
+                  regular-expression pattern from a pattern matcher of the referent clause. */
                 assert hasName( "Pattern", eP );
-                final Pattern jP; { /* The Java translation of `eP` compiled with
-                      its associated match modifiers. */
+                final Pattern jP; { // Java compilation of `eP` and its associated match modifiers.
                     n = iFc.getLastChild();
                     final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
-                    try { jP = patternCompiler.compile( eP, mm, sourceFile ); }
+                    try { jP = compile( eP, mm, mReferrer, sourceFile ); }
                     catch( final PatternSyntaxException x ) {
-                        final CharacterPointer p = characterPointer( eP );
-                        mould.warn( sourceFile, p, "Malformed pattern: " + x.getDescription() + '\n'
-                          + markedLine( "    ", x.getPattern(), zeroBased(x.getIndex()), mould.gcc )
-                          + "\n    Source line, with original pattern:  (before translation to Java)\n"
-                          + p.markedLine() );
-                        continue iF; }
+                        warn( sourceFile, eP, x );
+                        continue rA; }
                     catch( final FailedInterpolation x ) {
-                        final CharacterPointer p = characterPointer( x.interpolation, x.index );
-                        mould.warn( sourceFile, p, "Failed interpolation: " + x.getMessage() + "\n"
-                          + p.markedLine() );
-                        continue iF; }}
+                        warn( sourceFile, x );
+                        continue rA; }}
                 final String hRef; { // Hyperlink `href` attribute referring to matched fractum.
                     final ImagedBodyFractum[] referentFracta = iRef.fracta();
                     final int r; { // Index in `referentFracta` of the matched body fractum, or -1.
@@ -544,8 +588,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         r = seek( m, referentFracta, rSelfIgnore );
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
-                            warn( sourceFile, p, jP, "No such fractal head\n" + p.markedLine() );
-                            continue iF; }
+                            warn( sourceFile, p, "No such fractal head\n" + p.markedLine(), jP );
+                            continue rA; }
                         final int s = r + 1;
                         if( s < referentFracta.length ) {
                             if( advanceToIgnore( m, regionEnd )) { /* A further match may exist
@@ -555,10 +599,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                                 if( r2 != -2 ) { // Then a further fractum is matched.
                                     final CharacterPointer p = characterPointer( eP );
                                     final int rLineNumber = r < 0 ? 1 : referentFracta[r].lineNumber();
-                                    warn( sourceFile, p, jP, "Ambiguous pattern: fracta at lines "
+                                    warn( sourceFile, p, "Ambiguous pattern: fracta at lines "
                                       + rLineNumber + " and " + referentFracta[r2].lineNumber()
-                                      + " both match\n" + p.markedLine() ); // This is disallowed. [RFI]
-                                    continue iF; }}
+                                      + " both match\n" + p.markedLine(), jP ); // Disallowed. [RFI]
+                                    continue rA; }}
                             else assert false; /* That `advanceToIgnore` cannot fail given the prior
                               guard `s < referentFracta.length`. */
                             region = referentFracta[s].xunc(); } /* Seek any next pattern in `r` body,
@@ -595,9 +639,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** @return The head of the given fractum, or null if there is none.
       * @see #finalHead(Element)
       */
-    private static Element head( final Element fractum ) {
-        final Element h = (Element)fractum.getFirstChild();
-        assert h == null && hasName( "FileFractum", fractum )  ||  hasName( "Head", h );
+    private static Element head( final Node fractum ) {
+        Element h = (Element)fractum.getFirstChild();
+        assert h != null; // No fractum is both headless and bodiless.
+        if( !hasName( "Head", h )) {
+            assert hasName( "FileFractum", fractum ); // Which alone may be headless.
+            h = null; }
         return h; }
 
 
@@ -908,7 +955,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private final PatternCompiler patternCompiler;
+    /** @see #compile(Node,String,Matcher,Path)
+      */
+    private final ReferentClausePatternCompiler referentClausePatternCompiler;
+
+
+
+    private final PatternCompiler referrerClausePatternCompiler;
 
 
 
@@ -1026,7 +1079,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     /** The original text content of the given node and its descendants, prior to any translation.
       */
-    private static String sourceText( final Element node ) { return node.getTextContent(); }
+    private static String sourceText( final Node node ) { return node.getTextContent(); }
       // Should the translation ever introduce text of its own, then it must be marked as non-original,
       // e.g. by some attribute defined for that purpose.  The present method would then be modified
       // to remove all such text from the return value, e.g. by cloning `node`, filtering the clone,
@@ -1095,9 +1148,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
       // HTML form
       // ─────────
-        final Element fileFractum = (Element)d.removeChild( d.getFirstChild() ); // To be reintroduced
-        assert hasName( "FileFractum", fileFractum );                           // further below.
-        if( d.hasChildNodes() ) throw new IllegalStateException();             // One alone was present.
+        final Element fileFractum = (Element) d.removeChild( d.getFirstChild() ); // To be reintroduced
+        assert hasName( "FileFractum", fileFractum );                            // further below.
+        if( d.hasChildNodes() ) throw new IllegalStateException();              // One alone was present.
         final Element html = d.createElementNS( nsHTML, "html" );
         d.appendChild( html );
         html.setAttributeNS( nsXMLNS, "xmlns:img", nsImager );
@@ -1314,7 +1367,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
     /* @paramImplied #stringBuilder2
      */
-    private void warn( final Path f, final CharacterPointer p, final Pattern jP, final String message ) {
+    private void warn( final Path f, final CharacterPointer p, final String message, final Pattern jP ) {
         mould.warn( f, p, message );
         if( !logger.isLoggable( WARNING )) return;
         final StringBuilder b = clear( stringBuilder2 );
@@ -1333,6 +1386,23 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             b.append( "`" ); }
         appendFlags( jP, b );
         logger.log( WARNING, b.toString() ); }
+
+
+
+    /** @param eP The image of a Breccian regular-expression pattern from a pattern matcher
+      */
+    private void warn( final Path f, final Element eP, final PatternSyntaxException x ) {
+        final CharacterPointer p = characterPointer( eP );
+        mould.warn( f, p, "Malformed pattern: " + x.getDescription() + '\n'
+          + markedLine( "    ", x.getPattern(), zeroBased(x.getIndex()), mould.gcc )
+          + "\n    Source line, with original pattern:  (before translation to Java)\n"
+          + p.markedLine() ); }
+
+
+
+    private void warn( final Path f, final FailedInterpolation x ) {
+        final CharacterPointer p = characterPointer( x.interpolator, x.index );
+        mould.warn( f, p, "Failed interpolation: " + x.getMessage() + "\n" + p.markedLine() ); }
 
 
 
@@ -1397,13 +1467,46 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
    // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
 
-    /** Compiler of patterns from an associative reference.
+    /** Compiler of patterns from the referent clause of an associative reference.
+      * Before each call to `compile`, ensure that `mReferrer` is correctly set.
+      *
+      *     @see #mReferrer
       */
-    private static final class AssociativePatternCompiler extends PatternCompiler {
+    private static final class ReferentClausePatternCompiler extends PatternCompiler {
 
 
-        protected AssociativePatternCompiler( ImageMould<?> mould ) { super( MULTILINE/*associative
-          pattern matchers operate in ‘multiple-line mode’ [RC, RFI]*/, mould ); }}}
+        ReferentClausePatternCompiler( ImageMould<?> mould ) { super( MULTILINE/*pattern matchers
+          in this context operate in ‘multiple-line mode’ [RFI]*/, mould ); }
+
+
+
+        @Override void append( final Element variable, final StringBuilder b )
+              throws FailedInterpolation {
+            final String tF = textChildFlat( variable );
+            if( tF.length() == /*e.g.*/"${1}".length() ) {
+                final int g = tF.charAt(variableName) - '0';
+                if( 1 <= g  &&  g <= 9 ) {
+                    if( mReferrer == null ) {
+                        throw new FailedInterpolation( variable, 0,
+                          "Back reference to a referrer-clause capture, but no referrer clause" ); }
+                    final int gN = mReferrer.groupCount();
+                    if( g > gN ) {
+                        throw new FailedInterpolation( variable, variableName,
+                          "No such capture group in the referrer clause" ); }
+                    final String capture = mReferrer.group( g );
+                    if( capture == null || capture.length() == 0 ) {
+                        throw new FailedInterpolation( variable, 0,
+                          "Nothing to interpolate, capture is null or empty" ); }
+                    b.append( capture );
+                    return; }}
+            super.append( variable, b ); }
+
+
+
+        /** The pattern matcher of the referrer clause successfully matched to the referrer,
+          * or null if there is no referrer clause.
+          */
+        Matcher mReferrer; }}
 
 
 

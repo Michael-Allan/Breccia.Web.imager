@@ -28,6 +28,16 @@ class PatternCompiler {
 
 
 
+    /** Appends to `b` the value of `variable`, or throws `FailedInterpolation`.
+      * implementation recognizes no variables and simply throws `FailedInterpolation`.
+      *
+      *     @param variable The image of a variable interpolator.
+      */
+    void append( final Element variable, final StringBuilder b ) throws FailedInterpolation {
+        throw new FailedInterpolation( variable, variableName, "No such variable in this context" ); }
+
+
+
     /** Base match flags to apply by default, or zero if there are none.
       */
     final int baseFlags;
@@ -92,11 +102,15 @@ class PatternCompiler {
                     final String tF = textChildFlat( n );
                     bP.append( tF.charAt( 0 )); // The literalized character, plus any remainder from
                     if( tF.length() > 1 ) appendGranum( tF, 1, bP, toExpandSpaces ); } // the `Granum`.
-                case "Variable" -> {
-                    throw new FailedInterpolation( (Element)n, /*start of name*/2,
-                      "No such variable in this context" ); }
+                case "Variable" -> append( (Element)n, bP );
                 default -> bP.append( textChildFlat( n )); }}
         return Pattern.compile( bP.toString(), flags ); }
+
+
+
+    /** Offset within a variable interpolator of the first character of the variable name.
+      */
+    static final int variableName = 2;
 
 
 
