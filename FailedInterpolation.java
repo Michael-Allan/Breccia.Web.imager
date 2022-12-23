@@ -8,27 +8,27 @@ import org.w3c.dom.Element;
 class FailedInterpolation extends Exception {
 
 
-    /** @see #interpolation
+    /** @see #interpolator
       * @see #index
       * @see #getMessage
       */
-    FailedInterpolation( final Element interpolation, final int index, final String message ) {
+    FailedInterpolation( final Element interpolator, final int index, final String message ) {
         super( message );
-        this.interpolation = interpolation;
+        this.interpolator = interpolator;
         this.index = index; }
 
 
 
-    /** Index to the fault in the `interpolation` text, or zero if the interpolation as a whole
+    /** Index to the fault in the `interpolator` text, or zero if the interpolator as a whole
       * is at fault.
       */
     final int index;
 
 
 
-    /** The image of the interpolation that failed.
+    /** The image of the interpolator that failed.
       */
-    final Element interpolation; }
+    final Element interpolator; }
 
 
 
