@@ -657,7 +657,8 @@ public final class ImageMould<C extends ReusableCursor> {
       *     @param isAlteredRef Whether `ref` has been altered (by `-reference-mapping` translation)
       *       from the original reference given in source.
       */
-    String message( String ref, final URISyntaxException x, CharacterPointer p, boolean isAlteredRef ) {
+    String message( final String ref, final URISyntaxException x, final CharacterPointer p,
+          final boolean isAlteredRef ) {
         return "Malformed URI reference: " + x.getReason() + '\n'
           + markedLine( ref, p, isAlteredRef, zeroBased(x.getIndex()) ); }
 
