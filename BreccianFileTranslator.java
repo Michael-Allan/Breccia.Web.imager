@@ -107,7 +107,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         opt = mould.opt;
         referentClausePatternCompiler = new ReferentClausePatternCompiler( mould );
         referrerClausePatternCompiler = new PatternCompiler( MULTILINE/*pattern matchers
-          in this context operate in ‘multiple-line mode’ [RC]*/, mould );
+          in this context operate in ‘multiple-line mode’ [RCA]*/, mould );
 
       // Glyph-test font
       // ───────────────
@@ -474,7 +474,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ────────
             Node n;
             final Matcher mReferrer;  /* The pattern matcher of the referrer clause successfully matched
-                  to the referrer, or null if there is no referrer clause. */
+              to the referrer, or null if there is no referrer clause. */
             if( (n = previousSibling( cR, "ReferrerClause" )) != null ) {
                 final Node ePM = n/*ReferrerClause*/.getLastChild(); {
                     assert hasName( "PatternMatcher", ePM ); }
@@ -501,7 +501,16 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     final CharacterPointer p = characterPointer( eP );
                     warn( sourceFile, p, "Broken back reference, no such text in parent head\n"
                       + p.markedLine(), jP );
-                    continue rA; }}
+                    continue rA; }
+                final int gN = mReferrer.groupCount();
+                for( int g = 1; g <= gN; ++g ) {
+                    final String capture = mReferrer.group( g );
+                    if( capture == null || capture.length() == 0 ) { /* Disallowed by language [RCA]
+                          and `ReferentClausePatternCompiler.mReferrer` API. */
+                        final CharacterPointer p = characterPointer( eP );
+                        warn( sourceFile, p, "Incomplete back reference, group " + g
+                          + " captures nothing in the parent head\n" + p.markedLine(), jP );
+                        continue rA; }}}
             else mReferrer = null;
 
           // Referent clause
@@ -1492,19 +1501,17 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     final int gN = mReferrer.groupCount();
                     if( g > gN ) {
                         throw new FailedInterpolation( variable, variableName,
-                          "No such capture group in the referrer clause" ); }
+                          "No such capture group (" + g + ") in the referrer clause" ); }
                     final String capture = mReferrer.group( g );
-                    if( capture == null || capture.length() == 0 ) {
-                        throw new FailedInterpolation( variable, 0,
-                          "Nothing to interpolate, capture is null or empty" ); }
+                    assert capture != null && capture.length() != 0; // As per `mReferrer` API.
                     b.append( capture );
                     return; }}
             super.append( variable, b ); }
 
 
 
-        /** The pattern matcher of the referrer clause successfully matched to the referrer,
-          * or null if there is no referrer clause.
+        /** The pattern matcher of the referrer clause successfully matched to the referrer, and with
+          * none of its captures (if any) being null or empty; or null if there is no referrer clause.
           */
         Matcher mReferrer; }}
 
@@ -1521,9 +1528,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //   BF↓  Code that must execute before section *Body fracta*`.
 //
 //   BF · Section *Body fracta* itself, or code that must execute in unison with it.
-//
-//   RC · Referrer clause.
-//        http://reluk.ca/project/Breccia/language_definition.brec.xht#-,referrer,clause
 //
 //   RFI  Resolving a fractum indicant.
 //        http://reluk.ca/project/Breccia/language_definition.brec.xht#indicated,fractum,indicant
@@ -1545,6 +1549,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //        http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches
 //
 //   RC · Referencing code.  Cf. the comparably structured code of `ImageMould.formalResources_record`.
+//
+//   RCA  Referrer clause of an associative reference.
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#-,referrer,clause
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //
