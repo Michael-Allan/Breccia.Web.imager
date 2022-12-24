@@ -2,6 +2,11 @@ Definition of terms for the Breccia Web imager
 
     : see also http://reluk.ca/project/way/index.brec
 
+    boundary-path directory
+        - The directory of the boundary path: either the boundary path itself if it is a directory,
+           otherwise the directory in which it is contained.
+            : re `boundary path` see `^*<${same}>$` @ `^*- One positional argument is required:$` @
+              bin/breccia-web-image.brec
     orphan image file
         ─ noun
         - An HTML image file (`.brec.xht`) that is unaccompanied by its Breccian source file,

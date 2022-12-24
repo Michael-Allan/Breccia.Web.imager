@@ -100,6 +100,9 @@ public final class ImageMould<C extends ReusableCursor> {
 
     /** The directory of the boundary path: either `boundaryPath` itself if it is a directory,
       * otherwise its parent.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/lexicon.brec.xht#boundary-pat,directory'>
+      *         Term ‘boundary-path directory’</a>
       */
     public final Path boundaryPathDirectory;
 
