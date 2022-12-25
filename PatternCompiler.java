@@ -28,16 +28,6 @@ class PatternCompiler {
 
 
 
-    /** Appends to `b` the value of `variable`, or throws `FailedInterpolation`.
-      * implementation recognizes no variables and simply throws `FailedInterpolation`.
-      *
-      *     @param variable The image of a variable interpolator.
-      */
-    void append( final Element variable, final StringBuilder b ) throws FailedInterpolation {
-        throw new FailedInterpolation( variable, variableName, "No such variable in this context" ); }
-
-
-
     /** Base match flags to apply by default, or zero if there are none.
       */
     final int baseFlags;
@@ -85,7 +75,7 @@ class PatternCompiler {
                         case '+' -> "^(?:    )*"+"[\u2500-\u259F].*?\\R(?:    )* {1,3}";
                         case '^' -> "^(?:    )*(?:[\u2500-\u259F].*?\\R(?:    )* {1,3})?";
                         default -> throw new IllegalStateException(); }); }
-                case "Granum" -> appendGranum( textChildFlat(n), 0, bP, toExpandSpaces );
+                case "Granum" -> append( textChildFlat(n), bP, toExpandSpaces );
                 case "BackslashedSpecial" -> {
                     final String tF = textChildFlat( n );
                     final Matcher m = numberedCharacterBackslashMatcher.reset( tF );
@@ -100,9 +90,9 @@ class PatternCompiler {
                     assert hasName( "Granum", n ); /* Always that backslash is followed
                       directly by a `Granum` that starts with the literalized character. */
                     final String tF = textChildFlat( n );
-                    bP.append( tF.charAt( 0 )); // The literalized character, plus any remainder from
-                    if( tF.length() > 1 ) appendGranum( tF, 1, bP, toExpandSpaces ); } // the `Granum`.
-                case "Variable" -> append( (Element)n, bP );
+                    bP.append( tF.charAt( 0 )); // The literalized character, plus any remainder
+                    if( tF.length() > 1 ) append( tF, 1, bP, toExpandSpaces ); } // of the `Granum`.
+                case "Variable" -> append( (Element)n, bP, toExpandSpaces );
                 default -> bP.append( textChildFlat( n )); }}
         return Pattern.compile( bP.toString(), flags ); }
 
@@ -117,36 +107,53 @@ class PatternCompiler {
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-
-    /** @param tF The flat text of a `Granum` element from the image of a regular-expression pattern.
-      * @param c The offset in `tF` at which to start appending.
+    /** Appends to `b` the value of `variable`, or throws `FailedInterpolation`.
+      * implementation recognizes no variables and simply throws `FailedInterpolation`.
+      *
+      *     @param variable The image of a variable interpolator.
       */
-    private void appendGranum( final String tF, int c, final StringBuilder b,
-          final boolean toExpandSpaces ) {
-        final int cN = tF.length();
-        if( !toExpandSpaces ) {
-            appendGranum( tF, c, cN, b );
-            return; }
-        final Matcher m = plainSpaceMatcher.reset( tF );
-        if( m.lookingAt() ) {
-            b.append( "(?: |\n|\r\n)+" );
-            m.region( c = m.end(), cN ); }
-        while( m.find() ) {
-            appendGranum( tF, c, m.start(), b );
-            b.append( "(?: |\n|\r\n)+" );
-            c = m.end(); }
-        if( c < cN ) appendGranum( tF, c, cN, b ); }
+    protected void append( final Element variable, final StringBuilder b, final boolean toExpandSpaces )
+          throws FailedInterpolation {
+        throw new FailedInterpolation( variable, variableName, "No such variable in this context" ); }
 
 
 
     /** @throws AssertionError If assertions are enabled and the part of the text to append includes
       *   a character that would have special meaning in the context of a regular expression.
       */
-    private void appendGranum( final String tF, int c, final int cEnd, final StringBuilder b ) {
+    private void append( final String tF, int c, final int cEnd, final StringBuilder b ) {
         while( c < cEnd ) {
             final char ch = tF.charAt( c++ );
             assert "\\^.$|()*+?[]{}".indexOf(ch) < 0;
             b.append( ch ); }}
+
+
+
+    /** @param tF Flat text from the image of a regular-expression pattern.
+      * @param c The offset in `tF` at which to start appending.
+      */
+    protected final void append( final String tF, int c, final StringBuilder b,
+          final boolean toExpandSpaces ) {
+        final int cN = tF.length();
+        if( !toExpandSpaces ) {
+            append( tF, c, cN, b );
+            return; }
+        final Matcher m = plainSpaceMatcher.reset( tF );
+        if( m.lookingAt() ) {
+            b.append( "(?: |\n|\r\n)+" );
+            m.region( c = m.end(), cN ); }
+        while( m.find() ) {
+            append( tF, c, m.start(), b );
+            b.append( "(?: |\n|\r\n)+" );
+            c = m.end(); }
+        if( c < cN ) append( tF, c, cN, b ); }
+
+
+
+    /** @param tF Flat text from the image of a regular-expression pattern.
+      */
+    protected final void append( String tF, StringBuilder b, boolean toExpandSpaces ) {
+        append( tF, 0, b, toExpandSpaces ); }
 
 
 

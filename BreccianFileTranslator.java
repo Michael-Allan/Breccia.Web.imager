@@ -45,6 +45,11 @@ import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
+import static Breccia.Web.imager.ImageNodes.head;
+import static Breccia.Web.imager.ImageNodes.isFractum;
+import static Breccia.Web.imager.ImageNodes.ownerFractum;
+import static Breccia.Web.imager.ImageNodes.ownerHeadOrSelf;
+import static Breccia.Web.imager.ImageNodes.sourceText;
 import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBrecciaLike;
@@ -350,7 +355,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     final Pattern compile( final Node eP, final String matchModifiers, final Matcher mReferrer,
           final Path sourceFile ) throws FailedInterpolation {
         referentClausePatternCompiler.mReferrer = mReferrer;
-        return referentClausePatternCompiler.compile( eP, matchModifiers,sourceFile ); }
+        return referentClausePatternCompiler.compile( eP, matchModifiers, sourceFile ); }
 
 
 
@@ -387,11 +392,13 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     private String fileTitle( Element head ) {
         final String titlingExtract; // The relevant text extracted from the fractal head.
         if( hasName( "Division", head.getParentNode() )) { // Then `head` is a divider.
-            for( Element e = successorElement(head);;  e = successorElement(e) ) {
-                if( e == null ) return null;
+            final Node eN = successorAfter( head );
+            for( Element e = successorElement( head );; ) {
                 if( hasName( "DivisionLabel", e )) {
                     titlingExtract = sourceText( e );
-                    break; }}}
+                    break; }
+                e = successorElement( e );
+                if( e == eN ) return null; }}
         else { // Presumeably `head` is a file head or point head.
             head = (Element)head.cloneNode( /*deeply*/true ); /* So both preserving the original,
               and keeping the nodal scan that follows within the bounds of the isolated clone. */
@@ -415,7 +422,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     /** @return The last fractal head within the given fractum.
-      * @see #head(Element)
+      * @see ImageNodes#head(Element)
       */
     private static Element finalHead( final Element fractum ) {
         Element h = null; {
@@ -500,6 +507,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( !mReferrer.find() ) {
                     final CharacterPointer p = characterPointer( eP );
                     warn( sourceFile, p, "Broken back reference, no such text in parent head\n"
+                      + p.markedLine(), jP );
+                    continue rA; }
+                if( mReferrer.group().length() == 0 ) { // Disallowed. [RCA]
+                    final CharacterPointer p = characterPointer( eP );
+                    warn( sourceFile, p, "Incomplete back reference, matches an empty text sequence\n"
                       + p.markedLine(), jP );
                     continue rA; }
                 final int gN = mReferrer.groupCount();
@@ -642,19 +654,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private Font glyphTestFont;
-
-
-
-    /** @return The head of the given fractum, or null if there is none.
-      * @see #finalHead(Element)
-      */
-    private static Element head( final Node fractum ) {
-        Element h = (Element)fractum.getFirstChild();
-        assert h != null; // No fractum is both headless and bodiless.
-        if( !hasName( "Head", h )) {
-            assert hasName( "FileFractum", fractum ); // Which alone may be headless.
-            h = null; }
-        return h; }
 
 
 
@@ -831,10 +830,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private static boolean isFractum( final Element e ) { return e.hasAttribute( "typestamp" ); }
-
-
-
     /** Whether the given image of a URI reference is marked `non-fractal`.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/language_definition.brec.xht#-,resource,indicant'>
@@ -928,39 +923,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private final ImagingOptions opt;
-
-
-
-    /** Returns the nearest fractal ancestor of `node`, or null if there is none.
-      *
-      *     @return The nearest ancestor of `node` that is a fractum, or null if there is none.
-      */
-    protected static Element ownerFractum( final Node node ) {
-        Element a = parentElement( node );
-        while( a != null && !isFractum(a) ) a = parentElement( a );
-        return a; }
-
-
-
-    /** Returns the same `e` if it is a fractum, otherwise `ownerFractum(e)`.
-      */
-    protected static Element ownerFractumOrSelf( final Element e ) {
-        return isFractum(e) ? e : ownerFractum(e); }
-
-
-
-    /** Returns the nearest ancestor of `node` that is a fractal head, or null if there is none.
-      */
-    protected static Element ownerHead( Node node ) {
-        do node = node.getParentNode(); while( node != null && !hasName("Head",node) );
-        return (Element)node; }
-
-
-
-    /** Returns the same `e` if it is a fractal head, otherwise `ownerHead(e)`.
-      */
-    protected static Element ownerHeadOrSelf( final Element e ) {
-        return hasName("Head",e) ? e : ownerHead(e); }
 
 
 
@@ -1083,18 +1045,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private final C sourceCursor;
-
-
-
-    /** The original text content of the given node and its descendants, prior to any translation.
-      */
-    private static String sourceText( final Node node ) { return node.getTextContent(); }
-      // Should the translation ever introduce text of its own, then it must be marked as non-original,
-      // e.g. by some attribute defined for that purpose.  The present method would then be modified
-      // to remove all such text from the return value, e.g. by cloning `node`, filtering the clone,
-      // then calling `getTextContent` on it.
-      //     Non-original elements that merely wrap original content would neither be markednor removed,
-      // as their presence would have no effect on the return value.
 
 
 
@@ -1469,51 +1419,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       */
     private static int xuncHeadEnd( final Element head ) {
         final String ends = head.getAttribute( "xuncLineEnds" );
-        return parseUnsignedInt( ends.substring( ends.lastIndexOf(' ') + 1 )); }
-
-
-
-   // ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
-
-
-    /** Compiler of patterns from the referent clause of an associative reference.
-      * Before each call to `compile`, ensure that `mReferrer` is correctly set.
-      *
-      *     @see #mReferrer
-      */
-    private static final class ReferentClausePatternCompiler extends PatternCompiler {
-
-
-        ReferentClausePatternCompiler( ImageMould<?> mould ) { super( MULTILINE/*pattern matchers
-          in this context operate in ‘multiple-line mode’ [RFI]*/, mould ); }
-
-
-
-        @Override void append( final Element variable, final StringBuilder b )
-              throws FailedInterpolation {
-            final String tF = textChildFlat( variable );
-            if( tF.length() == /*e.g.*/"${1}".length() ) {
-                final int g = tF.charAt(variableName) - '0';
-                if( 1 <= g  &&  g <= 9 ) {
-                    if( mReferrer == null ) {
-                        throw new FailedInterpolation( variable, 0,
-                          "Back reference to a referrer-clause capture, but no referrer clause" ); }
-                    final int gN = mReferrer.groupCount();
-                    if( g > gN ) {
-                        throw new FailedInterpolation( variable, variableName,
-                          "No such capture group (" + g + ") in the referrer clause" ); }
-                    final String capture = mReferrer.group( g );
-                    assert capture != null && capture.length() != 0; // As per `mReferrer` API.
-                    b.append( capture );
-                    return; }}
-            super.append( variable, b ); }
-
-
-
-        /** The pattern matcher of the referrer clause successfully matched to the referrer, and with
-          * none of its captures (if any) being null or empty; or null if there is no referrer clause.
-          */
-        Matcher mReferrer; }}
+        return parseUnsignedInt( ends.substring( ends.lastIndexOf(' ') + 1 )); }}
 
 
 
