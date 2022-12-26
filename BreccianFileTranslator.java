@@ -540,8 +540,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // Referent file
           // ─────────────
-            final ImageFile iRef;
-            final int rSelf; // Index in `iRef.fracta` of `iF` owner, as per `seek(m,fracta,fSelf)`.
+            final ImageFile iRef; // Record of the referent file.
+            final int rSelf; /* Index in `iRef.fracta` of `rA`, as per `fSelfIgnore`
+              of `seek( m, fracta, fSelfIgnore, fIgnore )`. */
+            final int rParent; /* Index in `iRef.fracta` of `rA` parent, as per `fIgnore`
+              of `seek( m, fracta, fSelfIgnore, fIgnore )`. */
             final String hRef_filePart; // The pre-fragment part of each hyperlink’s `href` attribute.
             Node iFc; { // Initialized herein to the last child of `iF` before any resource indicant:
                 iFc = iF.getLastChild();
@@ -574,13 +577,15 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             would not have been hyperlinked. [◦↑◦] */
                         iRef = recorded( referentPath.normalize() );
                         if( iRef == null ) continue;
-                        rSelf = -2;
+                        rSelf = rParent = -2;
                         hRef_filePart = hRef; } // Already without a fragment, given `toPath` above.
                     iFc = iFc.getPreviousSibling(); }
                 else { // The referent file is the containing file, the present image file.
                     iRef = recorded( imageSibling(sourceFile).normalize() );
                     assert iRef != null; // It was formed earlier, during the `translate` cycle.
-                    rSelf = seek( parseUnsignedInt( rA.getAttribute( "xunc" )), iRef.fracta() );
+                    final var rr = iRef.fracta();
+                    rSelf   = seek( parseUnsignedInt( rA                 .getAttribute( "xunc" )), rr );
+                    rParent = seek( parseUnsignedInt( parentAsElement(rA).getAttribute( "xunc" )), rr );
                     hRef_filePart = ""; }}
 
           // Referent patterns taken from right to left in the `iF` pattern-matcher series
@@ -588,7 +593,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             int region = 0, regionEnd = iRef.sourceText().length(); // Search region in referent source.
             for(; iFc != null; iFc = iFc.getPreviousSibling() ) { // Leftward through `iF` children.
                 if( !hasName( "PatternMatcher", iFc )) continue;
-                final int rSelfIgnore = iFc == iFcPM1 ? rSelf : -2;
+                final int rSelfIgnore, rParentIgnore;
+                if( iFc == iFcPM1 ) {
+                    rSelfIgnore = rSelf;
+                    rParentIgnore = rParent; } // [ASR]
+                else rSelfIgnore = rParentIgnore = -2;
                 final Element eP = (Element)iFc.getFirstChild().getNextSibling(); /* Image of a Breccian
                   regular-expression pattern from a pattern matcher of the referent clause. */
                 assert hasName( "Pattern", eP );
@@ -606,7 +615,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     final ImagedBodyFractum[] referentFracta = iRef.fracta();
                     final int r; { // Index in `referentFracta` of the matched body fractum, or -1.
                         final Matcher m = jP.matcher( iRef.sourceText() ).region( region, regionEnd );
-                        r = seek( m, referentFracta, rSelfIgnore );
+                        r = seek( m, referentFracta, rSelfIgnore, rParentIgnore );
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
                             warn( sourceFile, p, "No such fractal head\n" + p.markedLine(), jP );
@@ -615,8 +624,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         if( s < referentFracta.length ) {
                             if( advanceToIgnore( m, regionEnd )) { /* A further match may exist
                                   that would indicate an ambigous pattern.  Test for it: */
-                                final int r2 = seek( m, referentFracta, rSelfIgnore, /*ignoring also*/r/*
-                                  as that would be a ‘further match in the same head.’  [RFI] */ );
+                                final int r2 = seek( m, referentFracta, rSelfIgnore,
+                                  rParentIgnore, /* ignoring also */r/* as that would be
+                                    a ‘further match in the same head.’  [RFI] */ );
                                 if( r2 != -2 ) { // Then a further fractum is matched.
                                     final CharacterPointer p = characterPointer( eP );
                                     final int rLineNumber = r < 0 ? 1 : referentFracta[r].lineNumber();
@@ -981,18 +991,24 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *            <p>The value is other than -2 only where
       *        (a) `m` represents the matcher that ‘leads the pattern-matcher series’, and
       *        (b) that matcher would be hyperlinked as a same-document reference.</p>
+      *     @param fIgnore Any additional fracta whose matches to ignore, each an index in `fracta`
+      *        of a body fractum, or -1 to ignore the file fractum, or -2 to ignore no fractum.
       *     @return The index in `fracta` of the matched body fractum, or -1 if instead the file fractum
       *       is matched, or -2 if no fractum is matched. *//*
       *
       * The references under `fSelfIgnore` above are to the language definition, [RFI]
       */
-    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelfIgnore ) {
-        while( m.find() ) {
+    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelfIgnore,
+          final int... fIgnore ) {
+        seek: while( m.find() ) {
             final int f = seek( m.start(), fracta ); // Index in `fracta` of the matched fractum, or -1.
             if( f == fSelfIgnore ) { /* Then ignore this match.  ‘Fractum indicants do not indicate
                   the fracta in whose heads they are contained.’ [RFI] */
                 if( advanceToIgnore( m )) continue;
                 break; }
+            for( int i: fIgnore ) if( f == i ) {
+                if( advanceToIgnore( m )) continue seek;
+                break seek; }
             final int g = f + 1;
             if( g < fracta.length ) {
                 final int fEnd = fracta[g].xunc(); // End boundary of the head of the matched fractum.
@@ -1013,19 +1029,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                       `g < fracta.length`. */
                     break; }}
             return f; }
-        return -2; }
-
-
-
-    /** @param fIgnore The index in `fracta` of an additional body fractum whose matches to ignore,
-      *    or -1 to ignore matches of the file fractum.
-      */
-    private static int seek( final Matcher m, final ImagedBodyFractum[] fracta, final int fSelfIgnore,
-          final int fIgnore ) {
-        do {
-            final int f = seek( m, fracta, fSelfIgnore );
-            if( f != fIgnore ) return f; }
-            while( advanceToIgnore( m ));
         return -2; }
 
 
@@ -1430,6 +1433,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //   ◦↕◦  Code that is order dependent with like-marked code (◦↓◦, ◦↕◦, ◦↑◦) that comes before and after.
 //
 //   ◦↑◦  Code that is order dependent with like-marked code (◦↓◦, ◦↕◦) that comes before.
+//
+//   ASR  No associative self-reference. ‘Fractum indicants of associative references do not indicate
+//        the parent of the associative reference.’
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#no,associative,self-referen
 //
 //   BF↓  Code that must execute before section *Body fracta*`.
 //
