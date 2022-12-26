@@ -13,6 +13,7 @@ import static Java.Nodes.successor;
 import static Java.Nodes.successorAfter;
 import static Java.Nodes.successorElement;
 import static Java.Nodes.textChildFlat;
+import static Java.Patterns.quote; // Yields more readable patterns than does `Pattern.quote`.
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
 import static java.util.regex.Pattern.MULTILINE;
@@ -47,6 +48,10 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
 
 
 
+    private final StringBuilder stringBuilder2 = new StringBuilder( /*initial capacity*/0x800 );
+
+
+
    // ━━━  P a t t e r n   C o m p i l e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
@@ -62,24 +67,31 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
           // Referrer clause, in the presence of
           // ───────────────
             if( mReferrer != null ) {
+                final StringBuilder b = clear( stringBuilder );
                 final int gN = mReferrer.groupCount();
 
               // captures of its matcher
               // ┈┈┈┈┈┈┈┈
-                if( gN > 0 ) for( int g = 1;; ++g ) {
-                    final String capture = mReferrer.group( g );
-                    assert capture != null && capture.length() != 0; // Implied by `mReferrer` API.
-                    append( capture, bP, toExpandSpaces );
-                    if( g == gN ) return;
-                    append( " ", bP, toExpandSpaces ); }
+                if( gN > 0 ) {
+                    for( int g = 1;; ++g ) {
+                        final String capture = mReferrer.group( g );
+                        assert capture != null && capture.length() != 0; // Implied by `mReferrer` API.
+                        quote( capture, b );
+                        if( g == gN ) break;
+                        b.append( ' ' ); }
+                    append( b.toString(), bP, toExpandSpaces );
+                    return; }
 
               // whole match
               // ┈┈┈┈┈┈┈┈┈┈┈
-                final StringBuilder b = clear( stringBuilder );
                 b.append( mReferrer.group() );
                 assert b.length() != 0; // Implied by `mReferrer` API.
-                collapseWhitespace( b );
-                append( b.length() > 0 ? b.toString() : " ", bP, toExpandSpaces );
+                collapseWhitespace( b ); // This may empty `b`, wherefore:
+                if( b.length() > 0 ) {
+                    final StringBuilder c = clear( stringBuilder2 );
+                    quote( b, c );
+                    append( c.toString(), bP, toExpandSpaces ); }
+                else append( " ", bP, toExpandSpaces );
                 return; }
             Node n = ownerFractum( variable );
             assert hasName( "AssociativeReference", n );
@@ -89,6 +101,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                 throw new FailedInterpolation( variable, variableName,
                   "Misplaced back reference, no parent head to refer to" ); }
             final StringBuilder b = clear( stringBuilder );
+            final StringBuilder c = clear( stringBuilder2 );
             if( hasName( "Division", n )) {
                 final Element firstTitlingLabel = successorTitlingLabel( head, successorAfter(head) );
 
@@ -97,7 +110,8 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                 if( firstTitlingLabel != null ) {
                     b.append( textChildFlat( firstTitlingLabel ));
                     collapseWhitespace( b );
-                    append( b.toString(), bP, toExpandSpaces );
+                    quote( b, c );
+                    append( c.toString(), bP, toExpandSpaces );
                     return; }}
 
           // File fractum or point, the parent of the present associative reference is
@@ -116,7 +130,8 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                         n = s; }}}
             b.append( sourceText( head ));
             collapseWhitespace( b );
-            append( b.toString(), bP, toExpandSpaces );
+            quote( b, c );
+            append( c.toString(), bP, toExpandSpaces );
             return; }
 
 
@@ -135,7 +150,9 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                       "No such capture group (" + g + ") in the referrer clause" ); }
                 final String capture = mReferrer.group( g );
                 assert capture != null && capture.length() != 0; // Implied by `mReferrer` API.
-                append( capture, bP, toExpandSpaces );
+                final StringBuilder b = clear( stringBuilder );
+                quote( capture, b );
+                append( b.toString(), bP, toExpandSpaces );
                 return; }}
         super.append( variable, bP, toExpandSpaces ); }}
 

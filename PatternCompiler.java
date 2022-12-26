@@ -9,6 +9,7 @@ import org.w3c.dom.Node;
 import static Java.Nodes.hasName;
 import static Java.Nodes.isElement;
 import static Java.Nodes.textChildFlat;
+import static Java.Patterns.metacharacters;
 import static Java.StringBuilding.clear;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.regex.Pattern.DOTALL;
@@ -75,7 +76,10 @@ class PatternCompiler {
                         case '+' -> "^(?:    )*"+"[\u2500-\u259F].*?\\R(?:    )* {1,3}";
                         case '^' -> "^(?:    )*(?:[\u2500-\u259F].*?\\R(?:    )* {1,3})?";
                         default -> throw new IllegalStateException(); }); }
-                case "Granum" -> append( textChildFlat(n), bP, toExpandSpaces );
+                case "Granum" -> {
+                    final String tF = textChildFlat( n );
+                    assert hasNoMetacharacter( tF, 0 );
+                    append( tF, bP, toExpandSpaces ); }
                 case "BackslashedSpecial" -> {
                     final String tF = textChildFlat( n );
                     final Matcher m = numberedCharacterBackslashMatcher.reset( tF );
@@ -90,8 +94,10 @@ class PatternCompiler {
                     assert hasName( "Granum", n ); /* Always that backslash is followed
                       directly by a `Granum` that starts with the literalized character. */
                     final String tF = textChildFlat( n );
-                    bP.append( tF.charAt( 0 )); // The literalized character, plus any remainder
-                    if( tF.length() > 1 ) append( tF, 1, bP, toExpandSpaces ); } // of the `Granum`.
+                    bP.append( tF.charAt( 0 )); // The literalized character, plus
+                    if( tF.length() > 1 ) {     // any remainder of the `Granum`.
+                        assert hasNoMetacharacter( tF, 1 );
+                        append( tF, 1, bP, toExpandSpaces ); }}
                 case "Variable" -> append( (Element)n, bP, toExpandSpaces );
                 default -> bP.append( textChildFlat( n )); }}
         return Pattern.compile( bP.toString(), flags ); }
@@ -118,42 +124,38 @@ class PatternCompiler {
 
 
 
-    /** @throws AssertionError If assertions are enabled and the part of the text to append includes
-      *   a character that would have special meaning in the context of a regular expression.
+    /** @param c The offset in `seq` at which to start appending.
       */
-    private void append( final String tF, int c, final int cEnd, final StringBuilder b ) {
-        while( c < cEnd ) {
-            final char ch = tF.charAt( c++ );
-            assert "\\^.$|()*+?[]{}".indexOf(ch) < 0;
-            b.append( ch ); }}
-
-
-
-    /** @param tF Flat text from the image of a regular-expression pattern.
-      * @param c The offset in `tF` at which to start appending.
-      */
-    protected final void append( final String tF, int c, final StringBuilder b,
+    protected final void append( final String seq, int c, final StringBuilder b,
           final boolean toExpandSpaces ) {
-        final int cN = tF.length();
+        final int cN = seq.length();
         if( !toExpandSpaces ) {
-            append( tF, c, cN, b );
+            b.append( seq, c, cN );
             return; }
-        final Matcher m = plainSpaceMatcher.reset( tF );
+        final Matcher m = plainSpaceMatcher.reset( seq );
         if( m.lookingAt() ) {
             b.append( "(?: |\n|\r\n)+" );
             m.region( c = m.end(), cN ); }
         while( m.find() ) {
-            append( tF, c, m.start(), b );
+            b.append( seq, c, m.start() );
             b.append( "(?: |\n|\r\n)+" );
             c = m.end(); }
-        if( c < cN ) append( tF, c, cN, b ); }
+        if( c < cN ) b.append( seq, c, cN ); }
+
+
+
+    protected final void append( String seq, StringBuilder b, boolean toExpandSpaces ) {
+        append( seq, 0, b, toExpandSpaces ); }
 
 
 
     /** @param tF Flat text from the image of a regular-expression pattern.
+      * @param c The offset in `tF` at which to start vetting.
       */
-    protected final void append( String tF, StringBuilder b, boolean toExpandSpaces ) {
-        append( tF, 0, b, toExpandSpaces ); }
+    private boolean hasNoMetacharacter( final String tF, int c ) {
+        final int cEnd = tF.length();
+        while( c < cEnd ) if( metacharacters.indexOf(tF.charAt(c++)) >= 0 ) return false;
+        return true; }
 
 
 
