@@ -1357,8 +1357,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final CharacterPointer p = characterPointer( eP );
         mould.warn( f, p, "Malformed pattern: " + x.getDescription() + '\n'
           + markedLine( "    ", x.getPattern(), zeroBased(x.getIndex()), mould.gcc )
-          + "\n    Source line, with original pattern:  (before translation to Java)\n"
-          + p.markedLine() ); }
+          + "\n    Source line in full:\n" + p.markedLine() ); }
 
 
 
