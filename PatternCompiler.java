@@ -113,20 +113,9 @@ class PatternCompiler {
 ////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
 
 
-    /** Appends to `b` the value of `variable`, or throws `FailedInterpolation`.
-      * implementation recognizes no variables and simply throws `FailedInterpolation`.
-      *
-      *     @param variable The image of a variable interpolator.
-      */
-    protected void append( final Element variable, final StringBuilder b, final boolean toExpandSpaces )
-          throws FailedInterpolation {
-        throw new FailedInterpolation( variable, variableName, "No such variable in this context" ); }
-
-
-
     /** @param c The offset in `seq` at which to start appending.
       */
-    protected final void append( final String seq, int c, final StringBuilder b,
+    protected final void append( final CharSequence seq, int c, final StringBuilder b,
           final boolean toExpandSpaces ) {
         final int cN = seq.length();
         if( !toExpandSpaces ) {
@@ -144,8 +133,19 @@ class PatternCompiler {
 
 
 
-    protected final void append( String seq, StringBuilder b, boolean toExpandSpaces ) {
+    protected final void append( CharSequence seq, StringBuilder b, boolean toExpandSpaces ) {
         append( seq, 0, b, toExpandSpaces ); }
+
+
+
+    /** Appends to `b` the value of `variable`, or throws `FailedInterpolation`.
+      * implementation recognizes no variables and simply throws `FailedInterpolation`.
+      *
+      *     @param variable The image of a variable interpolator.
+      */
+    protected void append( final Element variable, final StringBuilder b, final boolean toExpandSpaces )
+          throws FailedInterpolation {
+        throw new FailedInterpolation( variable, variableName, "No such variable in this context" ); }
 
 
 

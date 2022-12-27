@@ -79,7 +79,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                         quote( capture, b );
                         if( g == gN ) break;
                         b.append( ' ' ); }
-                    append( b.toString(), bP, toExpandSpaces );
+                    append( b, bP, toExpandSpaces );
                     return; }
 
               // whole match
@@ -90,7 +90,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                 if( b.length() > 0 ) {
                     final StringBuilder c = clear( stringBuilder2 );
                     quote( b, c );
-                    append( c.toString(), bP, toExpandSpaces ); }
+                    append( c, bP, toExpandSpaces ); }
                 else append( " ", bP, toExpandSpaces );
                 return; }
             Node n = ownerFractum( variable );
@@ -111,7 +111,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                     b.append( textChildFlat( firstTitlingLabel ));
                     collapseWhitespace( b );
                     quote( b, c );
-                    append( c.toString(), bP, toExpandSpaces );
+                    append( c, bP, toExpandSpaces );
                     return; }}
 
           // File fractum or point, the parent of the present associative reference is
@@ -131,7 +131,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
             b.append( sourceText( head ));
             collapseWhitespace( b );
             quote( b, c );
-            append( c.toString(), bP, toExpandSpaces );
+            append( c, bP, toExpandSpaces );
             return; }
 
 
@@ -152,7 +152,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                 assert capture != null && capture.length() != 0; // Implied by `mReferrer` API.
                 final StringBuilder b = clear( stringBuilder );
                 quote( capture, b );
-                append( b.toString(), bP, toExpandSpaces );
+                append( b, bP, toExpandSpaces );
                 return; }}
         super.append( variable, bP, toExpandSpaces ); }}
 
