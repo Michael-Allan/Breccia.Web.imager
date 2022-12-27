@@ -319,24 +319,18 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       * @param c The offset in `granum` context of the character to point to.
       */
     protected final CharacterPointer characterPointer( final Element granum, final int c ) {
-        final String textRegional;
-        final IntArrayExtensor endsRegional = lineLocator.endsRegional;
-        final int offsetRegional;
-        final int numberRegional; {
+        final String textRegional; {
             final Element fH = ownerHeadOrSelf( granum );
             assert fH != null; // Caller obeys the API.
             textRegional = sourceText( fH );
-            endsRegional.clear();
-            final StringTokenizer tt = new StringTokenizer( fH.getAttribute( "xuncLineEnds" ), " " );
-            while( tt.hasMoreTokens() ) endsRegional.add( parseUnsignedInt( tt.nextToken() ));
-            final Element f = parentAsElement( fH );
-            offsetRegional = parseUnsignedInt( f.getAttribute( "xunc" ));
-            numberRegional = parseUnsignedInt( f.getAttribute( "lineNumber" )); }
+            lineLocator.region( fH ); }
+        final IntArrayExtensor endsRegional = lineLocator.endsRegional;
+        final int offsetRegional = lineLocator.offsetRegional();
 
       // Locate the line
       // ───────────────
         int offset = c + parseUnsignedInt( granum.getAttribute( "xunc" )); // `granum` → whole text
-        lineLocator.locateLine( offset, offsetRegional, numberRegional );
+        lineLocator.locateLine( offset );
 
       // Resolve its content
       // ───────────────────
@@ -388,17 +382,26 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     /** @param head A `Head` element representing a fractal head.
       * @return The file title as derived from the head, or null if it yields none. *//*
       * @paramImplied #stringBuilder
+      * @paramImplied #stringBuilder2
       */
     private String fileTitle( Element head ) {
         final String titlingExtract; // The relevant text extracted from the fractal head.
         if( hasName( "Division", head.getParentNode() )) { // Then `head` is a divider.
-            final Node eN = successorAfter( head );
-            for( Element e = successorElement( head );; ) {
-                if( hasName( "DivisionLabel", e )) {
-                    titlingExtract = sourceText( e );
-                    break; }
-                e = successorElement( e );
-                if( e == eN ) return null; }}
+            final Node end = successorAfter( head );
+            Element tL = successorTitlingLabel( head, end );
+            if( tL == null ) return null;
+            lineLocator.region( head );
+            lineLocator.locateLine( tL );
+            int nL = lineLocator.number();
+            final StringBuilder b = clear( stringBuilder );
+            for( ;; ) {
+                b.append( collapseWhitespace( clear(stringBuilder2).append( textChildFlat( tL ))));
+                tL = successorTitlingLabel( tL, end );
+                if( tL == null ) break;
+                lineLocator.locateLine( tL );
+                if( lineLocator.number() != ++nL ) break; // Consecutive labels only comprise the title.
+                b.append( ' ' ); }
+            return b.toString(); }
         else { // Presumeably `head` is a file head or point head.
             head = (Element)head.cloneNode( /*deeply*/true ); /* So both preserving the original,
               and keeping the nodal scan that follows within the bounds of the isolated clone. */
@@ -903,8 +906,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private final TextLineLocator lineLocator = new TextLineLocator(
-      new IntArrayExtensor( new int[0x100] )); // = 256
+    private final HeadLineLocator lineLocator = new HeadLineLocator();
 
 
 
