@@ -41,7 +41,6 @@ import org.w3c.dom.Text;
 
 import static Breccia.parser.AssociativeReference.ReferentClause;
 import static Breccia.parser.Typestamp.empty;
-import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
@@ -50,6 +49,7 @@ import static Breccia.Web.imager.ImageNodes.isFractum;
 import static Breccia.Web.imager.ImageNodes.ownerFractum;
 import static Breccia.Web.imager.ImageNodes.ownerHeadOrSelf;
 import static Breccia.Web.imager.ImageNodes.sourceText;
+import static Breccia.Web.imager.ImageNodes.successorTitlingLabel;
 import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBrecciaLike;
@@ -1144,20 +1144,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             e.setAttribute( "src", opt.coServiceDirectory() + "Breccia/Web/imager/image.js" ); }
 
 
-      // ════════════════
-      // Division titling
-      // ════════════════
-        for( Element dL = successorElement(fileFractum);  dL != null;  dL = successorElement(dL) ) {
-            if( !hasName( "DivisionLabel", dL )) continue;
-            final String p = textChildFlat( dL.getPreviousSibling() );
-              // All `dL` have a `Granum` predecessor comprising flat text.
-            int c = p.length();
-            do --c; while( p.charAt(c) == ' ' );    // Scan leftward past any plain space characters,
-            if( completesNewline( p.charAt( c ))) { // and there test for the presence of a newline.
-                assert "".equals( dL.getAttribute( "class" ));
-                dL.setAttribute( "class", "titling" ); }}
-
-
       // ════════════
       // File fractum
       // ════════════
@@ -1301,7 +1287,16 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
               parseUnsignedInt( bF.getAttribute( "lineNumber" )), id, xuncEnd(bF) )); }
         final Path imageFile = imageSibling(sourceFile).normalize();
         mould.imageFilesLocal.put( imageFile, newImageFile(
-          imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) )); }
+          imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) ));
+
+
+      // ══════════════
+      // Titling labels
+      // ══════════════
+        for( Element tL = successorTitlingLabel(fileFractum); tL != null;
+              tL = successorTitlingLabel(tL) ) {
+            assert "".equals( tL.getAttribute( "class" ));
+            tL.setAttribute( "class", "titling" ); }}
 
 
 

@@ -4,6 +4,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import static Breccia.parser.plain.Language.completesNewline;
+import static Breccia.parser.plain.Language.isDividerDrawing;
 import static Java.Nodes.hasName;
 import static Java.Nodes.parentElement;
 import static Java.Nodes.successorElement;
@@ -81,6 +82,16 @@ public final class ImageNodes {
 
 
 
+    /** Returns the next titling label subsequent to `n` in document order,
+      * inclusive of any descendants of `n`, or null if there is none.
+      *
+      *     @see <a href='https://www.w3.org/TR/DOM-Level-3-Core/glossary.html#dt-document-order'>
+      *       Definition of ‘document order’</a>
+      */
+    public static Element successorTitlingLabel( Node n ) { return successorTitlingLabel( n, null ); }
+
+
+
     /** Returns the next titling label that succeeds `n` and precedes `nBoundary` in document order,
       * inclusive of any descendants of `n`, or null if there is none.
       *
@@ -90,21 +101,23 @@ public final class ImageNodes {
       *       Definition of ‘document order’</a>
       */
     public static Element successorTitlingLabel( Node n, final Node nBoundary ) {
-        for( Element e = successorElement( n );; ) {
-            if( hasName( "DivisionLabel", e )) {
-                n = e.getPreviousSibling();
-                assert hasName( "Granum", n ); // A granum of flat text precedes all division labels.
-                final String s = textChildFlat( n );
-                for( int c = s.length();; ) {
-                    final char ch = s.charAt( --c );
-                    if( ch != ' ' ) {
-                        if( completesNewline( ch )) return e; /* For it leads the line on which
-                          it occurs, so preceding any divider drawing character of the same line,
-                          which by definition makes it a titling label. */
-                        break; } // Label `e` is no titling label, keep searching.
-                    assert c != 0; }} // A division label cannot be preceded by plain space alone.
-            e = successorElement( e );
-            if( e == nBoundary ) return null; }}}
+        Element e = successorElement( n );
+        do {
+            if( !hasName( "DivisionLabel", e )) continue;
+            n = e.getPreviousSibling();
+            assert hasName( "Granum", n ); // A granum of flat text `t` precedes all division labels.
+         // final String t = textChildFlat( n );
+         /// but the imager may have wrapped that text child, e.g. with a self-hyperlink `a` element
+            final String t = sourceText( n );
+            char ch;
+            int c = t.length();
+            do --c; while( (ch = t.charAt(c)) == ' ' ); // Scan leftward past any plain space characters,
+            if( completesNewline( ch )) return e; /*       and there test for the presence of a newline.
+              That preceding newline proves that the label leads the line on which it occurs, which by
+              definition makes it a titling label. */
+            assert isDividerDrawing( ch ); } // The only alternative is a divider drawing character.
+            while( (e = successorElement(e)) != nBoundary );
+        return null; }}
 
 
 
