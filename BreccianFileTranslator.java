@@ -552,25 +552,25 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             Node iFc; { // Initialized herein to the last child of `iF` before any resource indicant:
                 iFc = iF.getLastChild();
                 if( hasName( "ResourceIndicant", iFc )) {
-                    if( ((Element)iFc).getAttribute("qualifiers").contains( "non-fractal" )) continue;
+                    if( ((Element)iFc).getAttribute("qualifiers").contains( "non-fractal" )) continue rA;
                        // No patterns of *fracta* to hyperlink.
                     n = iFc.getLastChild();
                     assert hasName( "Reference", n );
                     n = n.getFirstChild();
-                    if( !hasName( "a", n )) continue; /* No hyperlink having been formed
+                    if( !hasName( "a", n )) continue rA; /* No hyperlink having been formed
                       for the referent file, none will be formed for its fracta. */
                     final String hRef = ((Element)n).getAttribute( "href" ); // [◦↑◦]
                     final URI uRef; {
                         try { uRef = new URI( hRef ); }
                         catch( URISyntaxException x ) { throw new Unhandled( x ); }}
                           // Unexpected because this is effectively a reconstruction.
-                    if( !looksImageLike( uRef )) continue; /* The hyperlink for the referent file
+                    if( !looksImageLike( uRef )) continue rA; /* The hyperlink for the referent file
                       does not target its Web image, which means either that the referent file is
                       non-Breccian, or it had no corresponding image file earlier, when one was sought.
                       Without an image file, there can be no `iRef` against which to resolve the patterns
                       of `iF`, nor any way to form hyperlinks to the matching fracta. */
                     if( isRemote( uRef )) {
-                        continue; // No HTTP access, no `iRef`. [NH]
+                        continue rA; // No HTTP access, no `iRef`. [NH]
                      /* hRef_filePart = unfragmented( uRef ).toASCIIString(); /* To be correct,
                           though no fragment is expected on Breccian referent `uRef`. */ }
                     else {
@@ -579,7 +579,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             No `IllegalArgumentException` expected, ∵ a reference so malformed
                             would not have been hyperlinked. [◦↑◦] */
                         iRef = recorded( referentPath.normalize() );
-                        if( iRef == null ) continue;
+                        if( iRef == null ) continue rA;
                         rSelf = rParent = -2;
                         hRef_filePart = hRef; } // Already without a fragment, given `toPath` above.
                     iFc = iFc.getPreviousSibling(); }
@@ -649,8 +649,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     else { // The referent is a body fractum.
                         final ImagedBodyFractum referent = referentFracta[r];
                         hRef = hRef_filePart + '#' +  referent.identifier();
-                        regionEnd = referent.xuncEnd(); }
-                    assert region <= regionEnd; } // Ready for the next pattern in the series, if any.
+                        regionEnd = referent.xuncEnd();
+                        assert region <= regionEnd; }} // Ready for the next `eP` in the series, if any.
                 final Element a = d.createElementNS( nsHTML, "html:a" );
                 a.setAttribute( "href", hRef );
                 while( (n = eP.getFirstChild()) != null ) a.appendChild( n ); // All `eP` children wrap-
@@ -1439,7 +1439,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //   BF · Section *Body fracta* itself, or code that must execute in unison with it.
 //
 //   RFI  Resolving a fractum indicant.
-//        http://reluk.ca/project/Breccia/language_definition.brec.xht#indicated,fractum,indicant
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#indicated,indicant,indication
 //
 //   DTR  ‘A `DOCTYPE` is a required preamble’ in HTML.
 //        https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
