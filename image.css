@@ -181,15 +181,18 @@
 /* ━━━  F r a c t u m   i n d i c a n t s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
+    brec|ReferentialCommand > html|a, /* Absent a fractum indicaant, the command takes the hyperlink. */
     brec|FractumIndicant html|a { /* Defeat any default styles indicative of the presence of
           a hyperlink element (`a`) in favour of cued styling for that purpose (e.g. on hover),
           which will better resolve these elements where they overlap each other in stacks. */
         color: inherit;
         text-decoration: none; }
 
+    brec|ReferentialCommand > html|a,
     brec|FractumIndicant html|a {
         transition: color /*duration*/0.2s /*function*/ease-out /*delay*/0.1s; }
 
+    brec|ReferentialCommand > html|a:hover,
     brec|FractumIndicant html|a:hover {
         color: hsl( var(--hyperlink-colour-H), 30%, 60% ); }
 

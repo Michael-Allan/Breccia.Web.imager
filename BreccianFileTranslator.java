@@ -346,13 +346,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    final Pattern compile( final Node eP, final String matchModifiers, final Matcher mReferrer,
-          final Path sourceFile ) throws FailedInterpolation {
-        referentClausePatternCompiler.mReferrer = mReferrer;
-        return referentClausePatternCompiler.compile( eP, matchModifiers, sourceFile ); }
-
-
-
     /** @param imageFile The absolute path of an image file.
       * @return The image of that path’s file fractum.
       */
@@ -474,7 +467,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // ════════════════
       // Fractal patterns in associative references, each formed as a hyperlink  [◦↑◦]
       // ════════════════
-        rA: for( Node cR = successor(fileFractum);  cR != null;  cR = successor(cR) ) {
+        rA: for( Element cR = successorElement(fileFractum);  cR != null;  cR = successorElement(cR) ) {
             if( !hasName( "ReferentialCommand", cR )) continue;
             final Element rA/*associative reference*/ = ownerFractum( cR );
             assert hasName( "AssociativeReference", rA ); /* Hyperlinking a formal reference
@@ -530,16 +523,24 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // Referent clause
           // ───────────────
-            final Node iF; // Fractum indicant.
-            final Node iFcPM1; { // First pattern matcher in the `iF` matcher series.
+            final Node iF; // Fractum indicant, or null if a referent clause is absent.
+            Node iFcPM1; { /* First pattern matcher in the `iF` matcher series, or referential command
+                  `cR` if a referent clause is absent or comprises an inferential referent indicant. */
                 final Node cReferent = nextSibling( cR, "ReferentClause" );
-                if( cReferent == null ) continue rA; // No referent clause, no patterns to hyperlink.
-                iF = cReferent.getFirstChild();
-                if( !hasName( "FractumIndicant", iF )) continue rA; /* Pending determination of what
-                  TODO here, for this referent clause comprises an inferential referent indicant. */
-                iFcPM1 = iF.getFirstChild();
-                if( !hasName( "PatternMatcher", iFcPM1 )) continue rA; } /* No patterns to hyperlink,
-                  for this fractum indicant contains a resource indicant alone. */
+                if( cReferent == null ) {
+                    iF = null;
+                    iFcPM1 = cR; }
+                else {
+                    n = cReferent.getFirstChild();
+                    if( hasName( "InferentialReferentIndicant", n )) {
+                        iF = n.getLastChild();
+                        iFcPM1 = cR; }
+                    else {
+                        iF = n;
+                        iFcPM1 = iF.getFirstChild();
+                        if( !hasName( "PatternMatcher", iFcPM1 )) continue rA; } /* No patterns to
+                          hyperlink, for this referent clause comprises a resource indicant alone. */
+                    assert hasName( "FractumIndicant", iF ); }}
 
           // Referent file
           // ─────────────
@@ -549,9 +550,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final int rParent; /* Index in `iRef.fracta` of `rA` parent, as per `fIgnore`
               of `seek( m, fracta, fSelfIgnore, fIgnore )`. */
             final String hRef_filePart; // The pre-fragment part of each hyperlink’s `href` attribute.
-            Node iFc; { // Initialized herein to the last child of `iF` before any resource indicant:
-                iFc = iF.getLastChild();
-                if( hasName( "ResourceIndicant", iFc )) {
+            Node iFc; // Initialized herein to the last child of `iF` before any resource indicant,
+            iRef: {  // or to null if a referent clause is absent.
+                if( iF == null ) iFc = null;
+                else if( hasName( "ResourceIndicant", iFc = iF.getLastChild() )) {
                     if( ((Element)iFc).getAttribute("qualifiers").contains( "non-fractal" )) continue rA;
                        // No patterns of *fracta* to hyperlink.
                     n = iFc.getLastChild();
@@ -582,38 +584,58 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         if( iRef == null ) continue rA;
                         rSelf = rParent = -2;
                         hRef_filePart = hRef; } // Already without a fragment, given `toPath` above.
-                    iFc = iFc.getPreviousSibling(); }
-                else { // The referent file is the containing file, the present image file.
-                    iRef = recorded( imageSibling(sourceFile).normalize() );
-                    assert iRef != null; // It was formed earlier, during the `translate` cycle.
-                    final var rr = iRef.fracta();
-                    rSelf   = seek( parseUnsignedInt( rA                 .getAttribute( "xunc" )), rr );
-                    rParent = seek( parseUnsignedInt( parentAsElement(rA).getAttribute( "xunc" )), rr );
-                    hRef_filePart = ""; }}
+                    iFc = iFc.getPreviousSibling();
+                    break iRef; }
+                // The referent file is the containing file, the present image file.
+                iRef = recorded( imageSibling(sourceFile).normalize() );
+                assert iRef != null; // It was formed earlier, during the `translate` cycle.
+                final var rr = iRef.fracta();
+                rSelf   = seek( parseUnsignedInt( rA                 .getAttribute( "xunc" )), rr );
+                rParent = seek( parseUnsignedInt( parentAsElement(rA).getAttribute( "xunc" )), rr );
+                hRef_filePart = ""; }
 
-          // Referent patterns taken from right to left in the `iF` pattern-matcher series
+          // Referent patterns taken from right to left in the pattern-matcher series, if any
           // ─────────────────
             int region = 0, regionEnd = iRef.sourceText().length(); // Search region in referent source.
-            for(; iFc != null; iFc = iFc.getPreviousSibling() ) { // Leftward through `iF` children.
-                if( !hasName( "PatternMatcher", iFc )) continue;
+            referentClausePatternCompiler.mReferrer = mReferrer;
+            for( ;; ) {
                 final int rSelfIgnore, rParentIgnore;
-                if( iFc == iFcPM1 ) {
-                    rSelfIgnore = rSelf;
-                    rParentIgnore = rParent; } // [ASR]
-                else rSelfIgnore = rParentIgnore = -2;
-                final Element eP = (Element)iFc.getFirstChild().getNextSibling(); /* Image of a Breccian
-                  regular-expression pattern from a pattern matcher of the referent clause. */
-                assert hasName( "Pattern", eP );
-                final Pattern jP; { // Java compilation of `eP` and its associated match modifiers.
-                    n = iFc.getLastChild();
-                    final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
-                    try { jP = compile( eP, mm, mReferrer, sourceFile ); }
-                    catch( final PatternSyntaxException x ) {
-                        warn( sourceFile, eP, x );
-                        continue rA; }
-                    catch( final FailedInterpolation x ) {
-                        warn( sourceFile, x );
-                        continue rA; }}
+                final Element eP; /* Image of a Breccian regular-expression pattern from a pattern
+                  matcher of the referent clause, or of `cR` in the case of an inferred pattern. */
+                final Pattern jP; { // Java compilation of the pattern and its match modifiers.
+                    if( iFc != null ) {
+                        if( !hasName( "PatternMatcher", iFc )) {
+                            iFc = iFc.getPreviousSibling(); // Leftward through `iF` children.
+                            continue; }
+                        if( iFc == iFcPM1 ) {
+                            rSelfIgnore = rSelf;
+                            rParentIgnore = rParent; } // [ASR]
+                        else rSelfIgnore = rParentIgnore = -2;
+                        eP = (Element)iFc.getFirstChild().getNextSibling(); /* Image of a Breccian
+                          regular-expression pattern from a pattern matcher of the referent clause. */
+                        assert hasName( "Pattern", eP );
+                        n = iFc.getLastChild();
+                        final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
+                        try { jP = referentClausePatternCompiler.compile( eP, mm, sourceFile ); }
+                        catch( final PatternSyntaxException x ) {
+                            warn( sourceFile, eP, x );
+                            continue rA; }
+                        catch( final FailedInterpolation x ) {
+                            warn( sourceFile, x );
+                            continue rA; }
+                        iFc = iFc.getPreviousSibling(); } /* Leftward through `iF` children,
+                          ready for the next pass of the loop. */
+                    else if( iFcPM1 == cR ) { /* Then the leftmost pattern must be inferred, ∵ either
+                          the referent clause is absent or comprises an inferential referent indicant. */
+                        rSelfIgnore = rSelf;
+                        rParentIgnore = rParent; // [ASR]
+                        eP = cR;
+                        try { jP = referentClausePatternCompiler.compileDefaultPattern( cR ); }
+                        catch( final FailedInterpolation x ) {
+                            warn( sourceFile, x );
+                            continue rA; }
+                        iFcPM1 = null; } // Making this the final pass of the loop.
+                    else break; }
                 final String hRef; { // Hyperlink `href` attribute referring to matched fractum.
                     final ImagedBodyFractum[] referentFracta = iRef.fracta();
                     final int r; { // Index in `referentFracta` of the matched body fractum, or -1.

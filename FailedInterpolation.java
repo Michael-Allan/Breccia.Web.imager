@@ -26,7 +26,8 @@ class FailedInterpolation extends Exception {
 
 
 
-    /** The image of the interpolator that failed.
+    /** The image of the interpolator that failed, or its representative in the case
+      * of an implied interpolator.
       */
     final Element interpolator; }
 

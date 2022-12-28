@@ -30,6 +30,14 @@ class PatternCompiler {
 
 
 
+    static final String anchoredPrefix_perfect = "^(?:    )*";
+
+    static final String anchoredPrefix_titling = "^(?:    )*"+"[\u2500-\u259F].*?\\R(?:    )* {1,3}";
+
+    static final String anchoredPrefix_either  = "^(?:    )*(?:[\u2500-\u259F].*?\\R(?:    )* {1,3})?";
+
+
+
     /** Base match flags to apply by default, or zero if there are none.
       */
     final int baseFlags;
@@ -73,9 +81,9 @@ class PatternCompiler {
                     final String tF = textChildFlat( n );
                     assert tF.length() == 2 && tF.charAt(0) == '^';
                     bP.append( switch( tF.charAt( 1 )) {
-                        case '*' -> "^(?:    )*";
-                        case '+' -> "^(?:    )*"+"[\u2500-\u259F].*?\\R(?:    )* {1,3}";
-                        case '^' -> "^(?:    )*(?:[\u2500-\u259F].*?\\R(?:    )* {1,3})?";
+                        case '*' -> anchoredPrefix_perfect;
+                        case '+' -> anchoredPrefix_titling;
+                        case '^' -> anchoredPrefix_either;
                         default -> throw new IllegalStateException(); }); }
                 case "Granum" -> {
                     final String tF = textChildFlat( n );
