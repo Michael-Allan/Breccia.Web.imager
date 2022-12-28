@@ -14,6 +14,7 @@ import static Java.StringBuilding.clear;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.regex.Pattern.DOTALL;
 import static java.util.regex.Pattern.MULTILINE;
+import static java.util.regex.Pattern.UNICODE_CASE;
 
 
 /** A translator of regular-expression patterns from Breccian to compiled Javanese form.
@@ -53,7 +54,7 @@ class PatternCompiler {
             boolean pIsGiven = false;
             final int mN = matchModifiers.length();
             for( int m = 0; m < mN; ++m ) switch( matchModifiers.charAt( m )) {
-                case 'i' -> flags |= CASE_INSENSITIVE;
+                case 'i' -> flags |= CASE_INSENSITIVE | UNICODE_CASE;
                 case 'm' -> flags |= MULTILINE;
                 case 's' -> flags |= DOTALL;
                 case 'p' -> pIsGiven = true;
