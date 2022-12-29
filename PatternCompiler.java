@@ -132,11 +132,11 @@ class PatternCompiler {
             return; }
         final Matcher m = plainSpaceMatcher.reset( seq );
         if( m.lookingAt() ) {
-            b.append( "(?: |\n|\r\n)+" );
+            b.append( "(?: |\n|\r\n|\\x{A0})+" );
             m.region( c = m.end(), cN ); }
         while( m.find() ) {
             b.append( seq, c, m.start() );
-            b.append( "(?: |\n|\r\n)+" );
+            b.append( "(?: |\n|\r\n|\\x{A0})+" );
             c = m.end(); }
         if( c < cN ) b.append( seq, c, cN ); }
 

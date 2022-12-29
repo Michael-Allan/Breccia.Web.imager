@@ -1,5 +1,7 @@
 package Breccia.Web.imager;
 
+import Breccia.parser.plain.Language;
+import Java.WhitespaceCollapser;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.w3c.dom.Element;
@@ -16,7 +18,6 @@ import static Java.Nodes.successorElement;
 import static Java.Nodes.textChildFlat;
 import static Java.Patterns.quote; // Yields more readable patterns than does `Pattern.quote`.
 import static Java.StringBuilding.clear;
-import static Java.StringBuilding.collapseWhitespace;
 import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static java.util.regex.Pattern.MULTILINE;
 import static java.util.regex.Pattern.UNICODE_CASE;
@@ -90,7 +91,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
           // ┈┈┈┈┈┈┈┈┈┈┈
             b.append( mReferrer.group() );
             assert b.length() != 0; // Implied by `mReferrer` API.
-            collapseWhitespace( b ); // This may empty `b`, wherefore:
+            BreccianCollapser.collapseWhitespace( b ); // This may empty `b`, wherefore:
             if( b.length() > 0 ) {
                 final StringBuilder c = clear( stringBuilder3 );
                 quote( b, c );
@@ -113,7 +114,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
           // ───────────────
             if( firstTitlingLabel != null ) {
                 b.append( textChildFlat( firstTitlingLabel ));
-                collapseWhitespace( b );
+                BreccianCollapser.collapseWhitespace( b );
                 quote( b, c );
                 append( c, bP, toExpandSpaces );
                 return; }}
@@ -133,9 +134,14 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                     if( s == null ) break strip;
                     n = s; }}}
         b.append( sourceText( head ));
-        collapseWhitespace( b );
+        BreccianCollapser.collapseWhitespace( b );
         quote( b, c );
         append( c, bP, toExpandSpaces ); }
+
+
+
+    private static final WhitespaceCollapser BreccianCollapser = new WhitespaceCollapser() {
+        public @Override boolean isWhitespace( char ch ) { return Language.isWhitespace( ch ); }};
 
 
 
