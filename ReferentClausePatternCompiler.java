@@ -61,7 +61,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
 
 
     /** @see FailedInterpolation#interpolator
-      * @see FailedInterpolation#index
+      * @see FailedInterpolation#index *//*
       * @paramImplied #stringBuilder2
       * @paramImplied #stringBuilder3
       */
@@ -154,9 +154,9 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
    // ━━━  P a t t e r n   C o m p i l e r  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
-    /** @paramImplied #stringBuilder2
-      * @paramImplied #stringBuilder3
-      */
+    /* @paramImplied #stringBuilder2
+     * @paramImplied #stringBuilder3
+     */
     protected @Override void append( final Element variable, final StringBuilder bP,
           final boolean toExpandSpaces ) throws FailedInterpolation {
         final String tF = textChildFlat( variable );
