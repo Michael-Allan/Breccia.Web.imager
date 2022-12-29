@@ -499,7 +499,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     mould.warn( sourceFile, p, "Misplaced back reference, no parent head to refer to\n"
                       + p.markedLine() );
                     continue rA; }
-                mReferrer = jP.matcher( sourceText( n ));
+                final String tH = sourceText( n ); // Text of the head
+                int c = 0;
+                while( tH.charAt(c) == ' ' ) ++c; /* Past any perfect indent
+                  to the first non-plain-space character of the head. */
+                mReferrer = jP.matcher( tH ).region( c, tH.length() );
                 if( !mReferrer.find() ) {
                     final CharacterPointer p = characterPointer( eP );
                     warn( sourceFile, p, "Broken back reference, no such text in parent head\n"
