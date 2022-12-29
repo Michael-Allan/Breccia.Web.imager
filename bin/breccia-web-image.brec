@@ -104,9 +104,10 @@
                 - A test is performed on each character of the source text and a warning emitted
                   for any whose glyph is missing from the font.
             - The default value is either read from the style sheet, or it is `none`.
-                : re `style sheet` see @ `^*-co-service-directory`
+                    : re `style sheet` see `^*${same}` @ `must contain the following auxiliary files` @
+                      `^*-co-service-directory`
                 - Use `-speak` to report the actual default value in use.
-                    : re `-speak` see
+                    : re `-speak` see `^*${same}$`
                 - For the value to be read from the style sheet, the co-service directory must exist
                   locally and the style sheet there (or one of its locally reachable imports) must
                   contain a font reference with a ‘[GTF]’ mark.
