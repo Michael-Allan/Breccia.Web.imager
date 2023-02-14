@@ -1,6 +1,6 @@
 Definition of terms for the Breccia Web imager
 
-    : see also http://reluk.ca/project/way/index.brec
+    : see also http://reluk.ca/project/index.brec
 
     boundary-path directory
         - The directory of the boundary path: either the boundary path itself if it is a directory,
