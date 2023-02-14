@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 import static java.lang.Math.max;
 import static java.lang.System.getProperty;
-import static java.nio.file.Files.isDirectory;
 import static Java.Paths.hasExtension;
 import static Java.URI_References.hasExtension;
 
@@ -99,7 +98,8 @@ public final class Project {
       *     @throws AssertionError If assertions are enabled and `f` is a directory.
       */
     static boolean looksBrecciaLike( final Path file ) {
-        assert !isDirectory( file );
+     // assert !isDirectory( file );
+    //// invalid: path `file` may be relative
         return hasExtension( ".brec", file ); }
 
 
@@ -119,7 +119,8 @@ public final class Project {
       *     @throws AssertionError If assertions are enabled and `file` is a directory.
       */
     static boolean looksImageLike( final Path file ) {
-        assert !isDirectory( file );
+     // assert !isDirectory( file );
+    //// invalid: path `file` may be relative
         return hasExtension( ".brec.xht", file ); }
 
 
