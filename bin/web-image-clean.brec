@@ -5,7 +5,7 @@
 
     - The `web-image-clean` command cleans a Web image delimited by the given boundary path.
         - It deletes any orphan image file stored at or under the boundary path.
-            : re `orphan image file` see @ http://reluk.ca/project/Breccia/Web/imager/lexicon.brec
+            : re `orphan image file` see @ http://reluk.ca/project/Breccia/Web/imager/glossary.brec
         - The working directory must be the command directory.
             : see `^*working directory$` @ `^*shell commands$` @
               http://reluk.ca/project/Java/editorial_guidelines.brec

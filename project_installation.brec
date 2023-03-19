@@ -13,7 +13,7 @@ Installation instructions for the Breccia Web imager
                 / The command directory is where project installations are accessible by their
                   proper paths.  The present project, for example, will shortly be accessible
                   at `Breccia/Web/imager`.
-                    : see `^*command directory$` @ http://reluk.ca/project/lexicon.brec
+                    : see `^*command directory$` @ http://reluk.ca/project/glossary.brec
             >+ git clone http://reluk.ca/var/repo/git/Breccia.Web.imager.git Breccia/Web/imager
         3+ Build the software.
             : join @ http://reluk.ca/project/Java/project_installation.brec

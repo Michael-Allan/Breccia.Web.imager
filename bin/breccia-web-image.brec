@@ -155,7 +155,7 @@
                             \ which the addition of a normalization step would defy.
                         : re `relative-path.+reference`s see
                           https://www.rfc-editor.org/rfc/rfc3986#section-4.2
-                        : re `boundary-path directory` see @ ../lexicon.brec
+                        : re `boundary-path directory` see @ ../glossary.brec
         -speak
             - Sets the verbosity to level 2.
                 : re `verbosity` see `^*-verbosity`
