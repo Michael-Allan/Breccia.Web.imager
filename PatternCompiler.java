@@ -148,7 +148,9 @@ class PatternCompiler {
 
 
     /** Appends to `b` the value of `variable`, or throws `FailedInterpolation`.
-      * implementation recognizes no variables and simply throws `FailedInterpolation`.
+      *
+      * <p>The base implementation of this method recognizes no variables
+      * and simply throws `FailedInterpolation`.</p>
       *
       *     @param variable The image of a variable interpolator.
       */
@@ -213,4 +215,4 @@ class PatternCompiler {
 
 
 
-                                                        // Copyright © 2022  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2022-2023  Michael Allan.  Licence MIT.

@@ -110,9 +110,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         this.sourceXCursor = sourceXCursor;
         this.mould = mould;
         opt = mould.opt;
+        parentalHeadPatternCompiler = new PatternCompiler( MULTILINE/*pattern matchers
+          in this context operate in ‘multiple-line mode’ [PHM]*/, mould );
         referentClausePatternCompiler = new ReferentClausePatternCompiler( mould );
-        referrerClausePatternCompiler = new PatternCompiler( MULTILINE/*pattern matchers
-          in this context operate in ‘multiple-line mode’ [RCA]*/, mould );
 
       // Glyph-test font
       // ───────────────
@@ -435,6 +435,60 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
     protected void finish( final Path sourceFile, final Element fileFractum ) {
         final Document d = fileFractum.getOwnerDocument();
 
+      // ═════════════
+      // Note carriers: pattern matching
+      // ═════════════
+        nC: for( Element pr = successorElement(fileFractum);  pr != null;  pr = successorElement(pr) ) {
+            if( !hasName( "Preposition", pr )) continue; // Preposition of the pertainment clause.
+            final Element nC/*note carrier*/ = ownerFractum( pr );
+            assert hasName( "NoteCarrier", nC );
+            final Node nPM = nextSibling( pr, "PatternMatcher" );
+            Node n;
+
+            // Changing what follows?  Sync with code marked ‘PHM’ elsewhere.
+            final Element eP = (Element) nPM.getFirstChild()/*delimiter*/.getNextSibling(); {
+                assert hasName( "Pattern", eP ); }
+            final Pattern jP; { // Java compilation of `eP` and its associated match modifiers.
+                n = nPM.getLastChild();
+                final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
+                try { jP = parentalHeadPatternCompiler.compile( eP, mm, sourceFile ); }
+                catch( final PatternSyntaxException x ) {
+                    warn( sourceFile, eP, x );
+                    continue nC; }
+                catch( final FailedInterpolation x ) {
+                    warn( sourceFile, x );
+                    continue nC; }}
+            n = head( nC.getParentNode() ); // Wherein lies the text to which the note pertains.
+            if( n == null ) {
+                final CharacterPointer p = characterPointer( pr/*start of pertainment clause*/ );
+                mould.warn( sourceFile, p, "Misplaced back reference, no parent head to refer to\n"
+                  + p.markedLine() );
+                continue nC; }
+            final String tH = sourceText( n ); // Text of the head.
+            int c = 0;
+            while( tH.charAt(c) == ' ' ) ++c; /* Past any perfect indent
+              to the first non-plain-space character of the head. */
+            final Matcher m = jP.matcher( tH ).region( c, tH.length() );
+            if( !m.find() ) {
+                final CharacterPointer p = characterPointer( eP );
+                warn( sourceFile, p, "Broken back reference, no such text in parent head\n"
+                  + p.markedLine(), jP );
+                continue nC; }
+            if( m.group().length() == 0 ) { // Disallowed. [PHM]
+                final CharacterPointer p = characterPointer( eP );
+                warn( sourceFile, p, "Incomplete back reference, matches an empty text sequence\n"
+                  + p.markedLine(), jP );
+                continue nC; }
+            final int gN = m.groupCount();
+            for( int g = 1; g <= gN; ++g ) {
+                final String capture = m.group( g );
+                if( capture == null || capture.length() == 0 ) { // Disallowed. [PHM]
+                    final CharacterPointer p = characterPointer( eP );
+                    warn( sourceFile, p, "Incomplete back reference, group " + g
+                      + " captures nothing in the parent head\n" + p.markedLine(), jP );
+                    continue nC; }}}
+
+
       // ══════════════
       // URI references each formed as a hyperlink  [F, HF, ◦↓◦]
       // ══════════════
@@ -464,9 +518,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             a.appendChild( tRef ); }
 
 
-      // ════════════════
-      // Fractal patterns in associative references, each formed as a hyperlink  [◦↑◦]
-      // ════════════════
+      // ══════════════════════
+      // Associative references: pattern matching and referent hyperlinking  [◦↑◦]
+      // ══════════════════════
         rA: for( Element cR = successorElement(fileFractum);  cR != null;  cR = successorElement(cR) ) {
             if( !hasName( "ReferentialCommand", cR )) continue;
             final Element rA/*associative reference*/ = ownerFractum( cR );
@@ -479,14 +533,16 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final Matcher mReferrer;  /* The pattern matcher of the referrer clause successfully matched
               to the referrer, or null if there is no referrer clause. */
             if( (n = previousSibling( cR, "ReferrerClause" )) != null ) {
-                final Node ePM = n/*ReferrerClause*/.getLastChild(); {
-                    assert hasName( "PatternMatcher", ePM ); }
-                final Element eP = (Element) ePM.getFirstChild()/*delimiter*/.getNextSibling(); {
+                final Node nPM = n/*ReferrerClause*/.getLastChild(); {
+                    assert hasName( "PatternMatcher", nPM ); }
+
+                // Changing what follows?  Sync with code marked ‘PHM’ elsewhere.
+                final Element eP = (Element) nPM.getFirstChild()/*delimiter*/.getNextSibling(); {
                     assert hasName( "Pattern", eP ); }
                 final Pattern jP; { // Java compilation of `eP` and its associated match modifiers.
-                    n = ePM.getLastChild();
+                    n = nPM.getLastChild();
                     final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
-                    try { jP = referrerClausePatternCompiler.compile( eP, mm, sourceFile ); }
+                    try { jP = parentalHeadPatternCompiler.compile( eP, mm, sourceFile ); }
                     catch( final PatternSyntaxException x ) {
                         warn( sourceFile, eP, x );
                         continue rA; }
@@ -495,29 +551,29 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         continue rA; }}
                 n = head( rA.getParentNode() ); // Wherein lies the referrer.
                 if( n == null ) {
-                    final CharacterPointer p = characterPointer( parentElement(ePM)/*ReferrerClause*/ );
+                    final CharacterPointer p = characterPointer( parentElement(nPM)/*ReferrerClause*/ );
                     mould.warn( sourceFile, p, "Misplaced back reference, no parent head to refer to\n"
                       + p.markedLine() );
                     continue rA; }
-                final String tH = sourceText( n ); // Text of the head
+                final String tH = sourceText( n ); // Text of the head.
                 int c = 0;
                 while( tH.charAt(c) == ' ' ) ++c; /* Past any perfect indent
                   to the first non-plain-space character of the head. */
-                mReferrer = jP.matcher( tH ).region( c, tH.length() );
-                if( !mReferrer.find() ) {
+                final Matcher m = mReferrer = jP.matcher( tH ).region( c, tH.length() );
+                if( !m.find() ) {
                     final CharacterPointer p = characterPointer( eP );
                     warn( sourceFile, p, "Broken back reference, no such text in parent head\n"
                       + p.markedLine(), jP );
                     continue rA; }
-                if( mReferrer.group().length() == 0 ) { // Disallowed. [RCA]
+                if( m.group().length() == 0 ) { // Disallowed. [PHM]
                     final CharacterPointer p = characterPointer( eP );
                     warn( sourceFile, p, "Incomplete back reference, matches an empty text sequence\n"
                       + p.markedLine(), jP );
                     continue rA; }
-                final int gN = mReferrer.groupCount();
+                final int gN = m.groupCount();
                 for( int g = 1; g <= gN; ++g ) {
-                    final String capture = mReferrer.group( g );
-                    if( capture == null || capture.length() == 0 ) { /* Disallowed by language [RCA]
+                    final String capture = m.group( g );
+                    if( capture == null || capture.length() == 0 ) { /* Disallowed by language [PHM]
                           and `ReferentClausePatternCompiler.mReferrer` API. */
                         final CharacterPointer p = characterPointer( eP );
                         warn( sourceFile, p, "Incomplete back reference, group " + g
@@ -964,13 +1020,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** @see #compile(Node,String,Matcher,Path)
-      */
+    private final PatternCompiler parentalHeadPatternCompiler;
+
+
+
     private final ReferentClausePatternCompiler referentClausePatternCompiler;
-
-
-
-    private final PatternCompiler referrerClausePatternCompiler;
 
 
 
@@ -1483,10 +1537,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //   NH · HTTP access has yet to be implemented here.
 //        http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches
 //
-//   RC · Referencing code.  Cf. the comparably structured code of `ImageMould.formalResources_record`.
+//   PHM  Parental head matching.
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#parental,pattern,matcher
 //
-//   RCA  Referrer clause of an associative reference.
-//        http://reluk.ca/project/Breccia/language_definition.brec.xht#-,referrer,clause
+//   RC · Referencing code.  Cf. the comparably structured code of `ImageMould.formalResources_record`.
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //
@@ -1500,4 +1554,4 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2023  Michael Allan.  Licence MIT.

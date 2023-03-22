@@ -328,6 +328,21 @@
 
 
 
+    /* Note carriers
+     */
+    brec|NoteCarrier > Head {
+        color: var(--command-point-head-colour); }
+
+    brec|NoteCarrier > Head > Bullet {
+        color:       var(--command-point-bullet-colour);
+        font-weight: var(--command-point-bullet-weight); }
+
+    brec|NoteCarrier > Head > Descriptor > Command > Preposition,
+    brec|NoteCarrier > Head > Descriptor > Command > Label {
+        color: var(--command-operator-colour); }
+
+
+
     /* Plain command points
      */
     brec|PlainCommandPoint > Head {
@@ -373,4 +388,4 @@
  */
 
 
-                                                     /* Copyright © 2022  Michael Allan.  Licence MIT. */
+                                                /* Copyright © 2022-2023  Michael Allan.  Licence MIT. */
