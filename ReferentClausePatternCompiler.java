@@ -44,7 +44,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
     final Pattern compileDefaultPattern( final Element cR ) throws FailedInterpolation {
         final StringBuilder bP = clear( stringBuilder );
         if( mReferrer == null ) bP.append( anchoredPrefix_either );
-        appendVariableSame( cR, 0, bP, /*toExpandSpaces*/true );
+        appendVariableSame( cR, 0, bP, /*toExpandWhitespace*/true );
         return Pattern.compile( bP.toString(), CASE_INSENSITIVE | MULTILINE | UNICODE_CASE ); }
 
 
@@ -67,7 +67,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
       * @paramImplied #stringBuilder3
       */
     private void appendVariableSame( final Element interpolator, final int index, final StringBuilder bP,
-          final boolean toExpandSpaces ) throws FailedInterpolation {
+          final boolean toExpandWhitespace ) throws FailedInterpolation {
 
       // Referrer clause, in the presence of
       // ───────────────
@@ -84,7 +84,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                     quote( capture, b );
                     if( g == gN ) break;
                     b.append( ' ' ); }
-                append( b, bP, toExpandSpaces );
+                append( b, bP, toExpandWhitespace );
                 return; }
 
           // whole match
@@ -95,8 +95,8 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
             if( b.length() > 0 ) {
                 final StringBuilder c = clear( stringBuilder3 );
                 quote( b, c );
-                append( c, bP, toExpandSpaces ); }
-            else append( " ", bP, toExpandSpaces );
+                append( c, bP, toExpandWhitespace ); }
+            else append( " ", bP, toExpandWhitespace );
             return; }
         Node n = ownerFractum( interpolator );
         assert hasName( "AssociativeReference", n );
@@ -116,7 +116,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                 b.append( textChildFlat( firstTitlingLabel ));
                 BreccianCollapser.collapseWhitespace( b );
                 quote( b, c );
-                append( c, bP, toExpandSpaces );
+                append( c, bP, toExpandWhitespace );
                 return; }}
 
       // File fractum or point, the parent of the present associative reference is
@@ -136,7 +136,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
         b.append( sourceText( head ));
         BreccianCollapser.collapseWhitespace( b );
         quote( b, c );
-        append( c, bP, toExpandSpaces ); }
+        append( c, bP, toExpandWhitespace ); }
 
 
 
@@ -164,13 +164,13 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
      * @paramImplied #stringBuilder3
      */
     protected @Override void append( final Element variable, final StringBuilder bP,
-          final boolean toExpandSpaces ) throws FailedInterpolation {
+          final boolean toExpandWhitespace ) throws FailedInterpolation {
         final String tF = textChildFlat( variable );
 
       // ${same}
       // ───────
         if( "${same}".equals( tF )) {
-            appendVariableSame( variable, variableName, bP, toExpandSpaces );
+            appendVariableSame( variable, variableName, bP, toExpandWhitespace );
             return; }
 
       // ${1}, ${2}, ${3}, … ${9}
@@ -189,10 +189,10 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                 assert capture != null && capture.length() != 0; // Implied by `mReferrer` API.
                 final StringBuilder b = clear( stringBuilder2 );
                 quote( capture, b );
-                append( b, bP, toExpandSpaces );
+                append( b, bP, toExpandWhitespace );
                 return; }}
-        super.append( variable, bP, toExpandSpaces ); }}
+        super.append( variable, bP, toExpandWhitespace ); }}
 
 
 
-                                                        // Copyright © 2022  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2022-2023  Michael Allan.  Licence MIT.

@@ -58,7 +58,7 @@ class PatternCompiler {
       // Match flags
       // ───────────
         int flags = baseFlags;
-        final boolean toExpandSpaces; { // Whether expansive space mode is enabled.
+        final boolean toExpandWhitespace; { // Whether expansive whitespace mode is enabled.
             boolean pIsGiven = false;
             final int mN = matchModifiers.length();
             for( int m = 0; m < mN; ++m ) switch( matchModifiers.charAt( m )) {
@@ -69,7 +69,7 @@ class PatternCompiler {
                 default -> {
                     throw new IllegalArgumentException( // Unexpected, because the Breccia parser
                       "Match modifiers `" + matchModifiers + '`' ); }} // should have caught it.
-            toExpandSpaces = pIsGiven; }
+            toExpandWhitespace = pIsGiven; }
 
       // Pattern
       // ───────
@@ -88,7 +88,7 @@ class PatternCompiler {
                 case "Granum" -> {
                     final String tF = textChildFlat( n );
                     assert hasNoMetacharacter( tF, 0 );
-                    append( tF, bP, toExpandSpaces ); }
+                    append( tF, bP, toExpandWhitespace ); }
                 case "BackslashedSpecial" -> {
                     final String tF = textChildFlat( n );
                     final Matcher m = numberedCharacterBackslashMatcher.reset( tF );
@@ -106,8 +106,8 @@ class PatternCompiler {
                     bP.append( tF.charAt( 0 )); // The literalized character, plus
                     if( tF.length() > 1 ) {     // any remainder of the `Granum`.
                         assert hasNoMetacharacter( tF, 1 );
-                        append( tF, 1, bP, toExpandSpaces ); }}
-                case "Variable" -> append( (Element)n, bP, toExpandSpaces );
+                        append( tF, 1, bP, toExpandWhitespace ); }}
+                case "Variable" -> append( (Element)n, bP, toExpandWhitespace );
                 default -> bP.append( textChildFlat( n )); }}
         return Pattern.compile( bP.toString(), flags ); }
 
@@ -125,12 +125,12 @@ class PatternCompiler {
     /** @param c The offset in `seq` at which to start appending.
       */
     protected final void append( final CharSequence seq, int c, final StringBuilder b,
-          final boolean toExpandSpaces ) {
+          final boolean toExpandWhitespace ) {
         final int cN = seq.length();
-        if( !toExpandSpaces ) {
+        if( !toExpandWhitespace ) {
             b.append( seq, c, cN );
             return; }
-        final Matcher m = plainSpaceMatcher.reset( seq );
+        final Matcher m = plainWhitespaceMatcher.reset( seq );
         if( m.lookingAt() ) {
             b.append( "(?: |\n|\r\n|\\x{A0})+" );
             m.region( c = m.end(), cN ); }
@@ -142,8 +142,8 @@ class PatternCompiler {
 
 
 
-    protected final void append( CharSequence seq, StringBuilder b, boolean toExpandSpaces ) {
-        append( seq, 0, b, toExpandSpaces ); }
+    protected final void append( CharSequence seq, StringBuilder b, boolean toExpandWhitespace ) {
+        append( seq, 0, b, toExpandWhitespace ); }
 
 
 
@@ -154,8 +154,8 @@ class PatternCompiler {
       *
       *     @param variable The image of a variable interpolator.
       */
-    protected void append( final Element variable, final StringBuilder b, final boolean toExpandSpaces )
-          throws FailedInterpolation {
+    protected void append( final Element variable, final StringBuilder b,
+            final boolean toExpandWhitespace ) throws FailedInterpolation {
         throw new FailedInterpolation( variable, variableName, "No such variable in this context" ); }
 
 
@@ -191,15 +191,15 @@ class PatternCompiler {
 
 
 
-    /** A pattern to `find` a sequence of plain space characters.
+    /** A pattern to `find` a sequence of plain whitespace.
       *
       *     @see java.util.regex.Matcher#find()
       */
-    private static final Pattern plainSpacePattern = Pattern.compile( " +" );
+    private static final Pattern plainWhitespacePattern = Pattern.compile( "(?: |\n|\r\n)+" );
 
 
 
-    private final Matcher plainSpaceMatcher = plainSpacePattern.matcher( "" );
+    private final Matcher plainWhitespaceMatcher = plainWhitespacePattern.matcher( "" );
 
 
 
