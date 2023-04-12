@@ -34,6 +34,7 @@ import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
 import static Breccia.Web.imager.RemoteChangeProbe.improbeableCause;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
+import static java.lang.System.getProperty;
 import static java.nio.file.Files.exists;
 import static java.nio.file.Files.getLastModifiedTime;
 import static java.nio.file.Files.getPosixFilePermissions;
@@ -639,7 +640,7 @@ public final class ImageMould<C extends ReusableCursor> {
             b.append( "No access to this file or directory, cause unknown" );
             return false; }
         catch( final AccessDeniedException x ) {
-            b.append( "File access denied" );
+            b.append( "File access denied to user `" + getProperty("user.name") + "`" );
             return true; }
         catch( final NoSuchFileException x ) {
             b.append( "No such file or directory" );
