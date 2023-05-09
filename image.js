@@ -42,6 +42,9 @@ window.Breccia_Web_imager = ( function()
 
 
 
+    window.MathJax = { // In case of imaging option `-math`.
+       chtml: {
+           displayAlign: 'left' }}; // So sharing the indent of parent element `MathDisplayBlock`.
     Object.freeze( εP );
     return εP;
 
@@ -61,4 +64,4 @@ window.Breccia_Web_imager = ( function()
 
 
 
-                                                        // Copyright © 2022  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2022-2023  Michael Allan.  Licence MIT.

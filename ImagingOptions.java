@@ -109,6 +109,15 @@ public class ImagingOptions extends Options {
 
 
 
+    /** Whether to render mathematic expressions using MathJax.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#math'>
+      *         Command option `-math`</a>
+      */
+    public final boolean toRenderMath() { return toRenderMath; }
+
+
+
    // ━━━  O p t i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
@@ -251,6 +260,10 @@ public class ImagingOptions extends Options {
 
 
 
+    private boolean toRenderMath;
+
+
+
    // ━━━  O p t i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
@@ -273,6 +286,7 @@ public class ImagingOptions extends Options {
         else if( arg.equals( "-fake" )) toFake = true;
         else if( arg.equals( "-force" )) toForce = true;
         else if( arg.startsWith( s = "-glyph-test-font=" )) glyphTestFont = value( arg, s );
+        else if( arg.equals( "-math" )) toRenderMath = true;
         else if( arg.startsWith( s = "-reference-mapping=" )) {
             final List<ReferenceTranslation> tt = new ArrayList<>( /*initial capacity*/8 );
             tt: {
@@ -314,4 +328,4 @@ public class ImagingOptions extends Options {
 
 
 
-                                                        // Copyright © 2022  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2022-2023  Michael Allan.  Licence MIT.

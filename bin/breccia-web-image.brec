@@ -115,6 +115,9 @@
                     : re `font reference` see https://www.w3.org/TR/css-fonts/#src-desc
                 - The bundled style sheet describes and gives an example of this mark.
                     : re `bundled style sheet` see ../image.css
+        -math
+            - Render TeX/LaTeX mathematic expressions using MathJax.
+                : re `MathJax` see https://www.mathjax.org/
         -reference-mapping: -reference-mapping=<translation> [|| <translation>] ...
             - A list of translations to apply to URI references of the source text,
               separated by double bars ‘||’.
@@ -207,4 +210,4 @@
 
 
 
-                                                    \ Copyright © 2020-2022  Michael Allan.  Licence MIT.
+                                                    \ Copyright © 2020-2023  Michael Allan.  Licence MIT.

@@ -1215,15 +1215,21 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
             e.setAttribute( "rel", "stylesheet" );
             e.setAttribute( "href", opt.coServiceDirectory() + "Breccia/Web/imager/image.css" );
+            documentHead.appendChild( e = d.createElementNS( nsHTML, "script" ));
+            e.setAttribute( "defer", "" );
+            e.setAttribute( "src", opt.coServiceDirectory() + "Breccia/Web/imager/image.js" ); // ◦↓◦
+            if( opt.toRenderMath() ) { // After script `image.js` which sets its configuration:   ◦↑◦
+                documentHead.appendChild( e = d.createElementNS( nsHTML, "script" ));
+                e.setAttribute( "defer", "" );
+                e.setAttribute( "id", "MathJax-script" );
+                e.setAttribute( "src", "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" ); }
 
           // `body`
           // ┈┈┈┈┈┈
             final Element documentBody = d.createElementNS( nsHTML, "body" );
             html.appendChild( documentBody );
             documentBody.appendChild( fileFractum );
-            fileFractum.setAttributeNS( nsXMLNS, "xmlns:html", nsHTML );
-            documentBody.appendChild( e = d.createElementNS( nsHTML, "script" ));
-            e.setAttribute( "src", opt.coServiceDirectory() + "Breccia/Web/imager/image.js" ); }
+            fileFractum.setAttributeNS( nsXMLNS, "xmlns:html", nsHTML ); }
 
 
       // ════════════
@@ -1370,6 +1376,47 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final Path imageFile = imageSibling(sourceFile).normalize();
         mould.imageFilesLocal.put( imageFile, newImageFile(
           imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) ));
+
+
+      // ══════════════════════
+      // Mathematic expressions with *display* as opposed to *in-line* layout
+      // ══════════════════════
+        if( opt.toRenderMath() ) for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
+            if( !isText( n )) continue;
+            Text nText = (Text)n;
+            assert !nText.isElementContentWhitespace(); /* The `sourceXCursor` has produced
+              ‘X-Breccia with no ignorable whitespace’. */
+            final String text = nText.getData();
+            boolean inIndent = false;
+            text: for( int ch, c = 0, cLast = text.length() - 1; c <= cLast; c += charCount(ch) ) {
+                ch = text.codePointAt( c );
+                if( inIndent ) {
+                    if( ch == ' '  ||  impliesNewline(ch) ) continue;
+                    inIndent = false;
+                    if( ch != '$'  ||  c == cLast  ||  text.charAt(c+1) != '$' ) continue;
+                    final int b = c; // Offset of the start delimiter (‘$$’) of a math expression.
+                    c += 2; // Through the start delimiter.
+                    for(; c <= cLast; c += charCount(ch) ) { // Seek the corresponding end delimiter:
+                        ch = text.codePointAt( c );
+                        if( ch != '$'  ||  c == cLast  ) continue;
+                        ch = text.codePointAt( ++c );
+                        if( ch != '$' ) continue;
+
+                      // Wrap the expression so the style rules can better lay out its MathJax rendering
+                      // ───────────────────
+                        if( c != cLast ) nText.splitText( c + 1 ); /* Cutting off any text that remains
+                          after the end delimiter, to become `nText` for the next pass. */
+                        n = nText = nText.splitText( b ); // Cutting off before the start delimiter, too.
+                        assert b != 0; // Always there is such text, comprising at least a newline.
+                        final Element math = d.createElementNS( nsImager, "img:mathDisplayBlock" );
+                        final Node p = nText.getParentNode();
+                        if( hasName( math.getLocalName(), p )) throw new IllegalStateException();
+                        p.insertBefore( math, nText );
+                        math.appendChild( nText ); /* MathJax at runtime
+                          will replace `nText` with rendering elements. */
+                        break text; }
+                    break; }
+                if( impliesNewline( ch )) inIndent = true; }}
 
 
       // ══════════════

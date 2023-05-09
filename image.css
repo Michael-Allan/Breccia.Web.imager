@@ -143,8 +143,8 @@
     @font-face {
         font-family: 'Fairfax HD';
         src: local('Fairfax HD'),
-            url('FairfaxHD.woff2')       format('woff2'),
-           url('FairfaxHD.ttf'/*[GTF]*/)  format('opentype'); }
+          url('FairfaxHD.woff2')        format('woff2'),
+          url('FairfaxHD.ttf'/*[GTF]*/) format('opentype'); }
 
 
 
@@ -203,6 +203,24 @@
 
     brec|IndentBlind > Line > Delimiter {
         background-color: hsl( 211/*blue*/, 20%, 25% ); }
+
+
+
+/* ━━━  M a t h e m a t i c   e x p r e s s i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ */
+
+    /* Expressions with *display* as opposed to *in-line* layout.
+     *
+     *     https://docs.mathjax.org/en/latest/basic/mathematics.html
+     */
+    img|mathDisplayBlock {
+        display: inline-block; } /* Putting the expression right where its source is, true to Breccia. */
+
+
+
+    img|mathDisplayBlock > mjx-container[class~='MathJax'][display='true'] {
+        margin-top:    0; /* Leaving such layout to the author, again true to Breccia. */
+        margin-bottom: 0; }
 
 
 
