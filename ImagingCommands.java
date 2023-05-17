@@ -49,7 +49,7 @@ public final class ImagingCommands {
         try( final PrintWriter errWriter = new PrintWriter( errHolder )) {
             mould = new ImageMould<>( boundaryPath, opt, mouldOutputDirectory, errWriter );
             mould.initialize( tMaker.newTranslator( mould ));
-            try { hasFailed = mould.formImage(); }
+            try { hasFailed = !mould.formImage(); }
             catch( final UserError x ) {
                 err.println( name + ": " + x.getMessage() );
                 hasFailed = true; }
@@ -84,4 +84,4 @@ public final class ImagingCommands {
 
 
 
-                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2023  Michael Allan.  Licence MIT.
