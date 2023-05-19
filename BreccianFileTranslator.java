@@ -1414,6 +1414,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         p.insertBefore( math, nText );
                         math.appendChild( nText ); /* MathJax at runtime
                           will replace `nText` with rendering elements. */
+                     // nText.insertData( 2, "\\large " ); /* For legibility of small elements such as
+                     //   subscripts.  Alternatives would be (a) the MathJax `scale` option, except it
+                     //   cannot be restricted to these expressions which have *display* layout;
+                     //   and (b) CSS styling, except that may cause layout artifacts.
+                     //   (a) https://docs.mathjax.org/en/latest/options/output/index.html#output-options
+                     //   (b) https://stackoverflow.com/a/25329062/2402790 */
                         break text; }
                     break; }
                 if( impliesNewline( ch )) inIndent = true; }}
