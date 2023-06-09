@@ -271,6 +271,10 @@
     brec|Bullet img|punctuation {
         font-weight: normal; }
 
+    brec|Bullet img|terminator {
+        color: hsl( 0, 0%, 39% );
+        font-weight: normal; }
+
 
 
     /* Aside points
@@ -285,9 +289,6 @@
     brec|AlarmPoint > Head > Bullet {
         color: hsl( 0/*red*/, 100%, 63% ); }
 
-    brec|AlarmPoint > Head > Bullet img|terminator {
-        font-weight: normal; }
-
 
 
     /* Plain points
@@ -301,9 +302,6 @@
      */
     brec|TaskPoint > Head > Bullet {
         color: hsl( 27/*orange*/, 70%, 60% ); }
-
-    brec|TaskPoint > Head > Bullet img|terminator {
-        color: hsl( 0, 0%, 39% ); }
 
 
 
