@@ -149,12 +149,13 @@
 
 
     :root {
-        font-family:
+        --root-family: /* [VRF] */
           'Fairfax HD', /* Gives near-seamless jointing of semigraphics and good alignment of lines
              and triangles (ab)used as arrow heads.  So does JetBrains Mono, but its stubby ascenders
              and descenders harm readability.  Others worthy of mention are DejaVu Sans Mono and Mensch,
              variants  of Vera Sans Mono. */
-          'monospace'; }
+          'monospace';
+        font-family: var(--root-family); }
 
 
     @media screen {
@@ -401,6 +402,10 @@
  *        http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#positional,argument,arguments
  *
  *   T ·· Text properties are applicable within fractal heads alone, where all Breccian text is confined.
+ *
+ *   VRF  Variable `--root-family`, the font family at the root element.  Defining it as a variable
+ *        allows for reliable referencing in source text, e.g. from a MathJax `\style` macro.
+ *        http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#math
  */
 
 
