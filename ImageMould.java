@@ -29,9 +29,9 @@ import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBrecciaLike;
 import static Breccia.Web.imager.Project.zeroBased;
+import static Breccia.Web.imager.RemoteChangeProbe.appendImprobeableCause;
 import static Breccia.Web.imager.RemoteChangeProbe.looksProbeable;
 import static Breccia.Web.imager.RemoteChangeProbe.msQueryInterval;
-import static Breccia.Web.imager.RemoteChangeProbe.improbeableCause;
 import static Java.Files.isDirectoryEmpty;
 import static Java.Hashing.initialCapacity;
 import static java.lang.System.getProperty;
@@ -504,9 +504,11 @@ public final class ImageMould<C extends ReusableCursor> {
         if( isRemote( uRef )) {             // Then the resource would be reachable through a network,
             if( !looksProbeable( uRef )) { // the reference being a URI or network-path reference. [RR]
                 final CharacterPointer p = gRef.characterPointer();
-                final String message = improbeableCause + '\n' + markedLine( sRef, p, isAlteredRef );
-                pendingWarnings.add( new Warning( p.lineNumber, message, /*when private*/null, null,
-                  gRef.xuncFractalDescent() ));
+                final StringBuilder bMessage = clear( stringBuilder );
+                appendImprobeableCause( uRef, bMessage );
+                bMessage.append( '\n' ).append( markedLine( sRef, p, isAlteredRef ));
+                pendingWarnings.add( new Warning( p.lineNumber, bMessage.toString(),
+                  /*when private*/null, null, gRef.xuncFractalDescent() ));
                 return false; } // Without mapping ∵ `formalResources.remote` forbids improbeables.
             map( formalResources.remote, /*resource*/unfragmented(uRef).normalize(), /*dependant*/f ); }
 
@@ -828,4 +830,4 @@ public final class ImageMould<C extends ReusableCursor> {
 
 
 
-                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.
+                                             // Copyright © 2020-2022, 2024  Michael Allan.  Licence MIT.

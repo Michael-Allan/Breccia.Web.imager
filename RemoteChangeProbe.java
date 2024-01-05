@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.Set;
 
 import static Breccia.Web.imager.Imageability.indeterminate;
+import static Breccia.Web.imager.Project.looksBrecciaLike;
 import static Java.Collections.forEachRemaining;
 import static java.lang.Thread.sleep;
 import static Java.URI_References.isRemote;
@@ -35,15 +36,16 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
-    /** The description of an improbeable-looking URI reference which is the cause of a user report.
+    /** Appends to `b` the causal part of a user report that `ref` is improbeable.
       *
+      *     @param ref A URI reference to a remote resource.
+      *     @see java.lang.Throwable#getCause()
       *     @see #looksProbeable(URI)
       */
-    static final String improbeableCause =
-      "Unable to access the referent by this form of reference.  Consider marking it private."; /*
-         Re ‘marking it private’: The intent of allowing private improbeables was to accommodate
-         URI pseudo-schemes that an author might employ; but the code extends the allowance
-         to all references that look improbeable, regardless of the reason. */
+    static void appendImprobeableCause( final URI ref, final StringBuilder b ) {
+        b.append( "Unable to access the referent by this form of reference.  Consider marking it " );
+        if( !looksBrecciaLike( ref )) b.append( "non-fractal or " );
+        b.append( "private." ); }
 
 
 
@@ -128,4 +130,4 @@ final class RemoteChangeProbe implements Runnable {
 
 
 
-                                                   // Copyright © 2020-2022  Michael Allan.  Licence MIT.
+                                             // Copyright © 2020-2022, 2025  Michael Allan.  Licence MIT.
