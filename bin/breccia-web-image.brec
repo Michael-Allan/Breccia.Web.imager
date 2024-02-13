@@ -184,7 +184,7 @@
      See also
     ──────────
         • Working example
-            : e.g. `^*testing$` @ http://reluk.ca/project/Breccia/Web/imager/working_notes.brec
+            : e.g. `^*testing$` @ http://reluk.ca/project/Breccia/Web/imager/notes.brec
         • The `waycast-web-image` command
             : see http://reluk.ca/project/wayic/Web/imager/bin/waycast-web-image.brec
             - For imaging a boundary path that might include a waycast.

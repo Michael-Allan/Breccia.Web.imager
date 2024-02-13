@@ -126,7 +126,7 @@ final class RemoteChangeProbe implements Runnable {
       // Probe the resource
       /* ──────────────────
         Deferred, as per
-        `http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches`. */; }}
+        `http://reluk.ca/project/Breccia/Web/imager/notes.brec.xht#deferral,hTTP,fetches`. */; }}
 
 
 

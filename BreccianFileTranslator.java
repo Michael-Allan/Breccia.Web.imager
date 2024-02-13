@@ -1498,7 +1498,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     /* Note that Breccia Mode for Emacs plans a remedy for this type of malformed reference.
-     * http://reluk.ca/project/Breccia/Emacs/working_notes.brec.xht#substitution,source-file,references
+     * http://reluk.ca/project/Breccia/Emacs/notes.brec.xht#substitution,source-file,references
      */
     private void warn_imageFileReference( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef ) {
@@ -1588,7 +1588,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //        characters, commas or periods that might destabilize the ID as the source text is edited.
 //
 //   NH · HTTP access has yet to be implemented here.
-//        http://reluk.ca/project/Breccia/Web/imager/working_notes.brec.xht#deferral,hTTP,fetches
+//        http://reluk.ca/project/Breccia/Web/imager/notes.brec.xht#deferral,hTTP,fetches
 //
 //   PHM  Parental head matching.
 //        http://reluk.ca/project/Breccia/language_definition.brec.xht#parental,pattern,matcher
