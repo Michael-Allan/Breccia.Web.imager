@@ -1257,9 +1257,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // ═════════════════
         for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
             if( !hasName( "Bullet", b )) continue;
-            final int pointType = parseInt(
-              parentAsElement(parentAsElement(b)).getAttribute( "typestamp" ));
-            final String typeMark; switch( pointType ) {
+            final String typeMark; switch( parseInt( parentAsElement( parentAsElement( b ))
+                  .getAttribute( "typestamp" ))) {
                 case Typestamp.alarmPoint -> typeMark = "!!";
                 case Typestamp.plainPoint -> typeMark =  ""; // None.
                 case Typestamp.taskPoint  -> typeMark =  "+";
