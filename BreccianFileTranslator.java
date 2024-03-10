@@ -61,8 +61,6 @@ import static java.awt.Font.TRUETYPE_FONT;
 import static Java.Hashing.initialCapacity;
 import static Java.IntralineCharacterPointer.markedLine;
 import static java.lang.Character.charCount;
-import static java.lang.Character.isAlphabetic;
-import static java.lang.Character.isDigit;
 import static java.lang.Character.toLowerCase;
 import static java.lang.Integer.parseInt;
 import static java.lang.Integer.parseUnsignedInt;
@@ -960,6 +958,20 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** Whether codepoint `ch` is punctuation.
+      */
+    private boolean isPunctuation( final int ch ) {
+        final int gC = Character.getType( ch ); // Unicode general category.
+        return gC == /*Po*/Character.OTHER_PUNCTUATION
+            || gC == /*Pd*/Character.DASH_PUNCTUATION
+            || gC == /*Pc*/Character.CONNECTOR_PUNCTUATION
+            || gC == /*Pe*/Character.END_PUNCTUATION
+            || gC == /*Ps*/Character.START_PUNCTUATION
+            || gC == /*Pi*/Character.INITIAL_QUOTE_PUNCTUATION
+            || gC == /*Pf*/Character.FINAL_QUOTE_PUNCTUATION; }
+
+
+
     /** @param token A word or other sequence of characters extracted from a fractal head.
       * @return The token transformed as necessary to serve as a keyword in a fractum `id` attribute. *//*
       * @paramImplied #stringBuilder
@@ -1268,12 +1280,12 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
             for( int ch, c = 0; c < freeEnd; c += charCount(ch) ) {
                 ch = text.codePointAt( c );
-                if( isAlphabetic(ch) || isDigit(ch) || ch == ' ' || ch == '\u00A0'/*no-break space*/ ) {
-                    appendAnyP( b, bP );
-                    bQ.appendCodePoint( ch ); }
-                else { // `ch` is punctuation
+                if( isPunctuation( ch )) {
                     appendAnyQ( b, bQ );
-                    bP.appendCodePoint( ch ); }}
+                    bP.appendCodePoint( ch ); }
+                else {
+                    appendAnyP( b, bP );
+                    bQ.appendCodePoint( ch ); }}
             appendAnyP( b, bP );
             appendAnyQ( b, bQ );
 
