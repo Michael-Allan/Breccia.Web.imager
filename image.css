@@ -312,7 +312,7 @@
     :root {
         --command-point-head-colour:   hsl( 0, 0%, 39% );
         --command-point-bullet-colour: hsl( 0, 0%, 56% );
-        --command-operator-colour:     hsl( 0, 0%, 50% ); /* operator or other key descriptor element */
+        --command-operator-colour:     hsl( 0, 0%, 50% ); /* Operator or other key descriptor element. */
         --command-point-bullet-weight: normal; }
 
 
