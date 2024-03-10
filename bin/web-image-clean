@@ -79,7 +79,7 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
         if( isRegularFile( sourceSibling( f ))) return;                  // Not an orphan.
         boolean toDelete = true;
         if( toAsk ) for( ;; ) {
-            out.print( "Delete orphan image file " + f + "? (y, n, !)  " );
+            out.print( "Delete orphan image file " + f + "? (n, y, !)  " );
             final String answer = console.readLine(); /* The user must press the `Enter` key.
               Unfortunately Java makes no provision for single character (e.g. ‘raw’) input. */
             if( "n".equals( answer )) toDelete = false;
