@@ -1274,7 +1274,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( freeEnd <= 0 ) continue; // No free-form content in bullet `b`.
                 b.removeChild( t ); }
 
-          // Free-form part
+          // Free-form part, its punctuation sequences encapsulated in `punctuation` elements
           // ──────────────
             final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
             final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
