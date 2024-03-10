@@ -1265,8 +1265,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 default -> { continue; }}; // No free-form content in bullets of this type.
             final String text;
             final int freeEnd; { // End boundary of free-form part, start of any terminal type mark.
-                final Text t = (Text)b.getFirstChild(); /* This must run before the *Body fracta* code,
-                  which might here insert an `a` element and split the text.  [BF↓] */
+                final Text t = (Text)b.getFirstChild();
+                assert t.getNextSibling() == null; /* The bullet text comes in a single node.  On this
+                  assumption the present code depends.  *Body fracta* code may insert an `a` element,
+                  splitting the text into multiple nodes.  This code must run before it. [BF↓] */
                 text = t.getData();
                 assert text.endsWith( typeMark );
                 freeEnd = text.length() - typeMark.length();
