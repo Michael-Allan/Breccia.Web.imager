@@ -1264,22 +1264,22 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 case Typestamp.taskPoint  -> typeMark =  "+";
                 default -> { continue; }}; // No free-form content in bullets of this type.
             final String text;
-            final int freeEnd; { // End boundary of free-form part, start of any terminal type mark.
+            final int freeLength; { // Length of the free-form content.
                 final Text t = (Text)b.getFirstChild();
                 assert t.getNextSibling() == null; /* The bullet text comes in a single node.  On this
                   assumption the present code depends.  *Body fracta* code may insert an `a` element,
                   splitting the text into multiple nodes.  This code must run before it. [BF↓] */
                 text = t.getData();
                 assert text.endsWith( typeMark );
-                freeEnd = text.length() - typeMark.length();
-                if( freeEnd <= 0 ) continue; // No free-form content in bullet `b`.
+                freeLength = text.length() - typeMark.length();
+                if( freeLength <= 0 ) continue; // No free-form content in bullet `b`.
                 b.removeChild( t ); }
 
           // Free-form part, its punctuation sequences encapsulated in `punctuation` elements
           // ──────────────
             final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
             final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
-            for( int ch, c = 0; c < freeEnd; c += charCount(ch) ) {
+            for( int ch, c = 0; c < freeLength; c += charCount(ch) ) {
                 ch = text.codePointAt( c );
                 if( isPunctuation( ch )) {
                     appendAnyQ( b, bQ );
@@ -1287,8 +1287,18 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 else {
                     appendAnyP( b, bP );
                     bQ.appendCodePoint( ch ); }}
-            appendAnyP( b, bP );
-            appendAnyQ( b, bQ );
+            if( bP.length() == freeLength ) { // Then the free-form content comprises punctuation alone.
+                assert bQ.length() == 0;
+                appendAnyP( b, bP );
+                assert "".equals( b.getAttribute( "class" ));
+                b.setAttribute( "class", "purelyPunctuation" ); } /* A cleaner method might have been
+                  coded entirely in `image.css` using a selector such as `img|punctuation:only-child`,
+                  which would select a `punctuation` element only if it lacked siblings in the bullet;
+                  except that CSS is blind to text nodes, and text-node siblings are precisely where
+                  any non-punctuation characters would be stored. */
+            else {
+                appendAnyP( b, bP );
+                appendAnyQ( b, bQ ); }
 
           // Terminal type marker, if any
           // ────────────────────

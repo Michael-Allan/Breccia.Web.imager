@@ -297,6 +297,9 @@
     brec|PlainPoint > Head > Bullet {
         color: hsl( 0, 0%, 100% ); }
 
+    brec|PlainPoint > Head > brec|Bullet:not([class~='purelyPunctuation']) img|punctuation {
+        color: hsl( 0, 0%, 79% ); }
+
 
 
     /* Task points
