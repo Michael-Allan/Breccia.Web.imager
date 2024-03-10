@@ -272,7 +272,7 @@
     brec|Bullet img|punctuation {
         font-weight: normal; }
 
-    brec|Bullet img|terminator {
+    brec|Bullet img|terminalTypeMarker {
         color: hsl( 0, 0%, 39% );
         font-weight: normal; }
 
@@ -409,4 +409,4 @@
  */
 
 
-                                                /* Copyright © 2022-2023  Michael Allan.  Licence MIT. */
+                                                /* Copyright © 2022-2024  Michael Allan.  Licence MIT. */
