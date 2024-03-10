@@ -1265,7 +1265,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 case Typestamp.taskPoint  -> typeMark =  "+";
                 default -> { continue; }}; // No free-form content in bullets of this type.
             final String text;
-            final int freeEnd; { // End boundary of free-form part, start of terminal type mark.
+            final int freeEnd; { // End boundary of free-form part, start of any terminal type mark.
                 final Text t = (Text)b.getFirstChild(); /* This must run before the *Body fracta* code,
                   which might here insert an `a` element and split the text.  [BF↓] */
                 text = t.getData();
