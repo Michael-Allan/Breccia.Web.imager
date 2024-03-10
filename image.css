@@ -153,7 +153,7 @@
           'Fairfax HD', /* Gives near-seamless jointing of semigraphics and good alignment of lines
              and triangles (ab)used as arrow heads.  So does JetBrains Mono, but its stubby ascenders
              and descenders harm readability.  Others worthy of mention are DejaVu Sans Mono and Mensch,
-             variants  of Vera Sans Mono. */
+             variants of Vera Sans Mono. */
           'monospace';
         font-family: var(--root-family); }
 
