@@ -46,7 +46,7 @@
     brec|CommentBlock, brec|CommentBlock > Line,
     brec|IndentBlind,  brec|IndentBlind  > Line {
         display: block; } /* This might lead to difficulties.  Often an ancestor (e.g. descriptor)
-          will have inline display, and the ramifications of a block-in-inline arrangement confuse even
+          will have in-line display, and the ramifications of a block-in-inline arrangement confuse even
           the CSS people.  https://github.com/w3c/csswg-drafts/issues/1477
              Yet these *are* block constructs and saying so, while it makes no difference to text flow,
           enables a reduction (elsewhere) of their `line-height`. */
