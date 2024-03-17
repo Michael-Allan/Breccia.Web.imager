@@ -31,8 +31,7 @@ import static java.util.regex.Pattern.UNICODE_CASE;
 final class ReferentClausePatternCompiler extends PatternCompiler {
 
 
-    ReferentClausePatternCompiler( ImageMould<?> mould ) { super( MULTILINE/*pattern matchers
-      in this context operate in ‘multiple-line mode’ [RFI]*/, mould ); }
+    ReferentClausePatternCompiler( ImageMould<?> mould ) { super( mould ); }
 
 
 
@@ -45,8 +44,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
         final StringBuilder bP = clear( stringBuilder );
         if( mReferrer == null ) bP.append( anchoredPrefix_either );
         appendVariableSame( cR, 0, bP, /*toExpandWhitespace*/true );
-        return Pattern.compile( bP.toString(), CASE_INSENSITIVE | MULTILINE | UNICODE_CASE ); }
-
+        return Pattern.compile( bP.toString(), CASE_INSENSITIVE | UNICODE_CASE | MULTILINE/*[MLM]*/ ); }
 
 
     /** The pattern matcher of the referrer clause successfully matched to the referrer.
@@ -197,8 +195,9 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
 
 // NOTE
 // ─────
-//   RFI  Resolving a fractum indicant.
-//        http://reluk.ca/project/Breccia/language_definition.brec.xht#indicated,indicant,indication
+//   MLM  Multi-line mode operation of Breccian pattern matchers.
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#consistent,perl-s,multi-line
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#consistent,perl-s,multi-line:2
 
 
 

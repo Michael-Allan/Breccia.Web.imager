@@ -90,7 +90,6 @@ import static Java.StringBuilding.collapseWhitespace;
 import static Java.URI_References.isRemote;
 import static java.util.Arrays.sort;
 import static java.util.logging.Level.WARNING;
-import static java.util.regex.Pattern.MULTILINE;
 import static javax.xml.transform.OutputKeys.*;
 
 
@@ -108,8 +107,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         this.sourceXCursor = sourceXCursor;
         this.mould = mould;
         opt = mould.opt;
-        parentalHeadPatternCompiler = new PatternCompiler( MULTILINE/*pattern matchers
-          in this context operate in ‘multiple-line mode’ [PHM]*/, mould );
+        parentalHeadPatternCompiler = new PatternCompiler( mould );
         referentClausePatternCompiler = new ReferentClausePatternCompiler( mould );
 
       // Glyph-test font
@@ -1630,4 +1628,4 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-                                                   // Copyright © 2020-2023  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2020-2024  Michael Allan.  Licence MIT.

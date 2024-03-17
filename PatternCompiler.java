@@ -22,11 +22,7 @@ import static java.util.regex.Pattern.UNICODE_CASE;
 class PatternCompiler {
 
 
-    /** @see #baseFlags
-      */
-    PatternCompiler( final int baseFlags, final ImageMould<?> mould ) {
-        this.baseFlags = baseFlags;
-        this.mould = mould; }
+    PatternCompiler( final ImageMould<?> mould ) { this.mould = mould; }
 
 
 
@@ -38,14 +34,8 @@ class PatternCompiler {
 
 
 
-    /** Base match flags to apply by default, or zero if there are none.
-      */
-    final int baseFlags;
-
-
-
     /** Returns the Java compilation of `eP`, with {@linkplain Pattern#flags() match flags}
-      * derived from `{@linkplain #baseFlags baseFlags}` and `matchModifiers`.
+      * derived from  the `matchModifiers`.
       *
       *     @param eP The image of a regular-expression pattern within a pattern matcher.
       *     @param matchModifiers The match modifiers, or an empty string if there are none.
@@ -57,13 +47,12 @@ class PatternCompiler {
 
       // Match flags
       // ───────────
-        int flags = baseFlags;
+        int flags = MULTILINE; // [MLM]
         final boolean toExpandWhitespace; { // Whether expansive whitespace mode is enabled.
             boolean pIsGiven = false;
             final int mN = matchModifiers.length();
             for( int m = 0; m < mN; ++m ) switch( matchModifiers.charAt( m )) {
                 case 'i' -> flags |= CASE_INSENSITIVE | UNICODE_CASE;
-                case 'm' -> flags |= MULTILINE;
                 case 's' -> flags |= DOTALL;
                 case 'p' -> pIsGiven = true;
                 default -> {
@@ -208,11 +197,15 @@ class PatternCompiler {
 
 
 
-// NOTE
-// ────
+// NOTES
+// ─────
+//   MLM  Multi-line mode operation of Breccian pattern matchers.
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#consistent,perl-s,multi-line
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#consistent,perl-s,multi-line:2
+//
 //   NSC  Presently ‘null in switch cases is a preview feature and is disabled by default’ (JDK 18),
 //        else this code could be simplified.
 
 
 
-                                                   // Copyright © 2022-2023  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2022-2024  Michael Allan.  Licence MIT.
