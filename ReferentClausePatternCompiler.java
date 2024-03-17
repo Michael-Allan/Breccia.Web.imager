@@ -43,7 +43,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
     final Pattern compileDefaultPattern( final Element cR ) throws FailedInterpolation {
         final StringBuilder bP = clear( stringBuilder );
         if( mReferrer == null ) bP.append( anchoredPrefix_either );
-        appendVariableSame( cR, 0, bP, /*toExpandWhitespace*/true );
+        appendVariable_same( cR, 0, bP, /*toExpandWhitespace*/true );
         return Pattern.compile( bP.toString(), CASE_INSENSITIVE | UNICODE_CASE | MULTILINE/*[MLM]*/ ); }
 
 
@@ -64,8 +64,8 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
       * @paramImplied #stringBuilder2
       * @paramImplied #stringBuilder3
       */
-    private void appendVariableSame( final Element interpolator, final int index, final StringBuilder bP,
-          final boolean toExpandWhitespace ) throws FailedInterpolation {
+    private void appendVariable_same( final Element interpolator, final int index,
+          final StringBuilder bP, final boolean toExpandWhitespace ) throws FailedInterpolation {
 
       // Referrer clause, in the presence of
       // ───────────────
@@ -168,7 +168,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
       // ${same}
       // ───────
         if( "${same}".equals( tF )) {
-            appendVariableSame( variable, variableName, bP, toExpandWhitespace );
+            appendVariable_same( variable, variableName, bP, toExpandWhitespace );
             return; }
 
       // ${1}, ${2}, ${3}, … ${9}
