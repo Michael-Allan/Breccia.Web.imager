@@ -195,4 +195,11 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
 
 
 
-                                                   // Copyright © 2022-2023  Michael Allan.  Licence MIT.
+// NOTE
+// ─────
+//   RFI  Resolving a fractum indicant.
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#indicated,indicant,indication
+
+
+
+                                                   // Copyright © 2022-2024  Michael Allan.  Licence MIT.
