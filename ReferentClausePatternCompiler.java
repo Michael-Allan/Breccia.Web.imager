@@ -47,7 +47,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
         return Pattern.compile( bP.toString(), CASE_INSENSITIVE | UNICODE_CASE | MULTILINE/*[MLM]*/ ); }
 
 
-    /** The pattern matcher of the referrer clause successfully matched to the referrer.
+    /** The Java pattern matcher of the referrer clause successfully matched to the first referrer.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/language_definition.brec.xht#referrers,associative,reference:2'>
       *       Breccia language definition, match procedure for a referrer clause</a>
