@@ -1594,9 +1594,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   BF · Section *Body fracta* itself, or code that must execute in unison with it.
 //
-//   RFI  Resolving a fractum indicant.
-//        http://reluk.ca/project/Breccia/language_definition.brec.xht#indicated,indicant,indication
-//
 //   DTR  ‘A `DOCTYPE` is a required preamble’ in HTML.
 //        https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
 //
@@ -1617,6 +1614,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //        http://reluk.ca/project/Breccia/language_definition.brec.xht#parental,pattern,matcher
 //
 //   RC · Referencing code.  Cf. the comparably structured code of `ImageMould.formalResources_record`.
+//
+//   RFI  Resolving a fractum indicant.
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#indicated,indicant,indication
 //
 //   RR · Relative reference.  https://www.rfc-editor.org/rfc/rfc3986#section-4.2
 //
