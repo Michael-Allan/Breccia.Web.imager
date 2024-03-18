@@ -42,7 +42,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
       */
     final Pattern compileDefaultPattern( final Element cR ) throws FailedInterpolation {
         final StringBuilder bP = clear( stringBuilder );
-        if( mReferrer == null ) bP.append( anchoredPrefix_either );
+        bP.append( anchoredPrefix_either );
         appendVariable_same( cR, 0, bP, /*toExpandWhitespace*/true );
         return Pattern.compile( bP.toString(), CASE_INSENSITIVE | UNICODE_CASE | MULTILINE/*[MLM]*/ ); }
 
