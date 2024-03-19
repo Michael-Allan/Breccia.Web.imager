@@ -121,7 +121,7 @@
         -reference-mapping: -reference-mapping=<translation> [|| <translation>] ...
             - A list of translations to apply to URI references of the source text,
               separated by double bars ‘||’.
-                : re `URI references` see e.g. `─ (URI reference) ─` @ `^+Resource indicant$` @
+                : re `URI references` see e.g. `─ (URI reference) ─` @ `^+File locant$` @
                   http://reluk.ca/project/Breccia/language_definition.brec
             - The translations are attempted in the given order on each URI reference of the source text
               until one succeeds or the list is exhausted.
@@ -210,4 +210,4 @@
 
 
 
-                                                    \ Copyright © 2020-2023  Michael Allan.  Licence MIT.
+                                                    \ Copyright © 2020-2024  Michael Allan.  Licence MIT.

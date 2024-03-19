@@ -36,7 +36,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
 
 
     /** Returns the Java compilation of a default pattern matcher to be used where a referent clause
-      * is absent or comprises an inferential referent indicant.
+      * is absent or comprises an inferential fractum locant.
       *
       *     @param cR The image of a referential command from an associative reference.
       */
