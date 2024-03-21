@@ -150,14 +150,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                           than an associative one?  Then sync with `finish(Path.Document)` below. */
                     cR = rA.referentClause();
                     if( cR == null ) return null; }
-                final var oIF = cR.inferentialFractumLocant();
-                if( oIF == null ) { // Then `cR` itself directly contains any `oF`.
+                final var oFC = cR.fractalContextLocant();
+                if( oFC == null ) { // Then `cR` itself directly contains any `oF`.
                     oF = cR.fractumLocant();
                     if( oF.patternMatchers() == null ) return null; } /* The pattern matchers
                      of a fractum locant alone make it formal (not the file reference),
                      because alone their hyperlink forms depend on the content of the file. */
-                else oF = oIF.fractumLocant(); /* The `oIF` of `cR` alone contains any `oF`.  Whether
-                  this `oF` includes a matcher is immaterial ∵ already `oIF` itself infers one. */
+                else oF = oFC.fractumLocant(); /* The `oFC` of `cR` alone contains any `oF`.  Whether
+                  this `oF` includes a matcher is immaterial ∵ already `oFC` itself infers one. */
                 if( oF == null ) return null; }
             oFile = oF.fileLocant();
             if( oFile == null ) return null; } /* The absence of `oFile` implies that the located file
@@ -250,8 +250,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *
       *     @return True if the attempt succeeded, false if the region was left unchanged.
       */
-    private static boolean advanceToIgnore( final Matcher m ) {
-        return advanceToIgnore( m.start(), m, m.regionEnd() ); }
+    private static boolean advancePast( final Matcher m ) {
+        return advancePast( m.start(), m, m.regionEnd() ); }
 
 
 
@@ -260,8 +260,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @param rEnd The number to set for `m.regionEnd`.
       *     @return True if the attempt succeeded, false if the region was left unchanged.
       */
-    private static boolean advanceToIgnore( final Matcher m, final int rEnd ) {
-        return advanceToIgnore( m.start(), m, rEnd ); }
+    private static boolean advancePast( final Matcher m, final int rEnd ) {
+        return advancePast( m.start(), m, rEnd ); }
 
 
 
@@ -271,7 +271,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *     @param rEnd The number to set for `m.regionEnd`.
       *     @return True if the attempt succeeded, false if the region was left unchanged.
       */
-    private static boolean advanceToIgnore( final int mStart, final Matcher m, final int rEnd ) {
+    private static boolean advancePast( final int mStart, final Matcher m, final int rEnd ) {
         if( mStart == rEnd ) return false; // Maybe possible given a zero-width assertion.
         assert mStart < rEnd;
         m.region( mStart + 1, rEnd ); /* Far enough to avoid a rematch.
@@ -581,14 +581,14 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ───────────────
             final Node oF; // Fractum locant, or null if a referent clause is absent.
             Node oFcPM1; { /* First pattern matcher in the `oF` matcher series, or referential command
-                  `cR` if a referent clause is absent or comprises an inferential fractum locant. */
+                  `cR` if a referent clause is absent or comprises a fractal context locant. */
                 final Node cReferent = nextSibling( cR, "ReferentClause" );
                 if( cReferent == null ) {
                     oF = null;
                     oFcPM1 = cR; }
                 else {
                     n = cReferent.getFirstChild();
-                    if( hasName( "InferentialFractumLocant", n )) {
+                    if( hasName( "FractalContextLocant", n )) {
                         oF = n.getLastChild();
                         oFcPM1 = cR; }
                     else {
@@ -682,7 +682,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         oFc = oFc.getPreviousSibling(); } /* Leftward through `oF` children,
                           ready for the next pass of the loop. */
                     else if( oFcPM1 == cR ) { /* Then the leftmost pattern must be inferred, ∵ either
-                          the referent clause is absent or comprises an inferential fractum locant. */
+                          the referent clause is absent or comprises a fractal context locant. */
                         rSelfIgnore = rSelf;
                         rParentIgnore = rParent; // [ASR]
                         eP = cR;
@@ -703,7 +703,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             continue rA; }
                         final int s = r + 1;
                         if( s < referentFracta.length ) {
-                            if( advanceToIgnore( m, regionEnd )) { /* A further match may exist
+                            if( advancePast( m, regionEnd )) { /* A further match may exist
                                   that would locate an ambigous pattern.  Test for it: */
                                 final int r2 = seek( m, referentFracta, rSelfIgnore,
                                   rParentIgnore, /* ignoring also */r/* as that would be
@@ -715,7 +715,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                                       + rLineNumber + " and " + referentFracta[r2].lineNumber()
                                       + " both match\n" + p.markedLine(), jP ); // Disallowed. [RFL]
                                     continue rA; }}
-                            else assert false; /* That `advanceToIgnore` cannot fail given the prior
+                            else assert false; /* That `advancePast` cannot fail given the prior
                               guard `s < referentFracta.length`. */
                             region = referentFracta[s].xunc(); } /* Seek any next pattern in `r` body,
                               which, if `r` has a body (see `regionEnd` below), begins with `s` head. */
@@ -1096,10 +1096,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final int f = seek( m.start(), fracta ); // Index in `fracta` of the matched fractum, or -1.
             if( f == fSelfIgnore ) { /* Then ignore this match.  ‘Fractum locants do not locate
                   the fracta in whose heads they are contained.’ [RFL] */
-                if( advanceToIgnore( m )) continue;
+                if( advancePast( m )) continue;
                 break; }
             for( int i: fIgnore ) if( f == i ) {
-                if( advanceToIgnore( m )) continue seek;
+                if( advancePast( m )) continue seek;
                 break seek; }
             final int g = f + 1;
             if( g < fracta.length ) {
@@ -1116,8 +1116,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
                   // advance past `mStart` the search region (method 2 of ignoring the match)
                   // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-                    if( advanceToIgnore( mStart, m, rEnd )) continue;
-                    assert false; /* That `advanceToIgnore` cannot fail given the prior guard
+                    if( advancePast( mStart, m, rEnd )) continue;
+                    assert false; /* That `advancePast` cannot fail given the prior guard
                       `g < fracta.length`. */
                     break; }}
             return f; }
