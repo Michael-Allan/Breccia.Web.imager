@@ -42,9 +42,20 @@ window.Breccia_Web_imager = ( function()
 
 
 
-    window.MathJax = { // In case of imaging option `-math`.
-       chtml: {
+    window.MathJax = { /* In case of imaging option `-math`.
+          https://docs.mathjax.org/en/latest/options/index.html */
+
+      // input processor, https://docs.mathjax.org/en/latest/options/input/index.html
+      // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+       tex: { // https://docs.mathjax.org/en/latest/options/input/tex.html
+           displayMath: [['$$', '$$']], // The default includes also `['\\[', '\\]']`.
+           inlineMath: [['\u2060', '\u2060']] }, // Word joiner (2060).
+
+      // output processor, https://docs.mathjax.org/en/latest/options/output/index.html
+      // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+       chtml: { // https://docs.mathjax.org/en/latest/options/output/chtml.html
            displayAlign: 'left' }}; // So sharing the indent of parent element `MathDisplayBlock`.
+
     Object.freeze( εP );
     return εP;
 
@@ -64,4 +75,4 @@ window.Breccia_Web_imager = ( function()
 
 
 
-                                                   // Copyright © 2022-2023  Michael Allan.  Licence MIT.
+                                                   // Copyright © 2022-2024  Michael Allan.  Licence MIT.
