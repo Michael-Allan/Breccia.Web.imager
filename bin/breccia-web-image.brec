@@ -121,7 +121,7 @@
         -reference-mapping: -reference-mapping=<translation> [|| <translation>] ...
             - A list of translations to apply to URI references of the source text,
               separated by double bars ‘||’.
-                : re `URI references` see e.g. `─ (URI reference) ─` @ `^^referent clause$`i @
+                : re `URI references` see e.g. `─ (URI reference) ─` @ `^^object clause$`i @
                   http://reluk.ca/project/Breccia/language_definition.brec
                 : re `URI references` see e.g. `─ +(URI).+(reference)`s @ `^^fractum locant$`i @
                   http://reluk.ca/project/Breccia/language_definition.brec

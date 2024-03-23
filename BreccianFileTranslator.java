@@ -39,7 +39,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
-import static Breccia.parser.AssociativeReference.ReferentClause;
+import static Breccia.parser.Afterlinker.ObjectClause;
 import static Breccia.parser.Typestamp.empty;
 import static Breccia.parser.plain.Language.impliesNewline;
 import static Breccia.parser.plain.Project.newSourceReader;
@@ -108,7 +108,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         this.mould = mould;
         opt = mould.opt;
         parentalHeadPatternCompiler = new PatternCompiler( mould );
-        referentClausePatternCompiler = new ReferentClausePatternCompiler( mould );
+        objectClausePatternCompiler = new ObjectClausePatternCompiler( mould );
 
       // Glyph-test font
       // ───────────────
@@ -141,33 +141,33 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     public @Override Granum formalReferenceAt( final C in ) throws ParseError {
-        final FileLocant oFile; {
-            FractumLocant oF; {
-                final ReferentClause cR; {
-                    final AssociativeReference rA; {
-                        rA = in.asAssociativeReference();
-                        if( rA == null ) return null; } /* Adding the return of a formal reference other
-                          than an associative one?  Then sync with `finish(Path.Document)` below. */
-                    cR = rA.referentClause();
-                    if( cR == null ) return null; }
-                final var oFC = cR.fractalContextLocant();
-                if( oFC == null ) { // Then `cR` itself directly contains any `oF`.
-                    oF = cR.fractumLocant();
-                    if( oF.patternMatchers() == null ) return null; } /* The pattern matchers
+        final FileLocant loFile; {
+            FractumLocant loF; {
+                final ObjectClause cO; {
+                    final Afterlinker linker; {
+                        linker = in.asAfterlinker();
+                        if( linker == null ) return null; } /* Adding the return of a formal reference
+                          other than a linker’s?  Then sync with `finish(Path.Document)` below. */
+                    cO = linker.objectClause();
+                    if( cO == null ) return null; }
+                final var loFC = cO.fractalContextLocant();
+                if( loFC == null ) { // Then `cO` itself directly contains any `loF`.
+                    loF = cO.fractumLocant();
+                    if( loF.patternMatchers() == null ) return null; } /* The pattern matchers
                      of a fractum locant alone make it formal (not the file reference),
                      because alone their hyperlink forms depend on the content of the file. */
-                else oF = oFC.fractumLocant(); /* The `oFC` of `cR` alone contains any `oF`.  Whether
-                  this `oF` includes a matcher is immaterial ∵ already `oFC` itself infers one. */
-                if( oF == null ) return null; }
-            oFile = oF.fileLocant();
-            if( oFile == null ) return null; } /* The absence of `oFile` implies that the located file
+                else loF = loFC.fractumLocant(); /* The `loFC` of `cO` alone contains any `loF`.  Whether
+                  this `loF` includes a matcher is immaterial ∵ already `loFC` itself infers one. */
+                if( loF == null ) return null; }
+            loFile = loF.fileLocant();
+            if( loFile == null ) return null; } /* The absence of `loFile` implies that the located file
               is the containing file, which is not an external file as required by the method API. */
-        if( oFile.qualifiers().contains( "non-fractal" )) return null; /* Fractal alone implies formal,
+        if( loFile.qualifiers().contains( "non-fractal" )) return null; /* Fractal alone implies formal,
           non-fractal implying a file whose content is opaque to this translator and therefore
           indeterminate of image form. */
-        return oFile.reference(); } /* The file of `oFile` is formal ∵ the associative reference
-          containing `oFile` refers to a pattern of text *in* the file and ∴ will be imaged as a
-          hyperlink whose form depends on the file content.  It informs the image and ∴ is formal. */
+        return loFile.reference(); } /* The file of `loFile` is formal ∵ the afterlinker containing
+          `loFile` refers to a pattern of text *in* the file and ∴ will be imaged as a hyperlink
+          whose form depends on the file content.  It informs the image and ∴ is formal. */
 
 
 
@@ -514,22 +514,22 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             a.appendChild( tRef ); }
 
 
-      // ══════════════════════
-      // Associative references: pattern matching and referent hyperlinking  [◦↑◦]
-      // ══════════════════════
-        rA: for( Element cR = successorElement(fileFractum);  cR != null;  cR = successorElement(cR) ) {
+      // ════════════
+      // Afterlinkers: pattern matching and object hyperlinking  [◦↑◦]
+      // ════════════
+        linker: for( Element cR = successorElement(fileFractum);  cR != null;  cR = successorElement(cR) ) {
             if( !hasName( "ReferentialCommand", cR )) continue;
-            final Element rA/*associative reference*/ = ownerFractum( cR );
-            assert hasName( "AssociativeReference", rA ); /* Hyperlinking a formal reference
-              other than an associative one?  Then sync with `formalReferenceAt` above. */
+            final Element linker/*afterlinker*/ = ownerFractum( cR );
+            assert hasName( "Afterlinker", linker ); /* Hyperlinking a formal reference
+              other than a linker’s?  Then sync with `formalReferenceAt` above. */
 
-          // Referrer
+          // Subject
           // ────────
             Node n;
-            final Matcher mReferrer;  /* The pattern matcher of the referrer clause successfully matched
-              to the referrer, or null if there is no referrer clause. */
-            if( (n = previousSibling( cR, "ReferrerClause" )) != null ) {
-                final Node nPM = n/*ReferrerClause*/.getLastChild(); {
+            final Matcher mSubject;  /* The pattern matcher of the subject clause successfully matched
+              to the subject, or null if there is no subject clause. */
+            if( (n = previousSibling( cR, "SubjectClause" )) != null ) {
+                final Node nPM = n/*SubjectClause*/.getLastChild(); {
                     assert hasName( "PatternMatcher", nPM ); }
 
                 // Changing what follows?  Sync with code marked ‘PHM’ elsewhere.
@@ -541,94 +541,94 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     try { jP = parentalHeadPatternCompiler.compile( eP, mm, sourceFile ); }
                     catch( final PatternSyntaxException x ) {
                         warn( sourceFile, eP, x );
-                        continue rA; }
+                        continue linker; }
                     catch( final FailedInterpolation x ) {
                         warn( sourceFile, x );
-                        continue rA; }}
-                n = head( rA.getParentNode() ); // Wherein lies the referrer.
+                        continue linker; }}
+                n = head( linker.getParentNode() ); // Wherein lies the subject.
                 if( n == null ) {
-                    final CharacterPointer p = characterPointer( parentElement(nPM)/*ReferrerClause*/ );
+                    final CharacterPointer p = characterPointer( parentElement(nPM)/*SubjectClause*/ );
                     mould.warn( sourceFile, p, "Misplaced back reference, no parent head to refer to\n"
                       + p.markedLine() );
-                    continue rA; }
+                    continue linker; }
                 final String tH = sourceText( n ); // Text of the head.
                 int c = 0;
                 while( tH.charAt(c) == ' ' ) ++c; /* Past any perfect indent
                   to the first non-plain-space character of the head. */
-                final Matcher m = mReferrer = jP.matcher( tH ).region( c, tH.length() );
+                final Matcher m = mSubject = jP.matcher( tH ).region( c, tH.length() );
                 if( !m.find() ) {
                     final CharacterPointer p = characterPointer( eP );
                     warn( sourceFile, p, "Broken back reference, no such text in parent head\n"
                       + p.markedLine(), jP );
-                    continue rA; }
+                    continue linker; }
                 if( m.group().length() == 0 ) { // Disallowed. [PHM]
                     final CharacterPointer p = characterPointer( eP );
                     warn( sourceFile, p, "Incomplete back reference, matches an empty text sequence\n"
                       + p.markedLine(), jP );
-                    continue rA; }
+                    continue linker; }
                 final int gN = m.groupCount();
                 for( int g = 1; g <= gN; ++g ) {
                     final String capture = m.group( g );
                     if( capture == null || capture.length() == 0 ) { /* Disallowed by language [PHM]
-                          and `ReferentClausePatternCompiler.mReferrer` API. */
+                          and `ObjectClausePatternCompiler.mSubject` API. */
                         final CharacterPointer p = characterPointer( eP );
                         warn( sourceFile, p, "Incomplete back reference, group " + g
                           + " captures nothing in the parent head\n" + p.markedLine(), jP );
-                        continue rA; }}}
-            else mReferrer = null;
+                        continue linker; }}}
+            else mSubject = null;
 
-          // Referent clause
+          // Object clause
           // ───────────────
-            final Node oF; // Fractum locant, or null if a referent clause is absent.
-            Node oFcPM1; { /* First pattern matcher in the `oF` matcher series, or referential command
-                  `cR` if a referent clause is absent or comprises a fractal context locant. */
-                final Node cReferent = nextSibling( cR, "ReferentClause" );
-                if( cReferent == null ) {
-                    oF = null;
-                    oFcPM1 = cR; }
+            final Node loF; // Fractum locant, or null if an object clause is absent.
+            Node loFcPM1; { /* First pattern matcher in the `loF` matcher series, or referential command
+                  `cR` if an object clause is absent or comprises a fractal context locant. */
+                final Node cObject = nextSibling( cR, "ObjectClause" );
+                if( cObject == null ) {
+                    loF = null;
+                    loFcPM1 = cR; }
                 else {
-                    n = cReferent.getFirstChild();
+                    n = cObject.getFirstChild();
                     if( hasName( "FractalContextLocant", n )) {
-                        oF = n.getLastChild();
-                        oFcPM1 = cR; }
+                        loF = n.getLastChild();
+                        loFcPM1 = cR; }
                     else {
-                        oF = n;
-                        oFcPM1 = oF.getFirstChild();
-                        if( !hasName( "PatternMatcher", oFcPM1 )) continue rA; } /* No patterns to
-                          hyperlink, for this referent clause comprises a file locant alone. */
-                    assert hasName( "FractumLocant", oF ); }}
+                        loF = n;
+                        loFcPM1 = loF.getFirstChild();
+                        if( !hasName( "PatternMatcher", loFcPM1 )) continue linker; } /* No patterns
+                          to hyperlink, for this object clause comprises a file locant alone. */
+                    assert hasName( "FractumLocant", loF ); }}
 
           // Referent file
           // ─────────────
             final ImageFile iRef; // Record of the referent file.
-            final int rSelf; /* Index in `iRef.fracta` of `rA`, as per `fSelfIgnore`
+            final int rSelf; /* Index in `iRef.fracta` of `linker`, as per `fSelfIgnore`
               of `seek( m, fracta, fSelfIgnore, fIgnore )`. */
-            final int rParent; /* Index in `iRef.fracta` of `rA` parent, as per `fIgnore`
+            final int rParent; /* Index in `iRef.fracta` of `linker` parent, as per `fIgnore`
               of `seek( m, fracta, fSelfIgnore, fIgnore )`. */
             final String hRef_filePart; // The pre-fragment part of each hyperlink’s `href` attribute.
-            Node oFc; // Initialized herein to the last child of `oF` before any file locant,
-            iRef: {  // or to null if a referent clause is absent.
-                if( oF == null ) oFc = null;
-                else if( hasName( "FileLocant", oFc = oF.getLastChild() )) {
-                    if( ((Element)oFc).getAttribute("qualifiers").contains( "non-fractal" )) continue rA;
-                       // No patterns of *fracta* to hyperlink.
-                    n = oFc.getLastChild();
+            Node loFc; // Initialized herein to the last child of `loF` before any file locant,
+            iRef: {  // or to null if an object clause is absent.
+                if( loF == null ) loFc = null;
+                else if( hasName( "FileLocant", loFc = loF.getLastChild() )) {
+                    if( ((Element)loFc).getAttribute("qualifiers").contains( "non-fractal" )) {
+                        continue linker; } // No patterns of *fracta* to hyperlink.
+                    n = loFc.getLastChild();
                     assert hasName( "Reference", n );
                     n = n.getFirstChild();
-                    if( !hasName( "a", n )) continue rA; /* No hyperlink having been formed
+                    if( !hasName( "a", n )) continue linker; /* No hyperlink having been formed
                       for the referent file, none will be formed for its fracta. */
                     final String hRef = ((Element)n).getAttribute( "href" ); // [◦↑◦]
                     final URI uRef; {
                         try { uRef = new URI( hRef ); }
                         catch( URISyntaxException x ) { throw new Unhandled( x ); }}
                           // Unexpected because this is effectively a reconstruction.
-                    if( !looksImageLike( uRef )) continue rA; /* The hyperlink for the referent file
-                      does not target its Web image, which means either that the referent file is
-                      non-Breccian, or it had no corresponding image file earlier, when one was sought.
-                      Without an image file, there can be no `iRef` against which to resolve the patterns
-                      of `oF`, nor any way to form hyperlinks to the matching fracta. */
+                    if( !looksImageLike( uRef )) continue linker; /* The hyperlink for the referent file
+                      does not target its Web image, which means that the referent file is either
+                      non-Breccian or had no corresponding image file earlier when one was sought.
+                      Without an image file, there can be no `iRef` against which to resolve the
+                      patterns of `loF`, nor any way to form hyperlinks to the matching fracta. */
                     if( isRemote( uRef )) {
-                        continue rA; // No HTTP access, no `iRef`. [NH]
+                        continue linker; // No HTTP access, no `iRef`. [NH]
                      /* hRef_filePart = unfragmented( uRef ).toASCIIString(); /* To be correct,
                           though no fragment is expected on Breccian referent `uRef`. */ }
                     else {
@@ -637,60 +637,60 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             No `IllegalArgumentException` expected, ∵ a reference so malformed
                             would not have been hyperlinked. [◦↑◦] */
                         iRef = recorded( referentPath.normalize() );
-                        if( iRef == null ) continue rA;
+                        if( iRef == null ) continue linker;
                         rSelf = rParent = -2;
                         hRef_filePart = hRef; } // Already without a fragment, given `toPath` above.
-                    oFc = oFc.getPreviousSibling();
+                    loFc = loFc.getPreviousSibling();
                     break iRef; }
                 // The referent file is the containing file, the present image file.
                 iRef = recorded( imageSibling(sourceFile).normalize() );
                 assert iRef != null; // It was formed earlier, during the `translate` cycle.
                 final var rr = iRef.fracta();
-                rSelf   = seek( parseUnsignedInt( rA                 .getAttribute( "xunc" )), rr );
-                rParent = seek( parseUnsignedInt( parentAsElement(rA).getAttribute( "xunc" )), rr );
+                rSelf   = seek( parseUnsignedInt( linker                 .getAttribute( "xunc" )), rr );
+                rParent = seek( parseUnsignedInt( parentAsElement(linker).getAttribute( "xunc" )), rr );
                 hRef_filePart = ""; }
 
           // Referent patterns taken from right to left in the pattern-matcher series, if any
           // ─────────────────
             int region = 0, regionEnd = iRef.sourceText().length(); // Search region in referent source.
-            referentClausePatternCompiler.mReferrer = mReferrer;
+            objectClausePatternCompiler.mSubject = mSubject;
             for( ;; ) {
                 final int rSelfIgnore, rParentIgnore;
                 final Element eP; /* Image of a Breccian regular-expression pattern from a pattern
-                  matcher of the referent clause, or of `cR` in the case of an inferred pattern. */
+                  matcher of the object clause, or of `cR` in the case of an inferred pattern. */
                 final Pattern jP; { // Java compilation of the pattern and its match modifiers.
-                    if( oFc != null ) {
-                        if( !hasName( "PatternMatcher", oFc )) {
-                            oFc = oFc.getPreviousSibling(); // Leftward through `oF` children.
+                    if( loFc != null ) {
+                        if( !hasName( "PatternMatcher", loFc )) {
+                            loFc = loFc.getPreviousSibling(); // Leftward through `loF` children.
                             continue; }
-                        if( oFc == oFcPM1 ) {
+                        if( loFc == loFcPM1 ) {
                             rSelfIgnore = rSelf;
-                            rParentIgnore = rParent; } // [ASR]
+                            rParentIgnore = rParent; } // [ILP]
                         else rSelfIgnore = rParentIgnore = -2;
-                        eP = (Element)oFc.getFirstChild().getNextSibling(); /* Image of a Breccian
-                          regular-expression pattern from a pattern matcher of the referent clause. */
+                        eP = (Element)loFc.getFirstChild().getNextSibling(); /* Image of a Breccian
+                          regular-expression pattern from a pattern matcher of the object clause. */
                         assert hasName( "Pattern", eP );
-                        n = oFc.getLastChild();
+                        n = loFc.getLastChild();
                         final String mm = hasName("MatchModifiers",n) ? textChildFlat(n) : "";
-                        try { jP = referentClausePatternCompiler.compile( eP, mm, sourceFile ); }
+                        try { jP = objectClausePatternCompiler.compile( eP, mm, sourceFile ); }
                         catch( final PatternSyntaxException x ) {
                             warn( sourceFile, eP, x );
-                            continue rA; }
+                            continue linker; }
                         catch( final FailedInterpolation x ) {
                             warn( sourceFile, x );
-                            continue rA; }
-                        oFc = oFc.getPreviousSibling(); } /* Leftward through `oF` children,
+                            continue linker; }
+                        loFc = loFc.getPreviousSibling(); } /* Leftward through `loF` children,
                           ready for the next pass of the loop. */
-                    else if( oFcPM1 == cR ) { /* Then the leftmost pattern must be inferred, ∵ either
-                          the referent clause is absent or comprises a fractal context locant. */
+                    else if( loFcPM1 == cR ) { /* Then the leftmost pattern must be inferred, ∵ either
+                          the object clause is absent or comprises a fractal context locant. */
                         rSelfIgnore = rSelf;
-                        rParentIgnore = rParent; // [ASR]
+                        rParentIgnore = rParent; // [ILP]
                         eP = cR;
-                        try { jP = referentClausePatternCompiler.compileDefaultPattern( cR ); }
+                        try { jP = objectClausePatternCompiler.compileDefaultPattern( cR ); }
                         catch( final FailedInterpolation x ) {
                             warn( sourceFile, x );
-                            continue rA; }
-                        oFcPM1 = null; } // Making this the final pass of the loop.
+                            continue linker; }
+                        loFcPM1 = null; } // Making this the final pass of the loop.
                     else break; }
                 final String hRef; { // Hyperlink `href` attribute referring to matched fractum.
                     final ImagedBodyFractum[] referentFracta = iRef.fracta();
@@ -700,7 +700,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                         if( r == -2 ) {
                             final CharacterPointer p = characterPointer( eP );
                             warn( sourceFile, p, "No such fractal head\n" + p.markedLine(), jP );
-                            continue rA; }
+                            continue linker; }
                         final int s = r + 1;
                         if( s < referentFracta.length ) {
                             if( advancePast( m, regionEnd )) { /* A further match may exist
@@ -714,7 +714,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                                     warn( sourceFile, p, "Ambiguous pattern: fracta at lines "
                                       + rLineNumber + " and " + referentFracta[r2].lineNumber()
                                       + " both match\n" + p.markedLine(), jP ); // Disallowed. [RFL]
-                                    continue rA; }}
+                                    continue linker; }}
                             else assert false; /* That `advancePast` cannot fail given the prior
                               guard `s < referentFracta.length`. */
                             region = referentFracta[s].xunc(); } /* Seek any next pattern in `r` body,
@@ -769,7 +769,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                   : zeroBased( x.getIndex() );
                 final CharacterPointer p = characterPointer( eRef, c );
                 mould.warnOnce( f, p, mould.message( sRef, x, p, isAlteredRef ));
-                return null; }} // Without a hyperlink ∵ `x` leaves the intended referent unclear.
+                return null; }} // Without a hyperlink ∵ `x` leaves the intended object unclear.
 
       // remote  [RC]
       // ┈┈┈┈┈┈
@@ -927,11 +927,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       *       Breccia language definition § File locant, `non-fractal` qualifier</a>
       */
     protected boolean isNonFractal( final Element eRef ) {
-        final Element oFile = parentElement( eRef );
-        if( !hasName( "FileLocant", oFile )) {
+        final Element loFile = parentElement( eRef );
+        if( !hasName( "FileLocant", loFile )) {
             assert false : "URI references occur as the direct content of file locants alone";
             return false; }
-        return oFile.getAttribute("qualifiers").contains( "non-fractal" ); }
+        return loFile.getAttribute("qualifiers").contains( "non-fractal" ); }
 
 
 
@@ -1034,7 +1034,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private final ReferentClausePatternCompiler referentClausePatternCompiler;
+    private final ObjectClausePatternCompiler objectClausePatternCompiler;
 
 
 
@@ -1066,20 +1066,20 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** Seeks the next match of a fractum-locant pattern in a referent source text using matcher `m`.
+    /** Seeks the next match of a fractum-locant pattern in an object source text using matcher `m`.
       * This method may alter the search region of `m`.  It may advance the start boundary in order
       * to preclude ignorable matches, and it may leave the end boundary at a location inappropriate
       * for subsequent searches.
       *
       *     @param m A matcher preconfigured for the purpose, preset to the search region
-      *       of the referent source text and ready for immediate use.
-      *     @param fracta The imaged body fracta of the referent source text.
+      *       of the object source text and ready for immediate use.
+      *     @param fracta The imaged body fracta of the object source text.
       *     @param fSelfIgnore The index in `fracta` of a body fractum whose matches
       *        to ignore on account of its head containing the fractum locant itself,
       *        or -1 to ignore the file fractum on this account,
       *        or -2 to ignore no fractum on this account, because either
       *        (a) `m` does not represent the matcher that ‘leads the pattern-matcher series’, or
-      *        (b) the fractum locant lies outside of the referent source text (outside of `fracta`).
+      *        (b) the fractum locant lies outside of the object source text (outside of `fracta`).
       *            <p>The value is other than -2 only where
       *        (a) `m` represents the matcher that ‘leads the pattern-matcher series’, and
       *        (b) that matcher would be hyperlinked as a same-document reference.</p>
@@ -1584,10 +1584,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   ◦↑◦  Code that is order dependent with like-marked code (◦↓◦, ◦↕◦) that comes before.
 //
-//   ASR  No associative self-reference. ‘Fractum locants of associative references do not locate
-//        the parent of the associative reference.’
-//        http://reluk.ca/project/Breccia/language_definition.brec.xht#no,associative,self-referen
-//
 //   BF↓  Code that must execute before section *Body fracta*`.
 //
 //   BF · Section *Body fracta* itself, or code that must execute in unison with it.
@@ -1599,6 +1595,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //
 //   HF · Hyperlink formation.  Done late (in the `finish` cycle) that hyperlink `href` attributes may
 //        incorporate any body-fractum identifiers newly formed earlier (in the `translate` cycle).
+//
+//   ILP  Ignoring the linker’s parent. ‘Exclude from the search area the head of linker *li*’s parent,
+//         wherein the link subject is mentioned.’
+//        http://reluk.ca/project/Breccia/language_definition.brec.xht#mentioned,matchers,inadvertentl
 //
 //   LC · A lint check on the original source only.
 //

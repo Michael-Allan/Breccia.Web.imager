@@ -23,22 +23,22 @@ import static java.util.regex.Pattern.MULTILINE;
 import static java.util.regex.Pattern.UNICODE_CASE;
 
 
-/** Compiler of patterns from the referent clause of an associative reference.
-  * Before each call to `compile`, ensure that `mReferrer` is correctly set.
+/** Compiler of patterns from the object clause of an afterlinker.
+  * Before each call to `compile`, ensure that `mSubject` is correctly set.
   *
-  *     @see #mReferrer
+  *     @see #mSubject
   */
-final class ReferentClausePatternCompiler extends PatternCompiler {
+final class ObjectClausePatternCompiler extends PatternCompiler {
 
 
-    ReferentClausePatternCompiler( ImageMould<?> mould ) { super( mould ); }
+    ObjectClausePatternCompiler( ImageMould<?> mould ) { super( mould ); }
 
 
 
-    /** Returns the Java compilation of a default pattern matcher to be used where a referent clause
+    /** Returns the Java compilation of a default pattern matcher to be used where an object clause
       * is absent or comprises a fractal context locant.
       *
-      *     @param cR The image of a referential command from an associative reference.
+      *     @param cR The image of a referential command from an afterlinker.
       */
     final Pattern compileDefaultPattern( final Element cR ) throws FailedInterpolation {
         final StringBuilder bP = clear( stringBuilder );
@@ -47,12 +47,12 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
         return Pattern.compile( bP.toString(), CASE_INSENSITIVE | UNICODE_CASE | MULTILINE/*[MLM]*/ ); }
 
 
-    /** The Java pattern matcher of the referrer clause successfully matched to the first referrer.
+    /** The Java pattern matcher of the subject clause successfully matched to the first subject.
       *
-      *     @see <a href='http://reluk.ca/project/Breccia/language_definition.brec.xht#referrers,associative,reference:2'>
-      *       Breccia language definition, match procedure for a referrer clause</a>
+      *     @see <a href='http://reluk.ca/project/Breccia/language_definition.brec.xht#subjects,afterlinker,-'>
+      *       Breccia language definition, match procedure for a subject clause</a>
       */
-    Matcher mReferrer;
+    Matcher mSubject;
 
 
 
@@ -67,18 +67,18 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
     private void appendVariable_same( final Element interpolator, final int index,
           final StringBuilder bP, final boolean toExpandWhitespace ) throws FailedInterpolation {
 
-      // Referrer clause, in the presence of
+      // Subject clause, in the presence of
       // ───────────────
-        if( mReferrer != null ) {
+        if( mSubject != null ) {
             final StringBuilder b = clear( stringBuilder2 );
-            final int gN = mReferrer.groupCount();
+            final int gN = mSubject.groupCount();
 
           // captures of its matcher
           // ┈┈┈┈┈┈┈┈
             if( gN > 0 ) {
                 for( int g = 1;; ++g ) {
-                    final String capture = mReferrer.group( g );
-                    assert capture != null && capture.length() != 0; // Implied by `mReferrer` API.
+                    final String capture = mSubject.group( g );
+                    assert capture != null && capture.length() != 0; // Implied by `mSubject` API.
                     quote( capture, b );
                     if( g == gN ) break;
                     b.append( ' ' ); }
@@ -87,8 +87,8 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
 
           // whole match
           // ┈┈┈┈┈┈┈┈┈┈┈
-            b.append( mReferrer.group() );
-            assert b.length() != 0; // Implied by `mReferrer` API.
+            b.append( mSubject.group() );
+            assert b.length() != 0; // Implied by `mSubject` API.
             BreccianCollapser.collapseWhitespace( b ); // This may empty `b`, wherefore:
             if( b.length() > 0 ) {
                 final StringBuilder c = clear( stringBuilder3 );
@@ -97,9 +97,9 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
             else append( " ", bP, toExpandWhitespace );
             return; }
         Node n = ownerFractum( interpolator );
-        assert hasName( "AssociativeReference", n );
-        n = n.getParentNode(); // Parent of the present associative reference.
-        Node head = head( n ); // Wherein lies the referrer.
+        assert hasName( "Afterlinker", n );
+        n = n.getParentNode(); // Parent of the present afterlinker.
+        Node head = head( n ); // Wherein lies the subject.
         if( head == null ) {
             throw new FailedInterpolation( interpolator, index,
               "Misplaced back reference, no parent head to refer to" ); }
@@ -108,7 +108,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
         if( hasName( "Division", n )) {
             final Element firstTitlingLabel = successorTitlingLabel( head, successorAfter(head) );
 
-          // Titled division, the parent of the present associative reference is
+          // Titled division, the parent of the present afterlinker is
           // ───────────────
             if( firstTitlingLabel != null ) {
                 b.append( textChildFlat( firstTitlingLabel ));
@@ -117,7 +117,7 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
                 append( c, bP, toExpandWhitespace );
                 return; }}
 
-      // File fractum or point, the parent of the present associative reference is
+      // File fractum or point, the parent of the present afterlinker is
       // ─────────────────────
         head = head.cloneNode( /*deeply*/true ); /* So both preserving the original parent head,
           and keeping the nodal scan that follows within the bounds of the isolated clone. */
@@ -176,15 +176,15 @@ final class ReferentClausePatternCompiler extends PatternCompiler {
         if( tF.length() == /*e.g.*/"${1}".length() ) {
             final int g = tF.charAt(variableName) - '0';
             if( 1 <= g  &&  g <= 9 ) {
-                if( mReferrer == null ) {
+                if( mSubject == null ) {
                     throw new FailedInterpolation( variable, 0,
-                      "Back reference to a referrer-clause capture, but no referrer clause" ); }
-                final int gN = mReferrer.groupCount();
+                      "Back reference to a subject-clause capture, but no subject clause" ); }
+                final int gN = mSubject.groupCount();
                 if( g > gN ) {
                     throw new FailedInterpolation( variable, variableName,
-                      "No such capture group (" + g + ") in the referrer clause" ); }
-                final String capture = mReferrer.group( g );
-                assert capture != null && capture.length() != 0; // Implied by `mReferrer` API.
+                      "No such capture group (" + g + ") in the subject clause" ); }
+                final String capture = mSubject.group( g );
+                assert capture != null && capture.length() != 0; // Implied by `mSubject` API.
                 final StringBuilder b = clear( stringBuilder2 );
                 quote( capture, b );
                 append( b, bP, toExpandWhitespace );

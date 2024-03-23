@@ -319,7 +319,6 @@
         --command-point-bullet-weight: normal; }
 
 
-
     brec|AppendageClause > Delimiter {
         color: var(--command-operator-colour); }
 
@@ -327,23 +326,22 @@
         color: hsl( 0, 0%, 45% ); }
 
 
-
     brec|ContextOperator {
         color: var(--command-operator-colour); }
 
 
 
-    /* Associative references
+    /* Afterlinkers
      */
-    brec|AssociativeReference > Head {
+    brec|Afterlinker > Head {
         color: var(--command-point-head-colour); }
 
-    brec|AssociativeReference > Head > Bullet {
+    brec|Afterlinker > Head > Bullet {
         color:       var(--command-point-bullet-colour);
         font-weight: var(--command-point-bullet-weight); }
 
-    brec|AssociativeReference > Head > Descriptor > Command > ReferrerClause > Granum:first-child/*‘re’*/,
-    brec|AssociativeReference > Head > Descriptor > Command > ReferentialCommand {
+    brec|Afterlinker > Head > Descriptor > Command > SubjectClause > Granum:first-child/*‘re’*/,
+    brec|Afterlinker > Head > Descriptor > Command > ReferentialCommand {
         color: var(--command-operator-colour); }
 
 
