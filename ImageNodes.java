@@ -40,6 +40,8 @@ public final class ImageNodes {
     /** Returns the nearest fractal ancestor of `node`, or null if there is none.
       *
       *     @return The nearest ancestor of `node` that is a fractum, or null if there is none.
+      *     @see <a href='http://reluk.ca/project/Breccia/glossary.brec.xht#owning,fractum'>
+      *       Definition of ‘owning fractum’</a>
       */
     public static Element ownerFractum( final Node node ) {
         Element a = parentElement( node );
@@ -49,6 +51,9 @@ public final class ImageNodes {
 
 
     /** Returns the same `e` if it is a fractum, otherwise `ownerFractum(e)`.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/glossary.brec.xht#owning,fractum'>
+      *       Definition of ‘owning fractum’</a>
       */
     public static Element ownerFractumOrSelf( final Element e ) {
         return isFractum(e) ? e : ownerFractum(e); }
@@ -56,6 +61,9 @@ public final class ImageNodes {
 
 
     /** Returns the nearest ancestor of `node` that is a fractal head, or null if there is none.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/glossary.brec.xht#owning,fractum'>
+      *       Definition of ‘owning fractum’</a>
       */
     public static Element ownerHead( Node node ) {
         do node = node.getParentNode(); while( node != null && !hasName("Head",node) );
@@ -64,6 +72,9 @@ public final class ImageNodes {
 
 
     /** Returns the same `e` if it is a fractal head, otherwise `ownerHead(e)`.
+      *
+      *     @see <a href='http://reluk.ca/project/Breccia/glossary.brec.xht#owning,fractum'>
+      *       Definition of ‘owning fractum’</a>
       */
     public static Element ownerHeadOrSelf( final Element e ) {
         return hasName("Head",e) ? e : ownerHead(e); }
@@ -121,4 +132,4 @@ public final class ImageNodes {
 
 
 
-                                                        // Copyright © 2022  Michael Allan.  Licence MIT.
+                                                  // Copyright © 2022, 2024  Michael Allan.  Licence MIT.
