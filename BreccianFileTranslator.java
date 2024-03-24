@@ -435,7 +435,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       // Note carriers: pattern matching
       // ═════════════
         nC: for( Element pr = successorElement(fileFractum);  pr != null;  pr = successorElement(pr) ) {
-            if( !hasName( "Preposition", pr )) continue; // Preposition of the pertainment clause.
+            if( !hasName( "Preposition", pr )) continue; // The preposition in the purview clause.
             final Element nC/*note carrier*/ = ownerFractum( pr );
             assert hasName( "NoteCarrier", nC );
             final Node nPM = nextSibling( pr, "PatternMatcher" );
@@ -456,7 +456,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     continue nC; }}
             n = head( nC.getParentNode() ); // Wherein lies the text to which the note pertains.
             if( n == null ) {
-                final CharacterPointer p = characterPointer( pr/*start of pertainment clause*/ );
+                final CharacterPointer p = characterPointer( pr/*start of purview clause*/ );
                 mould.warn( sourceFile, p, "Misplaced back reference, no parent head to refer to\n"
                   + p.markedLine() );
                 continue nC; }
