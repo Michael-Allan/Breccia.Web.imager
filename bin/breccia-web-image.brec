@@ -118,6 +118,20 @@
         -math
             - Renders ⁠\LaTeX⁠/⁠\TeX⁠ mathematic expressions using MathJax.
                 : re `MathJax` see https://www.mathjax.org/
+            - The math delimiters recognized for in-line mathematics are word joiners (2060).
+                : re `(math delimiters).+(in-line mathematics)` see @ non-fractal
+                  https://docs.mathjax.org/en/latest/basic/mathematics.html#tex-and-latex-input
+                : re `2060` see https://www.unicode.org/charts/PDF/U2000.pdf
+                    \ A criterion for the in-line delimiters, in keeping with the WYSIWYG principle
+                    \ of Breccia as a lightweight markup language (What You See (in source views)
+                    \ Is What You Get (in public views)), is narrow (if not zero) width.
+            / Should automated line breaking ever be a concern in writing Breccia,
+              authors may use the zero-width no-break space (FEFF) in place of word joiners.
+                    \ Except at the start of a file (where no words ever need joining), the two should
+                    \ (in Breccia) have the same effect.  https://www.unicode.org/faq/utf_bom.html#bom6
+                : re `FEFF` see https://www.unicode.org/charts/PDF/UFE70.pdf
+                : ad `(automated line breaking).+(a concern)` : This seems unlikely at present,
+                  as it would be contrary to Breccia’s WYSIWYG principle.
         -reference-mapping: -reference-mapping=<translation> [|| <translation>] ...
             - A list of translations to apply to URI references of the source text,
               separated by double bars ‘||’.
