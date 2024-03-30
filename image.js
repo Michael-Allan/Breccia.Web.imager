@@ -42,8 +42,8 @@ window.Breccia_Web_imager = ( function()
 
 
 
-    window.MathJax = { /* In case of imaging option `-math`.
-          https://docs.mathjax.org/en/latest/options/index.html */
+    window.MathJax = { /* In case of imaging option `-math` [OM], here are the corresponding
+          MathJax configuration options.  https://docs.mathjax.org/en/latest/options/index.html */
 
       // input processor, https://docs.mathjax.org/en/latest/options/input/index.html
       // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
@@ -66,6 +66,9 @@ window.Breccia_Web_imager = ( function()
 // NOTES
 // ─────
 //   DP · Defunct parameter.
+//
+//   OM · Imaging option `-math`.
+//        http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#math
 //
 //   SM · Strict mode.  https://262.ecma-international.org/6.0/#sec-strict-mode-code
 //        The subsequent test is from Noseratio.  https://stackoverflow.com/a/18916788/2402790
