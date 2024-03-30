@@ -210,16 +210,16 @@
 /* ━━━  M a t h e m a t i c   e x p r e s s i o n s  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
-    /* Expressions with *display* as opposed to *in-line* layout.
+    /* Mathematics that MathJax renders in block (aka display) as opposed to in-line form.
      *
-     *     https://docs.mathjax.org/en/latest/basic/mathematics.html
+     *     https://docs.mathjax.org/en/latest/basic/mathematics.html#tex-and-latex-input
      */
-    img|mathDisplayBlock {
-        display: inline-block; } /* Putting the expression right where its source is, true to Breccia. */
+    img|mathBlock {
+        display: inline-block; } /* Rendering it exactly where its source is, true to Breccia. */
 
 
 
-    img|mathDisplayBlock > mjx-container[class~='MathJax'][display='true'] {
+    img|mathBlock > mjx-container[class~='MathJax'][display='true'] {
         margin-top:    0; /* Leaving such layout to the author, again true to Breccia. */
         margin-bottom: 0; }
 
