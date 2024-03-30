@@ -3,6 +3,7 @@ package Breccia.Web.imager;
 import Java.CharacterPointer;
 
 import static java.lang.Integer.toHexString;
+import static Breccia.Web.imager.Project.mathBlockDelimiter;
 
 
 /** The record of a character that has failed its glyph test.
@@ -19,7 +20,8 @@ class UnglyphedCharacter {
     UnglyphedCharacter( String fontName, int codePoint, CharacterPointer pointer ) {
         this.fontName = fontName;
         this.codePoint = codePoint;
-        this.pointer = pointer; }
+        this.pointer = pointer;
+        isMathDelimiter = codePoint == mathBlockDelimiter; }
 
 
 
@@ -52,11 +54,14 @@ class UnglyphedCharacter {
 
     public @Override String toString() {
         final var b = new StringBuilder();
+        if( isMathDelimiter ) b.append( "No `-math` option was given and " );
         b.append( fontName );
-        b.append( " has no glyph for ‘" );
+        b.append( " has no glyph for " );
+        if( isMathDelimiter ) b.append( "math delimiter " );
+        b.append( '‘' );
         b.appendCodePoint( codePoint );
         b.append( "’, code point " );
-        b.append( toHexString( codePoint ));
+        b.append( toHexString(codePoint).toUpperCase() );
         b.append( '\n' );
         b.append( pointer.markedLine() );
         final int c = count - 1;
@@ -64,8 +69,16 @@ class UnglyphedCharacter {
             b.append( "    (+" );
             b.append( c );
             b.append( " more)" ); }
-        return b.toString(); }}
+        return b.toString(); }
 
 
 
-                                                        // Copyright © 2022  Michael Allan.  Licence MIT.
+////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    private final boolean isMathDelimiter; }
+
+
+
+                                                  // Copyright © 2022, 2024  Michael Allan.  Licence MIT.

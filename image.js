@@ -48,7 +48,7 @@ window.Breccia_Web_imager = ( function()
       // input processor, https://docs.mathjax.org/en/latest/options/input/index.html
       // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
        tex: { // https://docs.mathjax.org/en/latest/options/input/tex.html
-           displayMath: [['$$', '$$']], // The default includes also `['\\[', '\\]']`.
+           displayMath: [['･',      '･']], // Halfwidth katakana middle dot (FF65).
            inlineMath: [['\u2060', '\u2060']] }, // Word joiner (2060).
 
       // output processor, https://docs.mathjax.org/en/latest/options/output/index.html

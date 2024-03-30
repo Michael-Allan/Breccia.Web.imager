@@ -54,6 +54,7 @@ import static Breccia.Web.imager.Project.imageSibling;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBrecciaLike;
 import static Breccia.Web.imager.Project.looksImageLike;
+import static Breccia.Web.imager.Project.mathBlockDelimiter;
 import static Breccia.Web.imager.Project.sourceSibling;
 import static Breccia.Web.imager.Project.zeroBased;
 import static java.awt.Font.createFont;
@@ -218,6 +219,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     final String text = nText.getData();
                     for( int ch, c = 0, cN = text.length(); c < cN; c += charCount(ch) ) {
                         ch = text.codePointAt( c );
+                        if( ch == mathBlockDelimiter && opt.toRenderMath() ) continue;
                         if( glyphTestFont.canDisplay( ch )) continue;
                         UnglyphedCharacter un = unsMap.get( ch );
                         if( un == null ) {
@@ -1399,9 +1401,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) ));
 
 
-      // ══════════════════════
-      // Mathematic expressions with *display* as opposed to *in-line* layout
-      // ══════════════════════
+      // ═══════════
+      // Mathematics that MathJax renders in block (aka display) as opposed to in-line form
+      // ═══════════
         if( opt.toRenderMath() ) for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
             if( !isText( n )) continue;
             Text nText = (Text)n;
@@ -1412,33 +1414,31 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             text: for( int ch, c = 0, cLast = text.length() - 1; c <= cLast; c += charCount(ch) ) {
                 ch = text.codePointAt( c );
                 if( inIndent ) {
-                    if( ch == ' '  ||  impliesNewline(ch) ) continue;
+                    if( ch == ' ' || impliesNewline(ch) ) continue;
                     inIndent = false;
-                    if( ch != '$'  ||  c == cLast  ||  text.charAt(c+1) != '$' ) continue;
-                    final int b = c; // Offset of the start delimiter (‘$$’) of a math expression.
-                    c += 2; // Through the start delimiter.
+                    if( ch != mathBlockDelimiter || c == cLast ) continue;
+                    final int b = c; // Offset of the start delimiter for the math.
+                    ++c; // Through the start delimiter.
                     for(; c <= cLast; c += charCount(ch) ) { // Seek the corresponding end delimiter:
                         ch = text.codePointAt( c );
-                        if( ch != '$'  ||  c == cLast  ) continue;
-                        ch = text.codePointAt( ++c );
-                        if( ch != '$' ) continue;
+                        if( ch != mathBlockDelimiter || c == cLast  ) continue;
 
-                      // Wrap the expression so the style rules can better lay out its MathJax rendering
-                      // ───────────────────
+                      // Wrap the math so the style rules can better lay out its MathJax rendering
+                      // ─────────────
                         if( c != cLast ) nText.splitText( c + 1 ); /* Cutting off any text that remains
                           after the end delimiter, to become `nText` for the next pass. */
                         n = nText = nText.splitText( b ); // Cutting off before the start delimiter, too.
                         assert b != 0; // Always there is such text, comprising at least a newline.
-                        final Element math = d.createElementNS( nsImager, "img:mathDisplayBlock" );
+                        final Element math = d.createElementNS( nsImager, "img:mathBlock" );
                         final Node p = nText.getParentNode();
                         if( hasName( math.getLocalName(), p )) throw new IllegalStateException();
                         p.insertBefore( math, nText );
                         math.appendChild( nText ); /* MathJax at runtime
-                          will replace `nText` with rendering elements. */
-                     // nText.insertData( 2, "\\large " ); /* For legibility of small elements such as
-                     //   subscripts.  Alternatives would be (a) the MathJax `scale` option, except it
-                     //   cannot be restricted to these expressions which have *display* layout;
-                     //   and (b) CSS styling, except that may cause layout artifacts.
+                          will replace `nText` with its rendering elements. */
+                     // nText.insertData( 1/*after delimiter*/, "\\large " ); /* For legibility of
+                     //   small elements such as subscripts.  Alternatives would be (a) the MathJax
+                     //   `scale` option, except it cannot be restricted to math which has block layout;
+                     //   and (b) CSS styling, except it may cause layout artifacts.
                      //   (a) https://docs.mathjax.org/en/latest/options/output/index.html#output-options
                      //   (b) https://stackoverflow.com/a/25329062/2402790 */
                         break text; }

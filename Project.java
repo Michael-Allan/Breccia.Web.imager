@@ -134,6 +134,12 @@ public final class Project {
 
 
 
+    /** The delimiter for mathematics to be rendered in block (aka display) as opposed to in-line form.
+      */
+    final static char mathBlockDelimiter = '･'; // Halfwidth katakana middle dot (FF65).
+
+
+
     /** Returns the source sibling of `i`, a namesake without a `.xht` extension.
       * The source sibling of `dir/foo.brec.xht`, for example, is `dir/foo.brec`.
       *
@@ -167,4 +173,4 @@ public final class Project {
 
 
 
-                                                  // Copyright © 2020, 2022  Michael Allan.  Licence MIT.
+                                            // Copyright © 2020, 2022, 2024  Michael Allan.  Licence MIT.
