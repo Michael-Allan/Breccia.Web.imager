@@ -127,7 +127,7 @@
                         \ Is What You Get (in public views)), is narrow (if not zero) width.
                 / Should automated line breaking ever be a concern in writing Breccia,
                   authors may use the zero-width no-break space (FEFF) in place of word joiners.
-                        \ Except at the start of a file (where no words need joining), the two should
+                        \ Except at the start of a file (where yet no words can join), the two should
                         \ (in Breccia) have the same effect.  http://unicode.org/faq/utf_bom.html#bom6
                     : re `FEFF` see http://unicode.org/charts/PDF/UFE70.pdf
                     : ad `(automated line breaking).+(a concern)` : This seems unlikely at present,
