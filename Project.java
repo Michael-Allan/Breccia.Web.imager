@@ -137,6 +137,7 @@ public final class Project {
     /** The delimiter for mathematics to be rendered in block (aka display) as opposed to in-line form.
       */
     final static char mathBlockDelimiter = '･'; // Halfwidth katakana middle dot (FF65).
+      // Changing?  Sync → MathJax configuration at `image.js`.
 
 
 
