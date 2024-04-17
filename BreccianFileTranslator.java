@@ -1518,7 +1518,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /* Note that Breccia Mode for Emacs plans a remedy for this type of malformed reference.
+    /* Note that Brec Mode for Emacs plans a remedy for this type of malformed reference.
      * http://reluk.ca/project/Breccia/Emacs/notes.brec.xht#substitution,source-file,references
      */
     private void warn_imageFileReference( final Path f, final Element eRef, final String sRef,
