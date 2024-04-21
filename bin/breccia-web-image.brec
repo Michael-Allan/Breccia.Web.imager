@@ -118,8 +118,8 @@
         -math
             - Renders ⁠\LaTeX⁠/⁠\TeX⁠ mathematic expressions using MathJax.
                 : re `MathJax` see https://www.mathjax.org/
-            - The math delimiters recognized for in-line mathematics are word joiners (2060).
-                    : re `(math delimiters).+(in-line mathematics)` see @ non-fractal
+            - Use word joiners (2060) to delimit your in-line mathematics.
+                    : re `delimit` see `math delimiters` @ non-fractal
                       https://docs.mathjax.org/en/latest/basic/mathematics.html#tex-and-latex-input
                     : re `2060` see http://unicode.org/charts/PDF/U2000.pdf
                         \ A criterion for the in-line delimiters, in keeping with the WYSIWYG principle
@@ -132,7 +132,9 @@
                     : re `FEFF` see http://unicode.org/charts/PDF/UFE70.pdf
                     : ad `(automated line breaking).+(a concern)` : This seems unlikely at present,
                       as it would be contrary to Breccia’s WYSIWYG principle.
-            - Those recognized for block mathematics are halfwidth katakana middle dots (FF65).
+            - Use halfwidth katakana middle dots (FF65) to delimit your block (aka display) mathematics.
+                : re `delimit` see `math delimiters` @ non-fractal
+                  https://docs.mathjax.org/en/latest/basic/mathematics.html#tex-and-latex-input
                 : re `FF65` see http://unicode.org/charts/PDF/UFF00.pdf
                     \ No valid use in Breccia, it being monospaced.  This is the primary criterion
                     \ for choosing FF65.  A secondary one is that Misc-Fixed has a glyph for FF65.
