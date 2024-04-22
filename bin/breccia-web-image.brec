@@ -136,7 +136,6 @@
                 : re `delimit` see `math delimiters` @ non-fractal
                   https://docs.mathjax.org/en/latest/basic/mathematics.html#tex-and-latex-input
                 : re `FF65` see http://unicode.org/charts/PDF/UFF00.pdf
-                    \ No valid use in Breccia, it being monospaced.
         -reference-mapping: -reference-mapping=<translation> [|| <translation>] ...
             - A list of translations to apply to URI references of the source text,
               separated by double bars ‘||’.
