@@ -1416,7 +1416,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 if( inIndent ) {
                     if( ch == ' ' || impliesNewline(ch) ) continue;
                     inIndent = false;
-                    if( ch != mathBlockDelimiter || c == cLast ) continue;
+                    if( ch != mathBlockDelimiter ) continue;
                     final int b = c; // Offset of the start delimiter for the math.
                     ++c; // Through the start delimiter.
                     for(; c <= cLast; c += charCount(ch) ) { // Seek the corresponding end delimiter:
