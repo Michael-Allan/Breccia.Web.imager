@@ -40,23 +40,6 @@ window.Breccia_Web_imager = ( function()
                   which `pushState` alone fails to do. */
                 click.preventDefault(); }}}; // Steal the click.
 
-
-
-    window.MathJax = { /* In case of imaging option `-math` [OM], here are the corresponding
-          MathJax configuration options.  https://docs.mathjax.org/en/latest/options/index.html */
-
-      // input processor, https://docs.mathjax.org/en/latest/options/input/index.html
-      // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-       tex: { // https://docs.mathjax.org/en/latest/options/input/tex.html
-           displayMath: [['･',      '･']], // Halfwidth katakana middle dot (FF65).
-             // Changing?  Sync → `mathBlockDelimiter` in `Project.java`.
-           inlineMath: [['\u2060', '\u2060']] }, // Word joiner (2060).
-
-      // output processor, https://docs.mathjax.org/en/latest/options/output/index.html
-      // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
-       chtml: { // https://docs.mathjax.org/en/latest/options/output/chtml.html
-           displayAlign: 'left' }}; // So sharing the indent of parent element `MathDisplayBlock`.
-
     Object.freeze( εP );
     return εP;
 
@@ -67,9 +50,6 @@ window.Breccia_Web_imager = ( function()
 // NOTES
 // ─────
 //   DP · Defunct parameter.
-//
-//   OM · Imaging option `-math`.
-//        http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#math
 //
 //   SM · Strict mode.  https://262.ecma-international.org/6.0/#sec-strict-mode-code
 //        The subsequent test is from Noseratio.  https://stackoverflow.com/a/18916788/2402790

@@ -1224,15 +1224,18 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             documentHead.appendChild( e = d.createElementNS( nsHTML, "title" ));
             e.appendChild( d.createTextNode( fileTitle == null ? "Untitled" : fileTitle )); /* A title
               *is* mandatory.  https://html.spec.whatwg.org/multipage/semantics.html#the-head-element */
+            final String coSD = opt.coServiceDirectory();
             documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
             e.setAttribute( "rel", "stylesheet" );
-            e.setAttribute( "href", opt.coServiceDirectory() + "Breccia/Web/imager/image.css" );
+            e.setAttribute( "href", coSD + "Breccia/Web/imager/image.css" );
             documentHead.appendChild( e = d.createElementNS( nsHTML, "script" ));
-            e.setAttribute( "defer", "" );
-            e.setAttribute( "src", opt.coServiceDirectory() + "Breccia/Web/imager/image.js" ); // ◦↓◦
-            if( opt.toRenderMath() ) { // After script `image.js` which sets its configuration:   ◦↑◦
-                documentHead.appendChild( e = d.createElementNS( nsHTML, "script" ));
-                e.setAttribute( "defer", "" );
+            e.setAttribute( "async", "" );
+            e.setAttribute( "src", coSD + "Breccia/Web/imager/image.js" );
+            if( opt.toRenderMath() ) {
+                documentHead.appendChild( e = d.createElementNS( nsHTML, "script" )); // ◦↓◦ ∴ sync
+                e.setAttribute( "src", coSD + "Breccia/Web/imager/MathJax_configuration.js" );
+                documentHead.appendChild( e = d.createElementNS( nsHTML, "script" )); // ◦↑◦
+                e.setAttribute( "async", "" );
                 e.setAttribute( "id", "MathJax-script" );
                 e.setAttribute( "src", "https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" ); }
 
