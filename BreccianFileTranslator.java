@@ -1421,7 +1421,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     ++c; // Through the start delimiter.
                     for(; c <= cLast; c += charCount(ch) ) { // Seek the corresponding end delimiter:
                         ch = text.codePointAt( c );
-                        if( ch != mathBlockDelimiter || c == cLast  ) continue;
+                        if( ch != mathBlockDelimiter ) continue;
 
                       // Wrap the math so the style rules can better lay out its MathJax rendering
                       // ─────────────
