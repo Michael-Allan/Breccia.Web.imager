@@ -1410,40 +1410,35 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             assert !nText.isElementContentWhitespace(); /* The `sourceXCursor` has produced
               ‘X-Breccia with no ignorable whitespace’. */
             final String text = nText.getData();
-            boolean inIndent = false;
             text: for( int ch, c = 0, cLast = text.length() - 1; c <= cLast; c += charCount(ch) ) {
                 ch = text.codePointAt( c );
-                if( inIndent ) {
-                    if( ch == ' ' || impliesNewline(ch) ) continue;
-                    inIndent = false;
-                    if( ch != mathBlockDelimiter ) continue;
-                    final int b = c; // Offset of the start delimiter for the math.
-                    ++c; // Through the start delimiter.
-                    for(; c <= cLast; c += charCount(ch) ) { // Seek the corresponding end delimiter:
-                        ch = text.codePointAt( c );
-                        if( ch != mathBlockDelimiter ) continue;
+                if( ch != mathBlockDelimiter ) continue;
+                final int b = c; // Offset of the start delimiter for the math.
+                ++c; // Through the start delimiter.
+                for(; c <= cLast; c += charCount(ch) ) { // Seek the corresponding end delimiter:
+                    ch = text.codePointAt( c );
+                    if( ch != mathBlockDelimiter  ) continue;
 
-                      // Wrap the math so the style rules can better lay out its MathJax rendering
-                      // ─────────────
-                        if( c != cLast ) nText.splitText( c + 1 ); /* Cutting off any text that remains
-                          after the end delimiter, to become `nText` for the next pass. */
-                        n = nText = nText.splitText( b ); // Cutting off before the start delimiter, too.
-                        assert b != 0; // Always there is such text, comprising at least a newline.
-                        final Element math = d.createElementNS( nsImager, "img:mathBlock" );
-                        final Node p = nText.getParentNode();
-                        if( hasName( math.getLocalName(), p )) throw new IllegalStateException();
-                        p.insertBefore( math, nText );
-                        math.appendChild( nText ); /* MathJax at runtime
-                          will replace `nText` with its rendering elements. */
-                     // nText.insertData( 1/*after delimiter*/, "\\large " ); /* For legibility of
-                     //   small elements such as subscripts.  Alternatives would be (a) the MathJax
-                     //   `scale` option, except it cannot be restricted to math which has block layout;
-                     //   and (b) CSS styling, except it may cause layout artifacts.
-                     //   (a) https://docs.mathjax.org/en/latest/options/output/index.html#output-options
-                     //   (b) https://stackoverflow.com/a/25329062/2402790 */
-                        break text; }
-                    break; }
-                if( impliesNewline( ch )) inIndent = true; }}
+                  // Wrap the math so the style rules can better lay out its MathJax rendering
+                  // ─────────────
+                    if( c != cLast ) nText.splitText( c + 1 ); /* Cutting off any text that remains
+                      after the end delimiter, to become `nText` for the next pass. */
+                    n = nText = nText.splitText( b ); // Cutting off before the start delimiter, too.
+                    assert b != 0; // Always there is such text, comprising at least a newline.
+                    final Element math = d.createElementNS( nsImager, "img:mathBlock" );
+                    final Node p = nText.getParentNode();
+                    if( hasName( math.getLocalName(), p )) throw new IllegalStateException();
+                    p.insertBefore( math, nText );
+                    math.appendChild( nText ); /* MathJax at runtime
+                      will replace `nText` with its rendering elements. */
+                 // nText.insertData( 1/*after delimiter*/, "\\large " ); /* For legibility of
+                 //   small elements such as subscripts.  Alternatives would be (a) the MathJax
+                 //   `scale` option, except it cannot be restricted to math which has block layout;
+                 //   and (b) CSS styling, except it may cause layout artifacts.
+                 //   (a) https://docs.mathjax.org/en/latest/options/output/index.html#output-options
+                 //   (b) https://stackoverflow.com/a/25329062/2402790 */
+                    break text; }
+                break; }}
 
 
       // ══════════════
