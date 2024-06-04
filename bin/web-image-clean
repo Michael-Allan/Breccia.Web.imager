@@ -1,8 +1,8 @@
 #!/usr/bin/env --split-string=${JDK_HOME}/bin/java @Makeshift/java_arguments @Makeshift/java_javac_arguments \c [SS]
-package Breccia.Web.imager; // [AFN]
 
 // This command runs directly from the present source file, it needs no compiling.
 
+import Breccia.Web.imager.CleaningOptions;
 import java.io.Console;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -158,4 +158,4 @@ public final class WebImageCleanCommand extends SimpleFileVisitor<Path> { // [AF
 
 
 
-                                                        // Copyright © 2022  Michael Allan.  Licence MIT.
+                                                  // Copyright © 2022, 2024  Michael Allan.  Licence MIT.
