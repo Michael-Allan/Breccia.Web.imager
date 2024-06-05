@@ -25,3 +25,7 @@ window.MathJax = {
 // ────
 //   SM · Strict mode.  https://262.ecma-international.org/6.0/#sec-strict-mode-code
 //        The subsequent test is from Noseratio.  https://stackoverflow.com/a/18916788/2402790
+
+
+
+                                                        // Copyright © 2024  Michael Allan.  Licence MIT.
