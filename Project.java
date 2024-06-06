@@ -86,6 +86,19 @@ public final class Project {
 
 
 
+    /** Whether character `ch` is a mathematics delimiter.
+      */
+    public static boolean isMathDelimiter( final char ch ) {
+        return ch == mathInLineDelimiter || ch == mathBlockDelimiter; }
+
+
+    /** Whether code point `ch` is a mathematics delimiter.
+      */
+    public static boolean isMathDelimiter( final int ch ) {
+        return ch == mathInLineDelimiter || ch == mathBlockDelimiter; }
+
+
+
     /** The logger proper to the present project.
       */
     static final Logger logger = Logger.getLogger( "Breccia.Web.imager" );
@@ -134,9 +147,16 @@ public final class Project {
 
 
 
-    /** The delimiter for mathematics to be rendered in block (aka display) as opposed to in-line form.
+    /** The delimiter for mathematics to be rendered in block (aka display) form.
       */
-    final static char mathBlockDelimiter = '･'; // Halfwidth katakana middle dot (FF65).
+    final static int mathBlockDelimiter = '･'; // Halfwidth katakana middle dot (FF65).
+      // Changing?  Sync → `MathJax_configuration.js`.
+
+
+
+    /** The delimiter for mathematics to be rendered in-line.
+      */
+    final static int mathInLineDelimiter = '\u2060'; // Word joiner.
       // Changing?  Sync → `MathJax_configuration.js`.
 
 

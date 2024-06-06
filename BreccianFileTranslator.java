@@ -51,6 +51,7 @@ import static Breccia.Web.imager.ImageNodes.ownerHeadOrSelf;
 import static Breccia.Web.imager.ImageNodes.sourceText;
 import static Breccia.Web.imager.ImageNodes.successorTitlingLabel;
 import static Breccia.Web.imager.Project.imageSibling;
+import static Breccia.Web.imager.Project.isMathDelimiter;
 import static Breccia.Web.imager.Project.logger;
 import static Breccia.Web.imager.Project.looksBrecciaLike;
 import static Breccia.Web.imager.Project.looksImageLike;
@@ -1282,14 +1283,23 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           // ──────────────
             final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
             final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
-            for( int ch, c = 0; c < freeLength; c += charCount(ch) ) {
+            boolean isMath = false, isMathTerminus = false;
+            for( int ch, mathDelimiter = 0, c = 0; c < freeLength; c += charCount(ch) ) {
                 ch = text.codePointAt( c );
-                if( isPunctuation( ch )) {
+                if( isMath ) {
+                    if( ch == mathDelimiter ) isMathTerminus = true; }
+                else if( isMathDelimiter( ch )) {
+                    isMath = true;
+                    mathDelimiter = ch; }
+                if( !isMath && isPunctuation(ch) ) {
                     appendAnyQ( b, bQ );
                     bP.appendCodePoint( ch ); }
                 else {
                     appendAnyP( b, bP );
-                    bQ.appendCodePoint( ch ); }}
+                    bQ.appendCodePoint( ch ); }
+                if( isMathTerminus ) {
+                    isMath = isMathTerminus = false;
+                    mathDelimiter = 0; }}
             if( bP.length() == freeLength ) { // Then the free-form content comprises punctuation alone.
                 assert bQ.length() == 0;
                 appendAnyP( b, bP );
@@ -1424,10 +1434,10 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
                   // Wrap the math so the style rules can better lay out its MathJax rendering
                   // ─────────────
-                    if( c != cLast ) nText.splitText( c + 1 ); /* Cutting off any text that remains
-                      after the end delimiter, to become `nText` for the next pass. */
-                    n = nText = nText.splitText( b ); // Cutting off before the start delimiter, too.
-                    assert b != 0; // Always there is such text, comprising at least a newline.
+                    if( c != cLast ) { // Then text occurs *after* the end delimiter.
+                        nText.splitText( c + 1 ); } // Split it off, to become `nText` for the next pass.
+                    if( b != 0 ) { // Then text occurs *before* the start delimiter.
+                        n = nText = nText.splitText( b ); } // Split it off, to leave it behind.
                     final Element math = d.createElementNS( nsImager, "img:mathBlock" );
                     final Node p = nText.getParentNode();
                     if( hasName( math.getLocalName(), p )) throw new IllegalStateException();
