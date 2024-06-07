@@ -89,7 +89,7 @@ public final class ImageNodes {
       // to remove all such text from the return value, e.g. by cloning `node`, filtering the clone,
       // then calling `getTextContent` on it.
       //     Non-original elements that merely wrap original content would neither be marked nor removed,
-      // as their presence would have no effect on the return value.
+      // as their presence would have no affect on the return value.
 
 
 
