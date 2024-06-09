@@ -56,19 +56,30 @@
 /* ━━━  B o d y   f r a c t a  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
  */
 
-    /* A self hyperlink within a perfect indent (the typical case).  Here the hyperlink element `a`
-     * wraps the whole of the indent (which comprises spaces) except the final character.
+    /* Body fractal heads
      */
-    brec|PerfectIndent > html|a[class~='self'] {
+    brec|FileFractum > brec|*:not(Head) brec|Head {
+        position: relative; } /* [ECB] */
+
+
+
+    /* Body fractal self hyperlinks
+     */
+    brec|Head > html|a[class~='self'] {
         color: hsl( var(--hyperlink-colour-H), 30%, 50% );
-        position: relative; /* [ECB] */
-        text-decoration: none; } /* Defeat any browser default such as the `underline` of Chrome.
+        text-decoration: none;  /* Defeat any browser default such as the `underline` of Chrome.
           It would be useless for such an isolated hyperlink, and would defeat cued hinting (below). */
 
-    /* A hint to the presence of the self-hyperlink, cued by sustained hovering of the cursor
-     * in the perfect indent.
+        position: absolute;
+        left: 0;
+        top: 0; }
+
+
+
+    /* Indicator of the presence of a self hyperlink, cued by sustained hovering of the cursor
+     * in the body fractal head.
      */
-    brec|PerfectIndent > html|a[class~='self']::before {
+    brec|Head:not([isFlush]) > html|a[class~='self']::before { /* [NWF] */
         content: /*URI fragment delimiter*/'#';
         left: 0.5ch;
         position: absolute;
@@ -77,31 +88,17 @@
           Transit of `visibility` instead is a workaround. */
         visibility: hidden; }
 
-    brec|PerfectIndent:hover > html|a[class~='self']::before {
+    brec|Head:not([isFlush]):hover > html|a[class~='self']::before {
         visibility: visible; }
 
 
 
-    /* Indicator of a targeted fractum, either a pointer (Ptr) or division (Div).
+    /* Indicator of a targeted body fractum.
      */
-    *[typestamp]/*Ptr*/:target > Head >                  PerfectIndent > html|a[class~='self']::before,
-    *[typestamp]/*Div*/:target > Head > DividerSegment > PerfectIndent > html|a[class~='self']::before {
+    brec|*[typestamp]:target > brec|Head:not([isFlush]) > html|a[class~='self']::before { /* [NWF] */
         color: hsl( 0/*red*/, 50%, 70% );
         transition-delay: 0s;
         visibility: visible; }
-
-
-
-    /* A self hyperlink outside of a perfect indent.
-     * Here the hyperlink element `a` wraps one or two non-space characters.
-     */
-    brec|*:not(PerfectIndent) > html|a[class~='self'] {
-        color: inherit; /* Leaving the wrapped character, which is thereby the content
-          of a hyperlink, visibly unaffected by that treatment. */
-        text-decoration: none; } /* Defeat any browser default such as the `underline` of Chrome.
-          It would likely be too distracting for such a specialized, infrequently used hyperlink.
-          Let the cued hinting from the (typically) more numerous intra-indent hyperlinks (above),
-          together with the cursor styling for the present hyperlink, suffice for hinting purposes. */
 
 
 
@@ -401,6 +398,10 @@
  *
  *   IO   Imager options.
  *        http://reluk.ca/project/Breccia/Web/imager/bin/breccia-web-image.brec.xht#positional,argument,arguments
+ *
+ *   NWF  Not when flush to the left margin.  Only where the head text appears indented, viz. its leading
+ *        perfect indent having content.  Otherwise the indicator, being positioned to overlay
+ *        such content, might instead overlay the head text and obscure it on becoming visible,.
  *
  *   T ·· Text properties are applicable within fractal heads alone, where all Breccian text is confined.
  *

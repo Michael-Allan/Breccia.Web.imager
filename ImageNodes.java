@@ -6,7 +6,9 @@ import org.w3c.dom.Node;
 import static Breccia.parser.plain.Language.completesNewline;
 import static Breccia.parser.plain.Language.isDividerDrawing;
 import static Java.Nodes.hasName;
+import static Java.Nodes.isElement;
 import static Java.Nodes.parentElement;
+import static Java.Nodes.successor;
 import static Java.Nodes.successorElement;
 import static Java.Nodes.textChildFlat;
 
@@ -34,6 +36,24 @@ public final class ImageNodes {
     /** Whether `e` is the image of a fractum.
       */
     public static boolean isFractum( final Element e ) { return e.hasAttribute( "typestamp" ); }
+
+
+
+    /** The namespace name for HTML.
+      */
+    public static final String nsHTML = "http://www.w3.org/1999/xhtml";
+
+
+
+    /** The namespace name for Breccia Web Imager.
+      */
+    public static final String nsImager = "data:,Breccia/Web/imager";
+
+
+
+    /** The namespace name for XML namespacing.
+      */
+    public static final String nsXMLNS = "http://www.w3.org/2000/xmlns/";
 
 
 
@@ -81,15 +101,20 @@ public final class ImageNodes {
 
 
 
-    /** The original text content of the given node and its descendants, prior to any translation.
+    /** The original text content of the given node prior to any translation.  The original text
+      * is recovered as the text content of the node and its descendants exclusive of any contained
+      * within an element marked by an `{@linkplain #nsImager img}:nonOriginalText` attribute.
+      *
+      *     @return The original text content, or the empty string if there is none.
       */
-    public static String sourceText( final Node node ) { return node.getTextContent(); }
-      // Should the translation ever introduce text of its own, then it must be marked as non-original,
-      // e.g. by some attribute defined for that purpose.  The present method would then be modified
-      // to remove all such text from the return value, e.g. by cloning `node`, filtering the clone,
-      // then calling `getTextContent` on it.
-      //     Non-original elements that merely wrap original content would neither be marked nor removed,
-      // as their presence would have no affect on the return value.
+    public static String sourceText( Node node ) {
+        if( hasAttribute_nonOriginalText( node )) return "";
+        node = node.cloneNode( /*deeply*/true );
+        for( Node p, n = successor(p = node);  n != null;  n = successor(p = n) ) {
+            if( hasAttribute_nonOriginalText( n )) {
+                n.getParentNode().removeChild( n );
+                n = p; }} // Resuming from the predecessor of element `n`, now removed.
+        return node.getTextContent(); }
 
 
 
@@ -128,7 +153,15 @@ public final class ImageNodes {
               definition makes it a titling label. */
             assert isDividerDrawing( ch ); } // The only alternative is a divider drawing character.
             while( (e = successorElement(e)) != nBoundary );
-        return null; }}
+        return null; }
+
+
+
+////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    private static boolean hasAttribute_nonOriginalText( final Node n ) {
+        return isElement(n) && ((Element)n).hasAttributeNS(nsImager,"nonOriginalText"); }}
 
 
 

@@ -46,6 +46,9 @@ import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.ImageNodes.head;
 import static Breccia.Web.imager.ImageNodes.isFractum;
+import static Breccia.Web.imager.ImageNodes.nsHTML;
+import static Breccia.Web.imager.ImageNodes.nsImager;
+import static Breccia.Web.imager.ImageNodes.nsXMLNS;
 import static Breccia.Web.imager.ImageNodes.ownerFractum;
 import static Breccia.Web.imager.ImageNodes.ownerHeadOrSelf;
 import static Breccia.Web.imager.ImageNodes.sourceText;
@@ -1017,18 +1020,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    private static final String nsHTML = "http://www.w3.org/1999/xhtml";
-
-
-
-    private static final String nsImager = "data:,Breccia/Web/imager";
-
-
-
-    private static final String nsXMLNS = "http://www.w3.org/2000/xmlns/";
-
-
-
     private final ImagingOptions opt;
 
 
@@ -1382,27 +1373,20 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
           // Self hyperlink
           // ──────────────
-            for( Node n = successor(head);  n != null;  n = successor(n) ) {
-                if( !isText( n )) continue;
-                final Text nText = (Text)n;
-                final String text = nText.getData();
-                final int textLength = text.length();
-                if( textLength == 0 ) continue;
-                final int hyperlinkLength; {
-                    if( hasName( "PerfectIndent", nText.getParentNode() )) {
-                        assert textLength >= 4;
-                        hyperlinkLength = textLength - 1; } // All but the final character of the indent.
-                    else hyperlinkLength = textLength > 1 && !impliesNewline(text.charAt(1)) ? 2 : 1; }
-                      // Taking if possible two characters in order to ease clicking.
-                final Text nTextRemainder = nText.splitText( hyperlinkLength );
-                final Element a = d.createElementNS( nsHTML, "html:a" );
-                nText.getParentNode().insertBefore( a, nTextRemainder );
-                a.setAttribute( "class", "self" );
-                a.setAttribute( "href", '#' + id );
-                a.setAttribute( "onclick",
-                  "Breccia_Web_imager.fractumSelfHyperlink_hearClick( event )" );
-                a.appendChild( nText );
-                break; }
+            final Element a = d.createElementNS( nsHTML, "html:a" );
+            head.appendChild( a );
+            a.setAttributeNS( nsImager, "img:nonOriginalText", "" );
+            a.setAttribute( "class", "self" );
+            a.setAttribute( "href", '#' + id );
+            a.setAttribute( "onclick", "Breccia_Web_imager.fractumSelfHyperlink_hearClick( event )" );
+            a.appendChild( d.createTextNode( "    " )); // Enabling the hyperlink and setting its width.
+
+          // Flush heads so marked, for sake of `image.css` where it depends on this
+          // ───────────
+            Node pI = head.getFirstChild();
+            if( hasName( "DividerSegment", pI )) pI = pI.getFirstChild();
+            assert hasName( "PerfectIndent", pI );
+            if( !pI.hasChildNodes() ) head.setAttribute( "isFlush"/*to the left margin*/, "" );
 
           // Record of image
           // ───────────────
