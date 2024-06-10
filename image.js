@@ -2,8 +2,8 @@
  */
 'use strict'; // [SM]
 console.assert( (eval('var _v = null'), typeof _v === 'undefined'), 'That strict mode is in effect' );
-window.Breccia_Web_imager = ( function()
-{
+window.Breccia_Web_imager = ( function() {
+
 
     const εP = {}; // Exports to the public interface of this program.
 
@@ -40,10 +40,12 @@ window.Breccia_Web_imager = ( function()
                   which `pushState` alone fails to do. */
                 click.preventDefault(); }}}; // Steal the click.
 
-    Object.freeze( εP );
-    return εP;
 
-}() );
+
+////////////////////
+
+    Object.freeze( εP );
+    return εP; }() );
 
 
 
