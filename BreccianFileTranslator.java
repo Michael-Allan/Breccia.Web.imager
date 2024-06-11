@@ -223,7 +223,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     final String text = nText.getData();
                     for( int ch, c = 0, cN = text.length(); c < cN; c += charCount(ch) ) {
                         ch = text.codePointAt( c );
-                        if( ch == mathBlockDelimiter && opt.toRenderMath() ) continue;
+                        if( ch == mathBlockDelimiter && opt.toImageMath() ) continue;
                         if( glyphTestFont.canDisplay( ch )) continue;
                         UnglyphedCharacter un = unsMap.get( ch );
                         if( un == null ) {
@@ -1223,7 +1223,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             documentHead.appendChild( e = d.createElementNS( nsHTML, "script" ));
             e.setAttribute( "async", "" );
             e.setAttribute( "src", coSD + "Breccia/Web/imager/image.js" );
-            if( opt.toRenderMath() ) {
+            if( opt.toImageMath() ) {
                 documentHead.appendChild( e = d.createElementNS( nsHTML, "script" )); // ◦↓◦ ∴ sync
                 e.setAttribute( "src", coSD + "Breccia/Web/imager/MathJax_configuration.js" );
                 documentHead.appendChild( e = d.createElementNS( nsHTML, "script" )); // ◦↑◦
@@ -1399,9 +1399,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
       // ═══════════
-      // Mathematics that MathJax renders in block (aka display) as opposed to in-line form
+      // Mathematics that MathJax images in block (aka display) as opposed to in-line form
       // ═══════════
-        if( opt.toRenderMath() ) for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
+        if( opt.toImageMath() ) for( Node n = successor(fileFractum);  n != null;  n = successor(n) ) {
             if( !isText( n )) continue;
             Text nText = (Text)n;
             assert !nText.isElementContentWhitespace(); /* The `sourceXCursor` has produced
@@ -1416,7 +1416,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     ch = text.codePointAt( c );
                     if( ch != mathBlockDelimiter  ) continue;
 
-                  // Wrap the math so the style rules can better lay out its MathJax rendering
+                  // Wrap the math so the style rules can better lay out MathJax’s images
                   // ─────────────
                     if( c != cLast ) { // Then text occurs *after* the end delimiter.
                         nText.splitText( c + 1 ); } // Split it off, to become `nText` for the next pass.
@@ -1427,7 +1427,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     if( hasName( math.getLocalName(), p )) throw new IllegalStateException();
                     p.insertBefore( math, nText );
                     math.appendChild( nText ); /* MathJax at runtime
-                      will replace `nText` with its rendering elements. */
+                      will replace `nText` with its imaging elements. */
                  // nText.insertData( 1/*after delimiter*/, "\\large " ); /* For legibility of
                  //   small elements such as subscripts.  Alternatives would be (a) the MathJax
                  //   `scale` option, except it cannot be restricted to math which has block layout;
