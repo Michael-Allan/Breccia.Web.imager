@@ -107,13 +107,13 @@ public final class ImageNodes {
       *
       *     @return The original text content, or the empty string if there is none.
       */
-    public static String sourceText( Node node ) {
+    public static String sourceText( Node node ) { // Changing?  Sync → `image.js`.
         if( hasAttribute_nonOriginalText( node )) return "";
         node = node.cloneNode( /*deeply*/true );
         for( Node p, n = successor(p = node);  n != null;  n = successor(p = n) ) {
             if( hasAttribute_nonOriginalText( n )) {
                 n.getParentNode().removeChild( n );
-                n = p; }} // Resuming from the predecessor of element `n`, now removed.
+                n = p; }} // Resume from the predecessor of element `n`, now removed.
         return node.getTextContent(); }
 
 
@@ -162,6 +162,7 @@ public final class ImageNodes {
 
     private static boolean hasAttribute_nonOriginalText( final Node n ) {
         return isElement(n) && ((Element)n).hasAttributeNS(nsImager,"nonOriginalText"); }}
+        // Changing?  Sync → `image.js`.
 
 
 

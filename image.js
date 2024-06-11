@@ -42,15 +42,137 @@ window.Breccia_Web_imager = ( function() {
 
 
 
+////  P r i v a t e  ////////////////////////////////////////////////////////////////////////////////////
+
+
+    /** @param e (ClipboardEvent)
+      */
+    function copy/*event listener*/( e ) {
+        const selection = getSelection();
+        let sourceText = '';
+        identifyMath( document.body );                                                    // [◦↓◦]
+        for( let r = 0, rN = selection.rangeCount; r < rN; ++r ) {
+            sourceText += sourceTextOfClone( selection.getRangeAt(r).cloneContents() ); } // [◦↑◦]
+        if( sourceText ) e.clipboardData.setData( 'text/plain', sourceText );
+        e.preventDefault(); }
+
+
+
+    /** @param n (Node)
+      */
+    function hasAttribute_nonOriginalText( n ) { // Changing?  Sync → `ImageNodes.java`.
+        return isElement(n) && n.hasAttributeNS(nsImager,'nonOriginalText'); }
+
+
+
+    /** Ensures `id` attribution of all mathematic images, namely `mjx-container` elements.
+      *
+      *     @param node (Node)
+      */
+    function identifyMath( node ) {
+        for( let n = successor(node);  n !== null;  n = successor(n) ) {
+            if( n.nodeName !== 'mjx-container' || n.id ) continue;
+            n.id = nsImager + '/math.' + identifyMath_counter++; }}
+
+
+
+    let identifyMath_counter = 0;
+
+
+
+    /** @param n (Node)
+      */
+    function isElement( n ) { return n.nodeType === Node.ELEMENT_NODE; }
+
+
+
+    /** The namespace name for Breccia Web Imager.
+      */
+    const nsImager = 'data:,Breccia/Web/imager';
+
+
+
+    function run() { addEventListener( 'copy', copy ); }
+
+
+
+    /** The original text content of the given node prior to Web imaging.
+      *
+      *     @param node (Node)
+      */
+    function sourceText( node ) { // Changing?  Sync → `ImageNodes.java`.
+        if( hasAttribute_nonOriginalText( node )) return '';
+        identifyMath( node );                                          // [◦↓◦]
+        return sourceTextOfClone( node.cloneNode( /*deeply*/true )); } // [◦↑◦]
+
+
+
+    /** The original text content of the given nodal clone prior to Web imaging.
+      *
+      *     @param node (Node) A clone of a node in whose original all instances of mathematics
+      *       were (before cloning) identified.
+      *      @see #identifyMath
+      */
+    function sourceTextOfClone( node ) { // Changing?  Sync → `ImageNodes.java`.
+        for( let p, n = successor(p = node);  n !== null;  n = successor(p = n) ) {
+            if( n.nodeName === 'mjx-container' ) { /* Then `n` is an math image swapped in by MathJax.
+                  Replace it with its original source text, e.g. Tex expression. */
+                const mm = MathJax.startup.document.getMathItemsWithin( document.getElementById( n.id ));
+                  // https://docs.mathjax.org/en/latest/web/typeset.html#looking-up-the-math-on-the-page
+                if( mm.length === 1 ) {
+                    const m = mm[0];
+                    n.parentNode.insertBefore(
+                      document.createTextNode( m.start.delim + m.math/*source text*/ + m.end.delim ),
+                      n );
+                    n.parentNode.removeChild( n ); }
+                else console.assert( false, 'Record of math image is retrievable' ); }
+            else if( hasAttribute_nonOriginalText( n )) {
+                n.parentNode.removeChild( n );
+                n = p; }} // Resume from the predecessor of element `n`, now removed.
+        return node.textContent; }
+
+
+
+    /** Returns the successor of `node` in document order, including any first child,
+      * or null if `node` has no successor.
+      *
+      *     @param node (Node)
+      */
+    function successor( node ) { // Changing?  Sync → `Java/Nodes.java`.
+        let s = node.firstChild;
+        if( !s ) s = successorAfter( node );
+        return s; }
+
+
+
+    /** Returns the exclusive successor of `node` in document order, or null if there is none.
+      *
+      *     @param node (Node)
+      *     @return The first successor of `node` outside of its descendants, or null if none exists.
+      */
+    function successorAfter( node ) { // Changing?  Sync → `Java/Nodes.java`.
+        let s = node.nextSibling;
+        if( !s ) {
+            const p = node.parentNode;
+            if( p ) s = successorAfter( p ); }
+        return s; }
+
+
+
 ////////////////////
 
     Object.freeze( εP );
+    run();
     return εP; }() );
 
 
 
 // NOTES
 // ─────
+//   ◦↓◦  Code that is order dependent with like-marked code (◦↕◦, ◦↑◦) that comes after.
+//
+//   ◦↑◦  Code that is order dependent with like-marked code (◦↓◦, ◦↕◦) that comes before.
+//
 //   DP · Defunct parameter.
 //
 //   SM · Strict mode.  https://262.ecma-international.org/6.0/#sec-strict-mode-code
