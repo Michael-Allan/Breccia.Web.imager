@@ -12,8 +12,12 @@ window.MathJax = {
     tex: { // https://docs.mathjax.org/en/latest/options/input/tex.html
         displayMath: [['･',      '･']], // Halfwidth katakana middle dot (FF65).
           // Changing?  Sync → `mathBlockDelimiter` in `Project.java`.
-        inlineMath: [['\u2060', '\u2060']] }, // Word joiner.
+        inlineMath: [['\u2060', '\u2060']], // Word joiner.
           // Changing?  Sync → `mathInLineDelimiter` in `Project.java`.
+        processEnvironments: false,
+        processEscapes: false, /* Otherwise MathJax may alter content outside of mathematics,
+          changing `\\` to `\` for instance.  https://github.com/mathjax/MathJax/issues/2532 */
+        processRefs: false },
 
   // output processor, https://docs.mathjax.org/en/latest/options/output/index.html
   // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
