@@ -1248,7 +1248,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
       // ═════════════════
-      // Free-form bullets  [BF↓]
+      // Free-form bullets
       // ═════════════════
         for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
             if( !hasName( "Bullet", b )) continue;
@@ -1261,9 +1261,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final String text;
             final int freeLength; { // Length of the free-form content.
                 final Text t = (Text)b.getFirstChild();
-                assert t.getNextSibling() == null; /* The bullet text comes in a single node.  On this
-                  assumption the present code depends.  *Body fracta* code may insert an `a` element,
-                  splitting the text into multiple nodes.  This code must run before it. [BF↓] */
+                assert t.getNextSibling() == null; /* The bullet text comes in a single node.
+                  On this assumption the present code depends. */
                 text = t.getData();
                 assert text.endsWith( typeMark );
                 freeLength = text.length() - typeMark.length();
@@ -1313,7 +1312,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
       // ═══════════
-      // Body fracta  [BF]
+      // Body fracta
       // ═══════════
         imagedBodyFracta.clear();
         for( Element bF = successorFractum(fileFractum);  bF != null;  bF = successorFractum(bF) ) {
@@ -1575,10 +1574,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 //   ◦↕◦  Code that is order dependent with like-marked code (◦↓◦, ◦↕◦, ◦↑◦) that comes before and after.
 //
 //   ◦↑◦  Code that is order dependent with like-marked code (◦↓◦, ◦↕◦) that comes before.
-//
-//   BF↓  Code that must execute before section *Body fracta*`.
-//
-//   BF · Section *Body fracta* itself, or code that must execute in unison with it.
 //
 //   DTR  ‘A `DOCTYPE` is a required preamble’ in HTML.
 //        https://html.spec.whatwg.org/multipage/syntax.html#the-doctype
