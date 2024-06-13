@@ -911,8 +911,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private final Map<String,Integer> idMap;
-      // Fractum base identifiers (keys) for the present image file of `translate`, each mapped
-      // to the count of its occurences (value).  Base identifiers omit any ordinal suffix.
+      // Base identifiers of fracta for the image file of the present `translate` call (keys)
+      // mapped each to its occurence count (value).  Base identifiers omit any ordinal suffix.
 
 
 
