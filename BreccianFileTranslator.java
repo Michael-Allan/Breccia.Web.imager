@@ -1242,70 +1242,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             fileFractum.setAttributeNS( nsXMLNS, "xmlns:html", nsHTML ); }
 
 
-      // ═════════════════
-      // Free-form bullets
-      // ═════════════════
-        for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
-            if( !hasName( "Bullet", b )) continue;
-            final String typeMark; switch( parseInt( parentAsElement( parentAsElement( b ))
-                  .getAttribute( "typestamp" ))) {
-                case Typestamp.alarmPoint -> typeMark = "!!";
-                case Typestamp.plainPoint -> typeMark =  ""; // None.
-                case Typestamp.taskPoint  -> typeMark =  "+";
-                default -> { continue; }}; // No free-form content in bullets of this type.
-            final String text;
-            final int freeLength; { // Length of the free-form content.
-                final Text t = (Text)b.getFirstChild();
-                assert t.getNextSibling() == null; /* The bullet text comes in a single node.
-                  On this assumption the present code depends. */
-                text = t.getData();
-                assert text.endsWith( typeMark );
-                freeLength = text.length() - typeMark.length();
-                if( freeLength <= 0 ) continue; // No free-form content in bullet `b`.
-                b.removeChild( t ); }
-
-          // Free-form part, its punctuation sequences encapsulated in `punctuation` elements
-          // ──────────────
-            final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
-            final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
-            boolean isMath = false, isMathTerminus = false;
-            for( int ch, mathDelimiter = 0, c = 0; c < freeLength; c += charCount(ch) ) {
-                ch = text.codePointAt( c );
-                if( isMath ) {
-                    if( ch == mathDelimiter ) isMathTerminus = true; }
-                else if( isMathDelimiter( ch )) {
-                    isMath = true;
-                    mathDelimiter = ch; }
-                if( !isMath && isPunctuation(ch) ) {
-                    appendAnyQ( b, bQ );
-                    bP.appendCodePoint( ch ); }
-                else {
-                    appendAnyP( b, bP );
-                    bQ.appendCodePoint( ch ); }
-                if( isMathTerminus ) {
-                    isMath = isMathTerminus = false;
-                    mathDelimiter = 0; }}
-            if( bP.length() == freeLength ) { // Then the free-form content comprises punctuation alone.
-                assert bQ.length() == 0;
-                appendAnyP( b, bP );
-                assert "".equals( b.getAttribute( "class" ));
-                b.setAttribute( "class", "purelyPunctuation" ); } /* A cleaner method might have been
-                  coded entirely in `image.css` using a selector such as `img|punctuation:only-child`,
-                  which would select a `punctuation` element only if it lacked siblings in the bullet;
-                  except that CSS is blind to text nodes, and text-node siblings are precisely where
-                  any non-punctuation characters would be stored. */
-            else {
-                appendAnyP( b, bP );
-                appendAnyQ( b, bQ ); }
-
-          // Terminal type marker, if any
-          // ────────────────────
-            if( typeMark.length() == 0 ) continue;
-            final Element marker = d.createElementNS( nsImager, "img:terminalTypeMarker" );
-            b.appendChild( marker );
-            marker.appendChild( d.createTextNode( typeMark )); }
-
-
       // ═══════════
       // Body fracta
       // ═══════════
@@ -1390,6 +1326,70 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         final Path imageFile = imageSibling(sourceFile).normalize();
         mould.imageFilesLocal.put( imageFile, newImageFile(
           imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) ));
+
+
+      // ═════════════════
+      // Free-form bullets
+      // ═════════════════
+        for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
+            if( !hasName( "Bullet", b )) continue;
+            final String typeMark; switch( parseInt( parentAsElement( parentAsElement( b ))
+                  .getAttribute( "typestamp" ))) {
+                case Typestamp.alarmPoint -> typeMark = "!!";
+                case Typestamp.plainPoint -> typeMark =  ""; // None.
+                case Typestamp.taskPoint  -> typeMark =  "+";
+                default -> { continue; }}; // No free-form content in bullets of this type.
+            final String text;
+            final int freeLength; { // Length of the free-form content.
+                final Text t = (Text)b.getFirstChild();
+                assert t.getNextSibling() == null; /* The bullet text comes in a single node.
+                  On this assumption the present code depends. */
+                text = t.getData();
+                assert text.endsWith( typeMark );
+                freeLength = text.length() - typeMark.length();
+                if( freeLength <= 0 ) continue; // No free-form content in bullet `b`.
+                b.removeChild( t ); }
+
+          // Free-form part, its punctuation sequences encapsulated in `punctuation` elements
+          // ──────────────
+            final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
+            final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
+            boolean isMath = false, isMathTerminus = false;
+            for( int ch, mathDelimiter = 0, c = 0; c < freeLength; c += charCount(ch) ) {
+                ch = text.codePointAt( c );
+                if( isMath ) {
+                    if( ch == mathDelimiter ) isMathTerminus = true; }
+                else if( isMathDelimiter( ch )) {
+                    isMath = true;
+                    mathDelimiter = ch; }
+                if( !isMath && isPunctuation(ch) ) {
+                    appendAnyQ( b, bQ );
+                    bP.appendCodePoint( ch ); }
+                else {
+                    appendAnyP( b, bP );
+                    bQ.appendCodePoint( ch ); }
+                if( isMathTerminus ) {
+                    isMath = isMathTerminus = false;
+                    mathDelimiter = 0; }}
+            if( bP.length() == freeLength ) { // Then the free-form content comprises punctuation alone.
+                assert bQ.length() == 0;
+                appendAnyP( b, bP );
+                assert "".equals( b.getAttribute( "class" ));
+                b.setAttribute( "class", "purelyPunctuation" ); } /* A cleaner method might have been
+                  coded entirely in `image.css` using a selector such as `img|punctuation:only-child`,
+                  which would select a `punctuation` element only if it lacked siblings in the bullet;
+                  except that CSS is blind to text nodes, and text-node siblings are precisely where
+                  any non-punctuation characters would be stored. */
+            else {
+                appendAnyP( b, bP );
+                appendAnyQ( b, bQ ); }
+
+          // Terminal type marker, if any
+          // ────────────────────
+            if( typeMark.length() == 0 ) continue;
+            final Element marker = d.createElementNS( nsImager, "img:terminalTypeMarker" );
+            b.appendChild( marker );
+            marker.appendChild( d.createTextNode( typeMark )); }
 
 
       // ═══════════
