@@ -1193,12 +1193,15 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       * @paramImplied #stringBuilder2
       */
     protected void translate( final Path sourceFile, final Document d ) {
-
-      // HTML form
-      // ─────────
         final Element fileFractum = (Element) d.removeChild( d.getFirstChild() ); // To be reintroduced
         assert hasName( "FileFractum", fileFractum );                            // further below.
         if( d.hasChildNodes() ) throw new IllegalStateException();              // One alone was present.
+        idMap.clear();
+        idMap.put( fileFractumIdentifier, 1 );
+        fileFractum.setAttribute( "id", fileFractumIdentifier );
+
+      // HTML form
+      // ─────────
         final Element html = d.createElementNS( nsHTML, "html" );
         d.appendChild( html );
         html.setAttributeNS( nsXMLNS, "xmlns:img", nsImager );
@@ -1237,14 +1240,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             html.appendChild( documentBody );
             documentBody.appendChild( fileFractum );
             fileFractum.setAttributeNS( nsXMLNS, "xmlns:html", nsHTML ); }
-
-
-      // ════════════
-      // File fractum
-      // ════════════
-        idMap.clear();
-        idMap.put( fileFractumIdentifier, 1 );
-        fileFractum.setAttribute( "id", fileFractumIdentifier );
 
 
       // ═════════════════
