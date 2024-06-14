@@ -3,6 +3,11 @@
 // This command runs directly from the present source file, it needs no compiling.
 
 import Breccia.parser.plain.BrecciaCursor;
+import Breccia.Web.imager.BreccianFileTranslator;
+import Breccia.Web.imager.FileTranslator;
+import Breccia.Web.imager.ImageMould;
+import Breccia.Web.imager.ImagingOptions;
+import Breccia.Web.imager.Project;
 import Breccia.XML.translator.BrecciaXCursor;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -11,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static Breccia.Web.imager.ImagingCommands.image;
-import static Breccia.Web.imager.Project.projectOutputDirectory;
 import static java.lang.System.err;
 import static java.lang.System.exit;
 
@@ -100,7 +104,7 @@ public final class BrecciaWebImageCommand implements AutoCloseable { // [AFN]
     /** @return True on success, false on failure.
       */
     private boolean run() {
-        return image( commandName, boundaryPath, opt, new TranslatorMaker(), projectOutputDirectory ); }
+        return image( commandName, boundaryPath, opt, new TranslatorMaker(), Project.outputDirectory ); }
 
 
 
