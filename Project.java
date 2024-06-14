@@ -88,13 +88,13 @@ public final class Project {
 
     /** Whether character `ch` is a mathematics delimiter.
       */
-    public static boolean isMathDelimiter( final char ch ) {
+    static boolean isMathDelimiter( final char ch ) {
         return ch == mathInLineDelimiter || ch == mathBlockDelimiter; }
 
 
     /** Whether code point `ch` is a mathematics delimiter.
       */
-    public static boolean isMathDelimiter( final int ch ) {
+    static boolean isMathDelimiter( final int ch ) {
         return ch == mathInLineDelimiter || ch == mathBlockDelimiter; }
 
 
