@@ -42,6 +42,7 @@ import org.w3c.dom.Text;
 import static Breccia.parser.Afterlinker.ObjectClause;
 import static Breccia.parser.Typestamp.empty;
 import static Breccia.parser.plain.Language.impliesNewline;
+import static Breccia.parser.plain.Language.isSpace;
 import static Breccia.parser.plain.Project.newSourceReader;
 import static Breccia.Web.imager.ErrorAtFile.wrnHead;
 import static Breccia.Web.imager.ImageNodes.head;
@@ -92,6 +93,7 @@ import static Java.Paths.to_URI_relativeReference;
 import static Java.Patterns.appendFlags;
 import static Java.StringBuilding.clear;
 import static Java.StringBuilding.collapseWhitespace;
+import static Java.Unicode.generalCategory;
 import static Java.URI_References.isRemote;
 import static java.util.Arrays.sort;
 import static java.util.logging.Level.WARNING;
@@ -287,29 +289,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-    /** Removes to the bullet `b` any content of `bP`, forming it as a punctuation element.
-      */
-    private void appendAnyP( final Element b, final StringBuilder bP ) {
-        final int cN = bP.length();
-        if( cN > 0 ) {
-            final Document d = b.getOwnerDocument();
-            final Element punctuation = d.createElementNS( nsImager, "img:punctuation" );
-            b.appendChild( punctuation );
-            punctuation.appendChild( d.createTextNode( bP.toString() ));
-            clear( bP ); }}
-
-
-
-    /** Removes to the bullet `b` any content of `bQ`, forming it as flat text.
-      */
-    private void appendAnyQ( final Element b, final StringBuilder bQ ) {
-        final int cN = bQ.length();
-        if( cN > 0 ) {
-            b.appendChild( b.getOwnerDocument().createTextNode( bQ.toString() ));
-            clear( bQ ); }}
-
-
-
     /** @param granum A granal element other than `FileFractum`.
       */
     protected final CharacterPointer characterPointer( Element granum ) {
@@ -476,7 +455,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 warn( sourceFile, p, "Broken back reference, no such text in parent head\n"
                   + p.markedLine(), jP );
                 continue nC; }
-            if( m.group().length() == 0 ) { // Disallowed. [PHM]
+            if( m.group().isEmpty() ) { // Disallowed. [PHM]
                 final CharacterPointer p = characterPointer( eP );
                 warn( sourceFile, p, "Incomplete back reference, matches an empty text sequence\n"
                   + p.markedLine(), jP );
@@ -484,7 +463,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final int gN = m.groupCount();
             for( int g = 1; g <= gN; ++g ) {
                 final String capture = m.group( g );
-                if( capture == null || capture.length() == 0 ) { // Disallowed. [PHM]
+                if( capture == null || capture.isEmpty() ) { // Disallowed. [PHM]
                     final CharacterPointer p = characterPointer( eP );
                     warn( sourceFile, p, "Incomplete back reference, group " + g
                       + " captures nothing in the parent head\n" + p.markedLine(), jP );
@@ -567,7 +546,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                     warn( sourceFile, p, "Broken back reference, no such text in parent head\n"
                       + p.markedLine(), jP );
                     continue linker; }
-                if( m.group().length() == 0 ) { // Disallowed. [PHM]
+                if( m.group().isEmpty() ) { // Disallowed. [PHM]
                     final CharacterPointer p = characterPointer( eP );
                     warn( sourceFile, p, "Incomplete back reference, matches an empty text sequence\n"
                       + p.markedLine(), jP );
@@ -575,7 +554,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final int gN = m.groupCount();
                 for( int g = 1; g <= gN; ++g ) {
                     final String capture = m.group( g );
-                    if( capture == null || capture.length() == 0 ) { /* Disallowed by language [PHM]
+                    if( capture == null || capture.isEmpty() ) { /* Disallowed by language [PHM]
                           and `ObjectClausePatternCompiler.mSubject` API. */
                         final CharacterPointer p = characterPointer( eP );
                         warn( sourceFile, p, "Incomplete back reference, group " + g
@@ -739,6 +718,52 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 a.setAttribute( "href", hRef );
                 while( (n = eP.getFirstChild()) != null ) a.appendChild( n ); // All `eP` children wrap-
                 eP.appendChild( a ); }}}                                     // ped to form a hyperlink.
+
+
+
+    /** Removes the content of `b` to element `f`, there encapsulating it as a child element
+      * of namespace `ns` and qualified name `n`.
+      */
+    private static void flush( final StringBuilder b, final Element f,
+          final String ns, final String n ) {
+        final Document d = f.getOwnerDocument();
+        final Element e = d.createElementNS( ns, n );
+        f.appendChild( e );
+        e.appendChild( d.createTextNode( b.toString() ));
+        clear( b ); }
+
+
+
+    /** Removes any content of `b` to element `f`, there encapsulating it as a `boldable` child element.
+      *
+      *     @return False if `b` was empty, true otherwise,
+      */
+    private static boolean flushB(final StringBuilder b,  final Element f ) {
+        if( b.isEmpty() ) return false;
+        flush( b, f, nsImager, "img:boldable" );
+        return true; }
+
+
+
+    /** Removes any content of `b` to element `f`, there encapsulating it as a `minor` child element.
+      *
+      *     @return False if `b` was empty, true otherwise,
+      */
+    private static boolean flushM( final StringBuilder b, final Element f ) {
+        if( b.isEmpty() ) return false;
+        flush( b, f, nsImager, "img:minor" );
+        return true; }
+
+
+
+    /** Removes any content of `b` to element `f`, there encapsulating it as a `span` child element.
+      *
+      *     @return False if `b` was empty, true otherwise,
+      */
+    private static boolean flushU( final StringBuilder b, final Element f ) {
+        if( b.isEmpty() ) return false;
+        flush( b, f, nsHTML, "html:span" );
+        return true; }
 
 
 
@@ -927,6 +952,23 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
+    /** Whether codepoint `ch`, if it occured in the free-form part of a bullet,
+      * would there be styled in bold face.
+      */
+    private boolean isBoldable( final int ch ) {
+        final String gC = generalCategory( ch );
+        return gC.startsWith("L"/*Letter*/) || gC.startsWith("N"/*Number*/); }
+
+
+
+    /** Whether codepoint `ch`, if it occured in the free-form part of a bullet,
+      * would there be styled as a minor character.
+      */
+    private boolean isMinor( final int ch ) {
+        return generalCategory(ch).startsWith( "P"/*Punctuation*/ ); }
+
+
+
     /** Whether the given image of a URI reference is marked `non-fractal`.
       *
       *     @see <a href='http://reluk.ca/project/Breccia/language_definition.brec.xht#-,file,locant'>
@@ -959,20 +1001,6 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
         for( Node child = fractum.getFirstChild(); child != null; child = child.getNextSibling() ) {
             if( hasName( "Privatizer", child )) return true; }
         return false; }
-
-
-
-    /** Whether codepoint `ch` is punctuation.
-      */
-    private boolean isPunctuation( final int ch ) {
-        final int gC = Character.getType( ch ); // Unicode general category.
-        return gC == /*Po*/Character.OTHER_PUNCTUATION
-            || gC == /*Pd*/Character.DASH_PUNCTUATION
-            || gC == /*Pc*/Character.CONNECTOR_PUNCTUATION
-            || gC == /*Pe*/Character.END_PUNCTUATION
-            || gC == /*Ps*/Character.START_PUNCTUATION
-            || gC == /*Pi*/Character.INITIAL_QUOTE_PUNCTUATION
-            || gC == /*Pf*/Character.FINAL_QUOTE_PUNCTUATION; }
 
 
 
@@ -1143,6 +1171,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
     private final StringBuilder stringBuilder2 = new StringBuilder(
+      /*initial capacity*/0x2000 ); // = 8192
+
+
+
+    private final StringBuilder stringBuilder3 = new StringBuilder(
       /*initial capacity*/0x2000 ); // = 8192
 
 
@@ -1328,68 +1361,84 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
           imageFile, fileFractum, imagedBodyFracta.toArray(imagedBodyFractaType) ));
 
 
-      // ═════════════════
-      // Free-form bullets
-      // ═════════════════
-        for( Element b = successorElement(fileFractum);  b != null;  b = successorElement(b) ) {
-            if( !hasName( "Bullet", b )) continue;
-            final String typeMark; switch( parseInt( parentAsElement( parentAsElement( b ))
-                  .getAttribute( "typestamp" ))) {
-                case Typestamp.alarmPoint -> typeMark = "!!";
-                case Typestamp.plainPoint -> typeMark =  ""; // None.
-                case Typestamp.taskPoint  -> typeMark =  "+";
-                default -> { continue; }}; // No free-form content in bullets of this type.
-            final String text;
-            final int freeLength; { // Length of the free-form content.
-                final Text t = (Text)b.getFirstChild();
+      // ═══════
+      // Bullets
+      // ═══════
+        for( Element e = successorElement(fileFractum);  e != null;  e = successorElement(e) ) {
+            if( !hasName( "Bullet", e )) continue;
+            final Element bullet = e;
+            final String text; {
+                final Text t = (Text)bullet.getFirstChild();
                 assert t.getNextSibling() == null; /* The bullet text comes in a single node.
                   On this assumption the present code depends. */
                 text = t.getData();
-                assert text.endsWith( typeMark );
-                freeLength = text.length() - typeMark.length();
-                if( freeLength <= 0 ) continue; // No free-form content in bullet `b`.
-                b.removeChild( t ); }
+                bullet.removeChild( t ); }
+            final String typeMark; {
+                switch( parseInt(parentAsElement(parentAsElement(bullet)).getAttribute( "typestamp" ))) {
+                                      default -> typeMark = text; // It constitutes the whole bullet.
+                    case Typestamp.alarmPoint -> typeMark = "!!";
+                    case Typestamp.plainPoint -> typeMark =   ""; // No type mark at all.
+                    case Typestamp.taskPoint  -> typeMark =  "+"; }
+                assert text.endsWith( typeMark ); }
 
-          // Free-form part, its punctuation sequences encapsulated in `punctuation` elements
+          // Free-form part, if any
           // ──────────────
-            final StringBuilder bP = clear( stringBuilder ); // Punctuation characters.
-            final StringBuilder bQ = clear( stringBuilder2 ); // Other characters.
-            boolean isMath = false, isMathTerminus = false;
-            for( int ch, mathDelimiter = 0, c = 0; c < freeLength; c += charCount(ch) ) {
-                ch = text.codePointAt( c );
-                if( isMath ) {
-                    if( ch == mathDelimiter ) isMathTerminus = true; }
-                else if( isMathDelimiter( ch )) {
-                    isMath = true;
-                    mathDelimiter = ch; }
-                if( !isMath && isPunctuation(ch) ) {
-                    appendAnyQ( b, bQ );
-                    bP.appendCodePoint( ch ); }
-                else {
-                    appendAnyP( b, bP );
-                    bQ.appendCodePoint( ch ); }
-                if( isMathTerminus ) {
-                    isMath = isMathTerminus = false;
-                    mathDelimiter = 0; }}
-            if( bP.length() == freeLength ) { // Then the free-form content comprises punctuation alone.
-                assert bQ.length() == 0;
-                appendAnyP( b, bP );
-                assert "".equals( b.getAttribute( "class" ));
-                b.setAttribute( "class", "purelyPunctuation" ); } /* A cleaner method might have been
-                  coded entirely in `image.css` using a selector such as `img|punctuation:only-child`,
-                  which would select a `punctuation` element only if it lacked siblings in the bullet;
-                  except that CSS is blind to text nodes, and text-node siblings are precisely where
-                  any non-punctuation characters would be stored. */
-            else {
-                appendAnyP( b, bP );
-                appendAnyQ( b, bQ ); }
+            final int freeLength = text.length() - typeMark.length(); // Length of the free-form part.
+            if( freeLength > 0 ) {
+                final Element f = d.createElementNS( nsImager, "img:freeForm" );
+                bullet.appendChild( f );                             // Now collate the text for `f`:
+                final StringBuilder bB = clear( stringBuilder ); // divide it among `boldable`,
+                final StringBuilder bM = clear( stringBuilder2 ); // `minor` styled,
+                final StringBuilder bU = clear( stringBuilder3 ); // and unstyled sequences.
+                boolean isMath = false, isMathTerminus = false;
+                for( int ch, mathDelimiter = 0, c = 0; c < freeLength; c += charCount(ch) ) {
+                    ch = text.codePointAt( c );
+                    if( isMath ) {
+                        if( ch == mathDelimiter ) isMathTerminus = true; }
+                    else if( isMathDelimiter( ch )) {
+                        isMath = true;
+                        mathDelimiter = ch; }
+                    if( !isMath ) {
+                        if( isSpace( ch )) {
+                            StringBuilder b;
+                            if( !bB.isEmpty() ) b = bB;
+                            else if( !bM.isEmpty() ) b = bM;
+                            else {
+                                assert !bU.isEmpty(): "No bullet starts with a space";
+                                b = bU; }
+                            b.appendCodePoint( ch ); // Continuing the same styling through the space.
+                            continue; }
 
-          // Terminal type marker, if any
-          // ────────────────────
-            if( typeMark.length() == 0 ) continue;
-            final Element marker = d.createElementNS( nsImager, "img:terminalTypeMarker" );
-            b.appendChild( marker );
-            marker.appendChild( d.createTextNode( typeMark )); }
+                      // `boldable` styling
+                      // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+                        if( isBoldable( ch )) {
+                            if( bB.isEmpty() ) { /*switch to it*/var _ = flushM(bM,f) || flushU(bU,f); }
+                            bB.appendCodePoint( ch );
+                            continue; }
+
+                      // `minor` styling
+                      // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+                        if( isMinor( ch )) {
+                            if( bM.isEmpty() ) { /*switch to it*/var _ = flushB(bB,f) || flushU(bU,f); }
+                            bM.appendCodePoint( ch );
+                            continue; }}
+
+                  // default `span` of unstyled characters
+                  // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+                    if( bU.isEmpty() ) { /*switch to it*/var _ = flushB(bB,f) || flushM(bM,f); }
+                    bU.appendCodePoint( ch );
+                    if( isMathTerminus ) {
+                        isMath = isMathTerminus = false;
+                        mathDelimiter = 0; }}
+                var _ = flushB(bB,f) || flushM(bM,f) || flushU(bU,f);
+                assert bB.isEmpty() && bM.isEmpty() && bU.isEmpty(); }
+
+          // Type marker, if any
+          // ───────────
+            if( typeMark.length() > 0 ) {
+                final Element m = d.createElementNS( nsImager, "img:typeMarker" );
+                bullet.appendChild( m );
+                m.appendChild( d.createTextNode( typeMark )); }}
 
 
       // ═══════════
