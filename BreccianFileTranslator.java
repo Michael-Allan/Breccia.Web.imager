@@ -1386,8 +1386,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             final int freeLength = text.length() - typeMark.length(); // Length of the free-form part.
             if( freeLength > 0 ) {
                 final Element f = d.createElementNS( nsImager, "img:freeForm" );
-                bullet.appendChild( f );                             // Now collate the text for `f`:
-                final StringBuilder bB = clear( stringBuilder ); // divide it among `boldable`,
+                bullet.appendChild( f );                      // Now collate the free-form text,
+                final StringBuilder bB = clear( stringBuilder ); // dividing it among `boldable`,
                 final StringBuilder bM = clear( stringBuilder2 ); // `minor` styled,
                 final StringBuilder bU = clear( stringBuilder3 ); // and unstyled sequences.
                 boolean isMath = false, isMathTerminus = false;
