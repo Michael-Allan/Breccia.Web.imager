@@ -1388,8 +1388,8 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                 final Element f = d.createElementNS( nsImager, "img:freeForm" );
                 bullet.appendChild( f );                      // Now collate the free-form text,
                 final StringBuilder bB = clear( stringBuilder ); // dividing it among `boldable`,
-                final StringBuilder bM = clear( stringBuilder2 ); // `minor` styled,
-                final StringBuilder bU = clear( stringBuilder3 ); // and unstyled sequences.
+                final StringBuilder bM = clear( stringBuilder2 ); // `minor` stylable,
+                final StringBuilder bU = clear( stringBuilder3 ); // and unstylable sequences.
                 boolean isMath = false, isMathTerminus = false;
                 for( int ch, mathDelimiter = 0, c = 0; c < freeLength; c += charCount(ch) ) {
                     ch = text.codePointAt( c );
@@ -1423,7 +1423,7 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
                             bM.appendCodePoint( ch );
                             continue; }}
 
-                  // default `span` of unstyled characters
+                  // default `span` of unstylable characters
                   // ┈┈┈┈┈┈┈┈┈┈┈┈┈┈
                     if( bU.isEmpty() ) { /*switch to it*/var _ = flushB(bB,f) || flushM(bM,f); }
                     bU.appendCodePoint( ch );
