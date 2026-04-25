@@ -1256,6 +1256,11 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
             documentHead.appendChild( e = d.createElementNS( nsHTML, "link" ));
             e.setAttribute( "rel", "stylesheet" );
             e.setAttribute( "href", coSD + "Breccia/Web/imager/image.css" );
+            documentHead.appendChild( e = d.createElementNS( nsHTML, "meta" ));
+            e.setAttribute( "name", "viewport" );
+            e.setAttribute( "content", "initial-scale=1" ); /* Enforce an initially readable text against
+              browsers (e.g. mobile Chrome and Firefox, 2026) that zoom out blindly to the full width
+              of the document, regardless of how illegibly small that makes the font. */
             documentHead.appendChild( e = d.createElementNS( nsHTML, "script" ));
             e.setAttribute( "async", "" );
             e.setAttribute( "src", coSD + "Breccia/Web/imager/image.js" );
@@ -1659,4 +1664,4 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
 
 
 
-                                                   // Copyright © 2020-2024  Michael Allan.  Licence MIT.
+                                             // Copyright © 2020-2024, 2026  Michael Allan.  Licence MIT.
