@@ -906,6 +906,9 @@ public class BreccianFileTranslator<C extends ReusableCursor> implements FileTra
       */
     protected String hRefRemote( final Path f, final Element eRef, final String sRef,
           final boolean isAlteredRef, final URI uRef ) {
+        if( "doi".equals( uRef.getScheme() )) { /* A digital object identifier.
+            Target its resolution via the standard resolver at the DOI Foundation: */
+            return "https://doi.org/" + uRef.getRawSchemeSpecificPart(); }
         URI u = uRef; // Either `uRef` or its image sibling.
         if( looksBrecciaLike( uRef )) {
          /* u = imageSibling( uRef );  Only if `uRef` actually has an image sibling,
